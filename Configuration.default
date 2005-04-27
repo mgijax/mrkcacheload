@@ -1,0 +1,29 @@
+#!/bin/csh
+
+#
+# Configuration.default
+#
+# Source this file from any csh script to set the
+# env variables
+#
+
+# install directory
+setenv MRKCACHEINSTALLDIR	/usr/local/mgi/live/dbutils/mrkcacheload
+
+# directory
+setenv MRKCACHEDIR		/data/loads/mgi/mrkcacheload
+
+# bcp output directory
+setenv MRKCACHEBCPDIR		${MRKCACHEDIR}/output
+
+# log directory
+setenv MRKCACHELOGDIR		${MRKCACHEDIR}/logs
+
+# schema product directory
+setenv SCHEMADIR		/usr/local/mgi/live/dbutils/mgd/mgddbschema
+
+source $SCHEMADIR/Configuration
+
+setenv DSQUERY	$DBSERVER
+setenv MGD	$DBNAME
+
