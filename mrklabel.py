@@ -507,7 +507,7 @@ if len(sys.argv) == 2:
 else:
 	markerKey = None
 
-outputDir = os.environ['MRKLABELBCPDIR']
+outputDir = os.environ['MRKCACHEBCPDIR']
 print '%s' % mgi_utils.date()
 outBCP = open(outputDir + '/MRK_Label.bcp', 'w')
 

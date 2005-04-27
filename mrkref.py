@@ -99,7 +99,7 @@ DL = '|'
 
 cdate = mgi_utils.date("%m/%d/%Y")
 
-outDir = os.environ['MRKREFBCPDIR']
+outDir = os.environ['MRKCACHEBCPDIR']
 
 def createMRK_Reference(markerKey):
 	'''

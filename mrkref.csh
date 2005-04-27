@@ -10,22 +10,19 @@
 
 cd `dirname $0` && source Configuration
 
-setenv DSQUERY	$DBSERVER
-setenv MGD	$DBNAME
-
-setenv LOG	${MRKREFLOGDIR}/`basename $0`.log
+setenv LOG	${MRKCACHELOGDIR}/`basename $0`.log
 rm -rf $LOG
 touch $LOG
 
 date >>& $LOG
 
-cp ${MRKREFBCPDIR}/MRK_Reference.bcp ${MRKREFBCPDIR}/MRK_Reference.bcp.old
+cp ${MRKCACHEBCPDIR}/MRK_Reference.bcp ${MRKCACHEBCPDIR}/MRK_Reference.bcp.old
 
 # Create the bcp file
 
 ./mrkref.py >>& $LOG
 
-if ( -z ${MRKREFBCPDIR}/MRK_Reference.bcp ) then
+if ( -z ${MRKCACHEBCPDIR}/MRK_Reference.bcp ) then
 echo 'BCP File is empty' >>& $LOG
 exit 0
 endif
@@ -39,7 +36,7 @@ ${SCHEMADIR}/table/MRK_Reference_truncate.object >>& $LOG
 ${SCHEMADIR}/index/MRK_Reference_drop.object >>& $LOG
 
 # BCP new data into tables
-cat ${DBPASSWORDFILE} | bcp ${DBNAME}..MRK_Reference in ${MRKREFBCPDIR}/MRK_Reference.bcp -c -t\| -S${DBSERVER} -U${DBUSER} >>& $LOG
+cat ${DBPASSWORDFILE} | bcp ${DBNAME}..MRK_Reference in ${MRKCACHEBCPDIR}/MRK_Reference.bcp -c -t\| -S${DBSERVER} -U${DBUSER} >>& $LOG
 
 # Create indexes
 ${SCHEMADIR}/index/MRK_Reference_create.object >>& $LOG
