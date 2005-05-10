@@ -1,3 +1,10 @@
+TAG: mrkcacheload-3-2-0-3
+DATE: 05/10/2005
+STAFF: lec
+RELEASE: A
+CHANGES:
+1) changed bcp delimiter because "|" is found in some gene names
+
 TAG: mrkcacheload-3-2-0-2
 TAG: mrkcacheload-3-2-0-1
 DATE: 04/27/2005

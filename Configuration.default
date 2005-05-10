@@ -27,3 +27,4 @@ source $SCHEMADIR/Configuration
 setenv DSQUERY	$DBSERVER
 setenv MGD	$DBNAME
 
+setenv FIELDDELIM	"&#&"

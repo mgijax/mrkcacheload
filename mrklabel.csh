@@ -36,7 +36,7 @@ ${SCHEMADIR}/table/MRK_Label_truncate.object | tee -a ${LOG}
 ${SCHEMADIR}/index/MRK_Label_drop.object | tee -a ${LOG}
 
 # BCP new data into tables
-cat ${DBPASSWORDFILE} | bcp ${DBNAME}..MRK_Label in ${MRKCACHEBCPDIR}/MRK_Label.bcp -c -t\| -S${DBSERVER} -U${DBUSER} | tee -a ${LOG}
+cat ${DBPASSWORDFILE} | bcp ${DBNAME}..MRK_Label in ${MRKCACHEBCPDIR}/MRK_Label.bcp -e ${MRKCACHEBCPDIR}/MRK_Label.bcp.error -c -t${FIELDDELIM} -S${DBSERVER} -U${DBUSER} | tee -a ${LOG}
 
 # Create indexes
 ${SCHEMADIR}/index/MRK_Label_create.object | tee -a ${LOG}

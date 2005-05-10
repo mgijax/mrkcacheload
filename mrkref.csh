@@ -36,7 +36,7 @@ ${SCHEMADIR}/table/MRK_Reference_truncate.object >>& $LOG
 ${SCHEMADIR}/index/MRK_Reference_drop.object >>& $LOG
 
 # BCP new data into tables
-cat ${DBPASSWORDFILE} | bcp ${DBNAME}..MRK_Reference in ${MRKCACHEBCPDIR}/MRK_Reference.bcp -c -t\| -S${DBSERVER} -U${DBUSER} >>& $LOG
+cat ${DBPASSWORDFILE} | bcp ${DBNAME}..MRK_Reference in ${MRKCACHEBCPDIR}/MRK_Reference.bcp -e ${MRKCACHEBCPDIR}/MRK_Reference.bcp.error -c -t${FIELDDELIM} -S${DBSERVER} -U${DBUSER} >>& $LOG
 
 # Create indexes
 ${SCHEMADIR}/index/MRK_Reference_create.object >>& $LOG

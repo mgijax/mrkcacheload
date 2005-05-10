@@ -26,7 +26,7 @@ import db
 import mgi_utils
 
 NL = '\n'
-DL = '|'
+DL = os.environ['FIELDDELIM']
 
 cdate = mgi_utils.date("%m/%d/%Y")
 createdBy = '1000'

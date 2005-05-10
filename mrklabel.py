@@ -66,7 +66,7 @@ import db
 import mgi_utils
 
 NL = '\n'
-DL = '|'
+DL = os.environ['FIELDDELIM']
 
 loaddate = mgi_utils.date("%m/%d/%Y")
 
