@@ -8,15 +8,13 @@
 # lec	05/17/2000
 #
 
-cd `dirname $0` && source Configuration
+cd `dirname $0` && source ./Configuration
 
 setenv LOG	${MRKCACHELOGDIR}/`basename $0`.log
 rm -rf $LOG
 touch $LOG
 
 date >>& $LOG
-
-cp ${MRKCACHEBCPDIR}/MRK_Reference.bcp ${MRKCACHEBCPDIR}/MRK_Reference.bcp.old
 
 # Create the bcp file
 
