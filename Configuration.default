@@ -27,5 +27,6 @@ source $SCHEMADIR/Configuration
 setenv DSQUERY	$DBSERVER
 setenv MGD	$DBNAME
 
-setenv COLDELIM 	"#=#\n"
 setenv FIELDDELIM	"&#&"
+
+setenv CREATEDBY        1000
