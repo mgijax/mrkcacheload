@@ -417,7 +417,13 @@ def printMouse():
 
 	    displayCategory1 = deriveCategory1(r)
 	    displayCategory2 = deriveCategory2(r)
-	    displayCategory3 = genotypeCategory3[gcKey]
+
+	    # if the genotype belongs in section 5 (non-gene), then it's section 5 for both categories
+
+	    if displayCategory1 == 5:
+		displayCategory3 = 5
+	    else:
+		displayCategory3 = genotypeCategory3[gcKey]
 
 	    if humanOrtholog.has_key(marker):
 		h = humanOrtholog[marker]
