@@ -43,6 +43,7 @@ import mgi_utils
 
 NL = '\n'
 DL = os.environ['FIELDDELIM']
+RDL = '\t'
 
 cdate = mgi_utils.date("%m/%d/%Y")
 createdBy = os.environ['CREATEDBY']
@@ -245,6 +246,13 @@ def deriveCategory2(r):
 		return 3
 
 def selectMouse():
+	#
+	# Purpose: 
+	# Returns:
+	# Assumes:
+	# Effects:
+	# Throws:
+	#
 
 	global humanOrtholog, mouseToOMIM, genotypeDisplay
 
@@ -364,26 +372,35 @@ def selectMouse():
 	    humanOrtholog[key] = value
 
 def printMouse():
+	#
+	# Purpose:
+	# Returns:
+	# Assumes:
+	# Effects:
+	# Throws:
+	#
 
-        genotypeCategory3 = {}	# mouse genotype key: display category 3
+        genotypeCategory3 = {}	# mouse genotype key + termID: display category 3
 
 	#
-	# for each genotype, cache the mininum display category 1 value
+	# for each genotype/term, cache the mininum display category 1 value
 	# this will be display category 3 (human disease table 2)
 	#
 
-	results = db.sql('select * from #omimmouse6 order by _Genotype_key', 'auto')
+	results = db.sql('select * from #omimmouse6 order by _Genotype_key, termID', 'auto')
 
 	for r in results:
 
 	    genotype = r['_Genotype_key']
+	    termID = r['termID']
+	    gcKey = `genotype` + termID
 	    displayCategory1 = deriveCategory1(r)
 
-	    if genotypeCategory3.has_key(genotype):
-		if displayCategory1 < genotypeCategory3[genotype]:
-		    genotypeCategory3[genotype] = displayCategory1
+	    if genotypeCategory3.has_key(gcKey):
+		if displayCategory1 < genotypeCategory3[gcKey]:
+		    genotypeCategory3[gcKey] = displayCategory1
 	    else:
-		genotypeCategory3[genotype] = displayCategory1
+		genotypeCategory3[gcKey] = displayCategory1
 
 	#
 	# now process each individual marker/genotype record
@@ -394,10 +411,13 @@ def printMouse():
 
 	    marker = r['_Marker_key']
 	    genotype = r['_Genotype_key']
+	    termID = r['termID']
+	    mgiID = r['mgiID']
+	    gcKey = `genotype` + termID
+
 	    displayCategory1 = deriveCategory1(r)
 	    displayCategory2 = deriveCategory2(r)
-	    displayCategory3 = genotypeCategory3[genotype]
-	    mgiID = r['mgiID']
+	    displayCategory3 = genotypeCategory3[gcKey]
 
 	    if humanOrtholog.has_key(marker):
 		h = humanOrtholog[marker]
@@ -409,7 +429,7 @@ def printMouse():
 		orthologKey = ''
 		orthologSymbol = ''
 
-	    if genotypeDisplay.has_key(genotype):
+	    if genotypeDisplay.has_key(gcKey):
 		g1 = string.join(genotypeDisplay[genotype])
             else:
 		g1 = ''
@@ -450,27 +470,34 @@ def printMouse():
 #		pheno5HeaderBCP.write(mgiID + DL + header + NL)
 
 	    reviewBCP.write(
-	        mgi_utils.prvalue(displayCategory1) + DL + \
-	        mgi_utils.prvalue(displayCategory2) + DL + \
-	        mgi_utils.prvalue(displayCategory3) + DL + \
-		mgi_utils.prvalue(genotype) + DL + \
-		r['markerSymbol'] + DL + \
-		r['alleleSymbol'] + DL + \
-		r['term'] + DL + \
-		r['termID'] + DL + \
-		r['jnumID'] + DL + \
-		r['strain'] + DL + \
-		mgi_utils.prvalue(r['isNot']) + DL)
+	        mgi_utils.prvalue(displayCategory1) + RDL + \
+	        mgi_utils.prvalue(displayCategory2) + RDL + \
+	        mgi_utils.prvalue(displayCategory3) + RDL + \
+		mgi_utils.prvalue(genotype) + RDL + \
+		r['markerSymbol'] + RDL + \
+		r['alleleSymbol'] + RDL + \
+		r['term'] + RDL + \
+		r['termID'] + RDL + \
+		r['jnumID'] + RDL + \
+		r['strain'] + RDL + \
+		mgi_utils.prvalue(r['isNot']) + RDL)
 
 	    if humanOrtholog.has_key(marker):
 		h = humanOrtholog[marker]
 	        reviewBCP.write(h['orthologSymbol'])
 	    else:
-	        reviewBCP.write(DL)
+	        reviewBCP.write(RDL)
 
 	    reviewBCP.write(NL)
 
 def selectHuman():
+	#
+	# Purpose:
+	# Returns:
+	# Assumes:
+	# Effects:
+	# Throws:
+	#
 
 	global mouseOrtholog, humanToOMIM, OMIMToHuman
 
@@ -549,6 +576,13 @@ def selectHuman():
 	    mouseOrtholog[key] = value
 
 def printHuman():
+	#
+	# Purpose:
+	# Returns:
+	# Assumes:
+	# Effects:
+	# Throws:
+	#
 
 	results = db.sql('select * from #omimhuman3 order by markerSymbol, term', 'auto')
 
@@ -575,22 +609,6 @@ def printHuman():
 #		continue
 
 	    omimBCP.write(
-		mgi_utils.prvalue(humanOrganismKey) + DL + 
-		mgi_utils.prvalue(marker) + DL + 
-		DL + \
-		DL + \
-		mgi_utils.prvalue(r['_Term_key']) + DL + \
-		mgi_utils.prvalue(r['_Refs_key']) + DL + \
-		r['markerSymbol'] + DL + \
-		DL + \
-		mgi_utils.prvalue(r['term']) + DL + \
-		r['termID'] + DL + \
-		mgi_utils.prvalue(r['jnumID']) + DL + \
-		DL + \
-		mgi_utils.prvalue(r['isNot']) + DL + \
-		DL + DL)
-
-	    omimBCP.write(
 		mgi_utils.prvalue(humanOrganismKey) + DL +  \
 		mgi_utils.prvalue(marker) + DL +  \
 		DL + \
@@ -615,16 +633,16 @@ def printHuman():
 		cdate + DL + cdate + NL)
 
 	    reviewBCP.write(
-	        mgi_utils.prvalue(displayCategory1) + DL + \
-	        mgi_utils.prvalue(displayCategory2) + DL + \
-	        mgi_utils.prvalue(displayCategory3) + DL + \
-		r['markerSymbol'] + DL + \
-		DL + \
-		mgi_utils.prvalue(r['term']) + DL + \
-		r['termID'] + DL + \
-		mgi_utils.prvalue(r['jnumID']) + DL + \
-		DL + \
-		mgi_utils.prvalue(r['isNot']) + DL)
+	        mgi_utils.prvalue(displayCategory1) + RDL + \
+	        mgi_utils.prvalue(displayCategory2) + RDL + \
+	        mgi_utils.prvalue(displayCategory3) + RDL + \
+		r['markerSymbol'] + RDL + \
+		RDL + \
+		mgi_utils.prvalue(r['term']) + RDL + \
+		r['termID'] + RDL + \
+		mgi_utils.prvalue(r['jnumID']) + RDL + \
+		RDL + \
+		mgi_utils.prvalue(r['isNot']) + RDL)
 
 	    if mouseOrtholog.has_key(marker):
 		h = mouseOrtholog[marker]
