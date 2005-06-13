@@ -61,7 +61,6 @@ mouseToOMIM = {}	# mouse marker key : OMIM term id
 OMIMToHuman = {}	# OMIM term id : list of human marker keys
 
 genotypeDisplay = {}	# mouse genotype key: genotype display
-genotypeAll = {}	# mouse genotype key: all genotype display categories this genotype belongs to
 
 gene = 1
 
@@ -87,7 +86,6 @@ headerFootnote5 = 'Models which involve transgenes or other mutation types may a
 # Genotype Footnotes on Phenotype Detail Page
 #
 genotypeFootnote1 = '%s is associated with this disease in humans.  '
-genotypeFootnoteAddl = 'This genotype appears more than once in the table.'
 
 outDir = os.environ['MRKCACHEBCPDIR']
 
@@ -110,12 +108,6 @@ def deriveCategory1(r):
 	header = ''
 	headerFootnote = ''
 	genotypeFootnote = ''
-
-	if genotypeAll.has_key(genotype):
-	    if len(genotypeAll[genotype]) > 1:
-	        genotypeFootnote = genotypeFootnoteAddl
-	    else:
-	        genotypeFootnote = ''
 
 	# this is only appropriate for mouse-centric records
 
@@ -425,8 +417,6 @@ def printMouse():
 	# Throws:
 	#
 
-        global genotypeAll
-
         genotypeCategory3 = {}	# mouse genotype key + termID: display category 3
 
 	#
@@ -448,11 +438,6 @@ def printMouse():
 		    genotypeCategory3[gcKey] = displayCategory1
 	    else:
 		genotypeCategory3[gcKey] = displayCategory1
-
-	    if not genotypeAll.has_key(genotype):
-		genotypeAll[genotype] = []
-	    if displayCategory1 not in genotypeAll[genotype]:
-	        genotypeAll[genotype].append(displayCategory1)
 
 	#
 	# now process each individual marker/genotype record
