@@ -61,20 +61,40 @@ mouseToOMIM = {}	# mouse marker key : OMIM term id
 OMIMToHuman = {}	# OMIM term id : list of human marker keys
 
 genotypeDisplay = {}	# mouse genotype key: genotype display
+genotypeAll = {}	# mouse genotype key: all genotype display categories this genotype belongs to
 
 gene = 1
 
-pheno1Header = '%s is associated with the disease in humans; the mouse model also carries %s mutations.'
-pheno2Header = '%s is not associated with this disease in humans.'
-pheno3Header = 'No causative human gene is known for the disease; or the mouse structural gene is not identified; or no ortholog has been estabished between the mouse and a human gene.'
-pheno4HeaderA = '%s is associated with this human disease.  '
-pheno4HeaderB = 'The mouse genotype involves %s mutations but the phenotype did not resemble the human disease.'
+#
+# Headers on Phenotype Detail Page
+#
+phenoHeader1 = 'Models with phenotypic similarity to human diseases associated with %s'
+phenoHeader2a = 'Models with phenotypic similarity to human diseases not associated with %s'
+phenoHeader2b = 'Models with phenotypic similarity to human diseases having known causal genes with established orthologs'
+phenoHeader3a = 'Models with phenotypic similarity to human diseases with unknown etiology'
+phenoHeader3b = 'Models with phenotypic similarity to human diseases having known causal genes without established mouse orthologs, or diseases with unknown human etiology. '
+phenoHeader4 = 'No similarity to the expected human disease phenotype was found'
+phenoHeader5 = 'Models involving transgenes or other mutation types'
+
+#
+# Header Footnotes on Phenotype Detail Page
+#
+headerFootnote2b = 'The human diseases are associated with human genes, but %s is not known to be an ortholog of any of them.'
+headerFootnote4 = '%s is associated with this human disease.  The mouse genotype involves %s mutations but the phenotype did not resemble the human disease.'
+headerFootnote5 = 'Models which involve transgenes or other mutation types may appear in other sections of the table.'
+
+#
+# Genotype Footnotes on Phenotype Detail Page
+#
+genotypeFootnote1 = '%s is associated with this disease in humans.  '
+genotypeFootnoteAddl = 'This genotype appears more than once in the table.'
 
 outDir = os.environ['MRKCACHEBCPDIR']
 
 def deriveCategory1(r):
 	#
 	# Purpose: derives the appropriate Phenotype Detail page category for the record 
+	#          and hence the appropriate Human Disease Detai page, table 2
 	# Returns: the category (1,2,3,4,5), -1 if no category could be determined
 	# Assumes:
 	# Effects:
@@ -84,13 +104,23 @@ def deriveCategory1(r):
 	marker = r['_Marker_key']
 	symbol = r['markerSymbol']
 	termID = r['termID']
+	genotype = r['_Genotype_key']
 	markerType = r['_Marker_Type_key']
 	hasOrtholog = 0
+	header = ''
+	headerFootnote = ''
+	genotypeFootnote = ''
+
+	if genotypeAll.has_key(genotype):
+	    if len(genotypeAll[genotype]) > 1:
+	        genotypeFootnote = genotypeFootnoteAddl
+	    else:
+	        genotypeFootnote = ''
 
 	# this is only appropriate for mouse-centric records
 
 	if r['_Organism_key'] != mouseOrganismKey:
-	    return -1
+	    return -1, header, headerFootnote, genotypeFootnote
 
 	# check if marker has a human ortholog
 
@@ -106,7 +136,11 @@ def deriveCategory1(r):
 	#
 
 	if r['isNot'] == 1:
-	    return 4
+	    if hasOrtholog:
+	        headerFootnote = headerFootnote4 % (orthologSymbol, symbol)
+	        return 4, phenoHeader4, headerFootnote, genotypeFootnote
+	    else:
+		return 4, phenoHeader4, headerFootnote, genotypeFootnote
 
 	#
 	#  5. non-gene
@@ -115,7 +149,7 @@ def deriveCategory1(r):
 	#
 
 	elif markerType != gene:
-	    return 5
+	    return 5, phenoHeader5, headerFootnote5, genotypeFootnote
 
 	#
 	#  1. orthologous
@@ -128,16 +162,26 @@ def deriveCategory1(r):
 	#	b. mouse marker has human ortholog
 	#	c. human ortholog is not annotated to Term
 	#
+	#  3. unresolved/unknown etiology
+	#	a. mouse genotype is annotated to Term and IS annotation
+	#	b. no human gene is annotated to Term
+	#
 
 	elif hasOrtholog:
-	    if humanToOMIM.has_key(orthologKey):
+	    if not OMIMToHuman.has_key(termID):
+	        return 3, phenoHeader3a, headerFootnote, genotypeFootnote
+	    elif humanToOMIM.has_key(orthologKey):
 		omim = humanToOMIM[orthologKey]
 		if termID in omim:
-		    return 1
+		    header = phenoHeader1 % (orthologSymbol)
+		    genotypeFootnote = genotypeFootnote1 % (orthologSymbol) + genotypeFootnote
+		    return 1, header, headerFootnote, genotypeFootnote
 		else:
-		    return 2
+		    header = phenoHeader2a % (orthologSymbol)
+		    return 2, header, headerFootnote, genotypeFootnote
 	    else:
-	        return 2
+		header = phenoHeader2a % (orthologSymbol)
+	        return 2, header, headerFootnote, genotypeFootnote
 
 	#
 	#  2. distinct etiology
@@ -161,13 +205,14 @@ def deriveCategory1(r):
 		    if not mouseOrtholog.has_key(g):
 			orthologFound = 0
 	        if orthologFound:
-		    return 2
+		    headerFootnote = headerFootnote2b % (symbol)
+		    return 2, phenoHeader2b, headerFootnote, genotypeFootnote
 	        else:
-		    return 3
+		    return 3, phenoHeader3b, headerFootnote, genotypeFootnote
 	    else:
-		return 3
+		return 3, phenoHeader3b, headerFootnote, genotypeFootnote
 
-	return -1
+	return -1, header, headerFootnote, genotypeFootnote
 
 def deriveCategory2(r):
 	#
@@ -380,6 +425,8 @@ def printMouse():
 	# Throws:
 	#
 
+        global genotypeAll
+
         genotypeCategory3 = {}	# mouse genotype key + termID: display category 3
 
 	#
@@ -394,13 +441,18 @@ def printMouse():
 	    genotype = r['_Genotype_key']
 	    termID = r['termID']
 	    gcKey = `genotype` + termID
-	    displayCategory1 = deriveCategory1(r)
+	    displayCategory1, header, headerFootnote, genotypeFootnote = deriveCategory1(r)
 
 	    if genotypeCategory3.has_key(gcKey):
 		if displayCategory1 < genotypeCategory3[gcKey]:
 		    genotypeCategory3[gcKey] = displayCategory1
 	    else:
 		genotypeCategory3[gcKey] = displayCategory1
+
+	    if not genotypeAll.has_key(genotype):
+		genotypeAll[genotype] = []
+	    if displayCategory1 not in genotypeAll[genotype]:
+	        genotypeAll[genotype].append(displayCategory1)
 
 	#
 	# now process each individual marker/genotype record
@@ -415,7 +467,7 @@ def printMouse():
 	    mgiID = r['mgiID']
 	    gcKey = `genotype` + termID
 
-	    displayCategory1 = deriveCategory1(r)
+	    displayCategory1, header, headerFootnote, genotypeFootnote = deriveCategory1(r)
 	    displayCategory2 = deriveCategory2(r)
 
 	    # if the genotype belongs in section 5 (non-gene), then it's section 5 for both categories
@@ -462,18 +514,10 @@ def printMouse():
 		mgi_utils.prvalue(orthologSymbol) + DL + \
 		r['strain'] + DL + \
 		g1 + DL + \
+	        mgi_utils.prvalue(header) + DL + \
+	        mgi_utils.prvalue(headerFootnote) + DL + \
+	        mgi_utils.prvalue(genotypeFootnote) + DL + \
 		cdate + DL + cdate + NL)
-
-#	    if displayCategory1 == 1:
-#		pheno1HeaderBCP.write(mgiID + DL + header + NL)
-#	    elif displayCategory1 == 2:
-#		pheno2HeaderBCP.write(mgiID + DL + header + NL)
-#	    elif displayCategory1 == 3:
-#		pheno3HeaderBCP.write(mgiID + DL + header + NL)
-#	    elif displayCategory1 == 4:
-#		pheno4HeaderBCP.write(mgiID + DL + header + NL)
-#	    elif displayCategory1 == 5:
-#		pheno5HeaderBCP.write(mgiID + DL + header + NL)
 
 	    reviewBCP.write(
 	        mgi_utils.prvalue(displayCategory1) + RDL + \
@@ -486,6 +530,9 @@ def printMouse():
 		r['termID'] + RDL + \
 		r['jnumID'] + RDL + \
 		r['strain'] + RDL + \
+	        mgi_utils.prvalue(header) + RDL + \
+	        mgi_utils.prvalue(headerFootnote) + RDL + \
+	        mgi_utils.prvalue(genotypeFootnote) + RDL + \
 		mgi_utils.prvalue(r['isNot']) + RDL)
 
 	    if humanOrtholog.has_key(marker):
@@ -635,6 +682,9 @@ def printHuman():
 		DL + \
 		mgi_utils.prvalue(orthologSymbol) + DL + \
 		DL + \
+	        DL + \
+	        DL + \
+		DL + \
 		DL + \
 		cdate + DL + cdate + NL)
 
@@ -647,7 +697,6 @@ def printHuman():
 		mgi_utils.prvalue(r['term']) + RDL + \
 		r['termID'] + RDL + \
 		mgi_utils.prvalue(r['jnumID']) + RDL + \
-		RDL + \
 		mgi_utils.prvalue(r['isNot']) + RDL)
 
 	    if mouseOrtholog.has_key(marker):
@@ -666,11 +715,6 @@ db.useOneConnection(1)
 db.set_sqlLogFunction(db.sqlLogAll)
 omimBCP = open(outDir + '/MRK_OMIM_Cache.bcp', 'w')
 reviewBCP = open(outDir + '/OMIM_Cache_Review.tab', 'w')
-#pheno1HeaderBCP = open(outDir + '/MRK_OMIM_PhenoHeader1.bcp', 'w')
-#pheno2HeaderBCP = open(outDir + '/MRK_OMIM_PhenoHeader2.bcp', 'w')
-#pheno3HeaderBCP = open(outDir + '/MRK_OMIM_PhenoHeader3.bcp', 'w')
-#pheno4HeaderBCP = open(outDir + '/MRK_OMIM_PhenoHeader4.bcp', 'w')
-#pheno5HeaderBCP = open(outDir + '/MRK_OMIM_PhenoHeader5.bcp', 'w')
 
 selectMouse()
 selectHuman()
@@ -679,11 +723,6 @@ printHuman()
 
 omimBCP.close()
 reviewBCP.close()
-#pheno1HeaderBCP.close()
-#pheno2HeaderBCP.close()
-#pheno3HeaderBCP.close()
-#pheno4HeaderBCP.close()
-#pheno5HeaderBCP.close()
 db.useOneConnection(0)
 
 print '%s' % mgi_utils.date()
