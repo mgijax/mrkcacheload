@@ -69,7 +69,7 @@ gene = 1
 #
 phenoHeader1 = 'Models with phenotypic similarity to human diseases associated with %s'
 phenoHeader2a = 'Models with phenotypic similarity to human diseases not associated with %s'
-phenoHeader2b = 'Models with phenotypic similarity to human diseases having known causal genes with established orthologs'
+phenoHeader2b = 'Models with phenotypic similarity to human diseases having known causal genes with established orthologies'
 phenoHeader3a = 'Models with phenotypic similarity to human diseases with unknown etiology'
 phenoHeader3b = 'Models with phenotypic similarity to human diseases having known causal genes without established mouse orthologs, or diseases with unknown human etiology. '
 phenoHeader4 = 'No similarity to the expected human disease phenotype was found'
@@ -79,7 +79,9 @@ phenoHeader5 = 'Models involving transgenes or other mutation types'
 # Header Footnotes on Phenotype Detail Page
 #
 headerFootnote2b = 'The human diseases are associated with human genes, but %s is not known to be an ortholog of any of them.'
-headerFootnote4 = '%s is associated with this human disease.  The mouse genotype involves %s mutations but the phenotype did not resemble the human disease.'
+headerFootnote4a = '%s is associated with this human disease.  The mouse genotype involves %s mutations but the phenotype did not resemble the human disease.'
+headerFootnote4b = 'The mouse genotype involves %s mutations but the phenotype did not resemble the human disease.'
+headerFootnote4c = 'The mouse genotype involves %s mutations but the phenotype did not resemble the human disease.'
 headerFootnote5 = 'Models which involve transgenes or other mutation types may appear in other sections of the table.'
 
 #
@@ -121,18 +123,12 @@ def deriveCategory1(r):
 	    ortholog = humanOrtholog[marker]
 	    orthologKey = ortholog['orthologKey']
 	    orthologSymbol = ortholog['orthologSymbol']
+            isHumanOrthologAnnotated = humanToOMIM.has_key(orthologKey)
+	else:
+            isHumanOrthologAnnotated = 0
 
-	#
-	#  4.  no similarity
-	#	a. mouse genotype is annotated to Term and is a IS NOT annotation
-	#
-
-	if r['isNot'] == 1:
-	    if hasOrtholog:
-	        headerFootnote = headerFootnote4 % (orthologSymbol, symbol)
-	        return 4, phenoHeader4, headerFootnote, genotypeFootnote
-	    else:
-		return 4, phenoHeader4, headerFootnote, genotypeFootnote
+	# check if any human gene is annotated to Term
+        isHumanGeneAnnotated = OMIMToHuman.has_key(termID)
 
 	#
 	#  5. non-gene
@@ -140,7 +136,7 @@ def deriveCategory1(r):
 	#	b. marker type != "Gene"
 	#
 
-	elif markerType != gene:
+	if markerType != gene:
 	    return 5, phenoHeader5, headerFootnote5, genotypeFootnote
 
 	#
@@ -158,19 +154,43 @@ def deriveCategory1(r):
 	#	a. mouse genotype is annotated to Term and IS annotation
 	#	b. no human gene is annotated to Term
 	#
+	#
+	#  4.  no similarity
+	#	a. mouse genotype is annotated to Term and is a IS NOT annotation
+	#
 
-	elif hasOrtholog:
-	    if not OMIMToHuman.has_key(termID):
+	if hasOrtholog:
+
+	    if r['isNot'] == 1:
+	        if isHumanOrthologAnnotated:
+		    omim = humanToOMIM[orthologKey]
+	            # human ortholog is annotated to Term
+		    if termID in omim:
+	                headerFootnote = headerFootnote4a % (orthologSymbol, symbol)
+	                return 4, phenoHeader4, headerFootnote, genotypeFootnote
+	            else:
+	                headerFootnote = headerFootnote4b % (symbol)
+			return 4, phenoHeader4, headerFootnote, genotypeFootnote
+	        else:
+	            headerFootnote = headerFootnote4b % (symbol)
+		    return 4, phenoHeader4, headerFootnote, genotypeFootnote
+
+	    if not isHumanGeneAnnotated:
 	        return 3, phenoHeader3a, headerFootnote, genotypeFootnote
-	    elif humanToOMIM.has_key(orthologKey):
+
+	    if isHumanOrthologAnnotated:
 		omim = humanToOMIM[orthologKey]
+	        # human ortholog is annotated to Term
 		if termID in omim:
 		    header = phenoHeader1 % (orthologSymbol)
 		    genotypeFootnote = genotypeFootnote1 % (orthologSymbol) + genotypeFootnote
 		    return 1, header, headerFootnote, genotypeFootnote
+	        # human ortholog is not annotated to Term (but is to other Terms)
 		else:
 		    header = phenoHeader2a % (orthologSymbol)
 		    return 2, header, headerFootnote, genotypeFootnote
+
+	    # human ortholog does not have annotations
 	    else:
 		header = phenoHeader2a % (orthologSymbol)
 	        return 2, header, headerFootnote, genotypeFootnote
@@ -191,16 +211,25 @@ def deriveCategory1(r):
 	#	
 
 	else:
-	    if OMIMToHuman.has_key(termID):
+	    if isHumanGeneAnnotated:
+
+		# check each human gene annotated to Term
+
 		orthologFound = 1
+
 		for g in OMIMToHuman[termID]:
+		    # if human gene has no mouse ortholog, flag it
 		    if not mouseOrtholog.has_key(g):
 			orthologFound = 0
+
 	        if orthologFound:
 		    headerFootnote = headerFootnote2b % (symbol)
 		    return 2, phenoHeader2b, headerFootnote, genotypeFootnote
 	        else:
+		    # at least one human gene has no mouse ortholog
 		    return 3, phenoHeader3b, headerFootnote, genotypeFootnote
+
+	    # human ortholog is not annotated to Term
 	    else:
 		return 3, phenoHeader3b, headerFootnote, genotypeFootnote
 
