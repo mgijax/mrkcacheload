@@ -10,6 +10,9 @@
 
 cd `dirname $0` && source ./Configuration
 
+setenv TABLE MRK_OMIM_Cache
+setenv OBJECTKEY 0
+
 setenv LOG	${MRKCACHELOGDIR}/`basename $0`.log
 rm -rf $LOG
 touch $LOG
@@ -18,9 +21,9 @@ date >>& $LOG
 
 # Create the bcp file
 
-./mrkomim.py >>& $LOG
+./mrkomim.py -S${DBSERVER} -D${DBNAME} -U${DBUSER} -P${DBPASSWORDFILE} -K${OBJECTKEY} >>& $LOG
 
-if ( -z ${MRKCACHEBCPDIR}/MRK_OMIM_Cache.bcp ) then
+if ( -z ${MRKCACHEBCPDIR}/${TABLE}.bcp ) then
 echo 'BCP File is empty' >>& $LOG
 exit 0
 endif
@@ -28,15 +31,15 @@ endif
 # Allow bcp into database and truncate tables
 
 ${DBUTILSBINDIR}/turnonbulkcopy.csh ${DBSERVER} ${DBNAME} >>& $LOG
-${SCHEMADIR}/table/MRK_OMIM_Cache_truncate.object >>& $LOG
+${SCHEMADIR}/table/${TABLE}_truncate.object >>& $LOG
 
 # Drop indexes
-${SCHEMADIR}/index/MRK_OMIM_Cache_drop.object >>& $LOG
+${SCHEMADIR}/index/${TABLE}_drop.object >>& $LOG
 
 # BCP new data into tables
-cat ${DBPASSWORDFILE} | bcp ${DBNAME}..MRK_OMIM_Cache in ${MRKCACHEBCPDIR}/MRK_OMIM_Cache.bcp -e ${MRKCACHEBCPDIR}/MRK_OMIM_Cache.bcp.error -c -t${FIELDDELIM} -S${DBSERVER} -U${DBUSER} >>& $LOG
+cat ${DBPASSWORDFILE} | bcp ${DBNAME}..${TABLE} in ${MRKCACHEBCPDIR}/${TABLE}.bcp -e ${MRKCACHEBCPDIR}/${TABLE}.bcp.error -c -t${FIELDDELIM} -S${DBSERVER} -U${DBUSER} >>& $LOG
 
 # Create indexes
-${SCHEMADIR}/index/MRK_OMIM_Cache_create.object >>& $LOG
+${SCHEMADIR}/index/${TABLE}_create.object >>& $LOG
 
 date >>& $LOG
