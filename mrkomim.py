@@ -309,12 +309,7 @@ def deriveCategory2(r):
 	        orthologKey = ortholog['orthologKey']
 	        orthologSymbol = ortholog['orthologSymbol']
 
-	    # if annotation is an "is not", do not assign a category
-
-	    if r['isNot'] == '1':
-	        return -1
-
-	    elif hasOrtholog:
+	    if hasOrtholog:
 	        if humanToOMIM.has_key(orthologKey):
 		    omim = humanToOMIM[orthologKey]
 		    if termID in omim:
