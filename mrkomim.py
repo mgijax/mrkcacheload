@@ -309,7 +309,10 @@ def deriveCategory2(r):
 	        orthologKey = ortholog['orthologKey']
 	        orthologSymbol = ortholog['orthologSymbol']
 
-	    if hasOrtholog:
+            if r['isNot'] == 1:
+		return -1
+
+	    elif hasOrtholog:
 	        if humanToOMIM.has_key(orthologKey):
 		    omim = humanToOMIM[orthologKey]
 		    if termID in omim:
