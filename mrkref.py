@@ -16,26 +16,13 @@
 #
 # Processing:
 #
-#	1. Select all unique Marker/Reference pairs where auto = 0 into a tempdb table,
-#	   MRK_RefNoAuto.  This is the set of Marker/Reference pairs which were
-#	   intentionally indexed via the Marker EI form.
+#	1. Select all unique Marker/Reference pairs from the other parts of the database.
+#	   These are references that are inferred from mapping, expression, etc. curation.
 #
-#	2. Select all unique Marker/Reference pairs from the other parts of the
-#	   database plus tempdb..MRK_RefNoAuto into another tempdb table,
-#	   MRK_RefNew.  Within this table, we do not differentiate between 
-#	   those that were intentionally indexed and those that were not.
+#	2. Select all records from MGI_Reference_Assoc.  These are refereneces
+#	   that have been explicitly curated by MGI staff.
 #
-#	3. Select all records from tempdb..MRK_RefNew which exist in tempdb..MRK_RefNoAuto.
-#	   This is the set of unique Marker/Reference pairs which were intentionally
-#	   indexed.
-#
-#	4. Select all records from tempdb..MRK_RefNew which do not exist in
-#	   tempdb..MRK_RefNoAuto.  This is the set of unique Marker/Reference pairs
-#	   which were derived from the other datasets (Mapping, Homology, GXD Assay, etc.).
-#
-#	5. Result is a file of unique Marker/Reference pairs.  Those with auto = 0
-#	   were intentionally indexed.  Those with auto = 1 were derived from the
-#	   other datasets.
+#	3. Result of the union is a file of unique Marker/Reference pairs.
 #
 # History
 #

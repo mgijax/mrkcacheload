@@ -535,6 +535,7 @@ def processMouse(processType):
                 omimBCP.write(
 	            mgi_utils.prvalue(mouseOrganismKey) + BCPDL +  \
 	            mgi_utils.prvalue(r['_Marker_key']) + BCPDL +  \
+	            mgi_utils.prvalue(r['_Marker_Type_key']) + BCPDL +  \
 	            mgi_utils.prvalue(r['_Allele_key']) + BCPDL + \
 	            mgi_utils.prvalue(r['_Genotype_key']) + BCPDL + \
 	            mgi_utils.prvalue(r['_Term_key']) + BCPDL + \
@@ -588,6 +589,7 @@ def processMouse(processType):
 		db.sql(insertSQL % (
 	            mgi_utils.prvalue(mouseOrganismKey), \
 	            mgi_utils.prvalue(r['_Marker_key']), \
+	            mgi_utils.prvalue(r['_Marker_Type_key']), \
 	            mgi_utils.prvalue(r['_Allele_key']), \
 	            mgi_utils.prvalue(r['_Genotype_key']), \
 	            mgi_utils.prvalue(r['_Term_key']), \
@@ -641,7 +643,7 @@ def selectHuman():
 	#
 	# resolve marker symbol
 	#
-	db.sql('select o.*, m._Organism_key, markerSymbol = m.symbol ' + \
+	db.sql('select o.*, m._Organism_key, markerSymbol = m.symbol, m._Marker_Type_key ' + \
 		'into #omimhuman2 ' + \
 		'from #omimhuman1 o, MRK_Marker m ' + \
 		'where o._Marker_key = m._Marker_key ', None)
@@ -733,6 +735,7 @@ def processHuman():
 	    omimBCP.write(
 		mgi_utils.prvalue(humanOrganismKey) + BCPDL +  \
 		mgi_utils.prvalue(marker) + BCPDL +  \
+	        mgi_utils.prvalue(r['_Marker_Type_key']) + BCPDL +  \
 		BCPDL + \
 		BCPDL + \
 		mgi_utils.prvalue(r['_Term_key']) + BCPDL + \
