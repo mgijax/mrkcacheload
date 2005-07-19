@@ -358,6 +358,7 @@ def selectMouse():
 	# Returns:
 	# Assumes:  temp table omimmouse1 has already been created
 	# Effects:  initializes global dictionaries/caches
+	#	- humanOrtholog, mouseToOMIM, genotypeDisplay, genotypeOrtholog
 	# Throws:
 	#
 
@@ -473,6 +474,13 @@ def selectMouse():
 	    genotypeOrtholog[key].append(value)
 
 def cacheGenotypeDisplay3():
+	#
+	# Purpose:  initializes global dictionary of genotype/terms and minimum display category 1 values
+	# Returns:
+	# Assumes:  temp table #omimmouse5 exists
+	# Effects:  initializes global genotypeCategory3 dictionary
+	# Throws:
+	#
 
 	global genotypeCategory3
 
@@ -498,10 +506,11 @@ def cacheGenotypeDisplay3():
 
 def processMouse(processType):
 	#
-	# Purpose:  process Mouse records
+	# Purpose:  process Mouse records either by bcp or sql
 	# Returns:
 	# Assumes:
-	# Effects:
+	# Effects:  if processType = bcp, then writes records to bcp file
+	# Effects:  if processType = sql, then executes in-line SQL insert commands
 	# Throws:
 	#
 
@@ -632,15 +641,19 @@ def selectHuman(byOrtholog = 0):
 	# Purpose:  selects the appropriate human annotation data
 	# Returns:
 	# Assumes:
-	# Effects:
+	# Effects:  initializes global dictionaries: mouseOrtholog, humanToOMIM, OMIMToHuman
 	# Throws:
 	#
 
 	global mouseOrtholog, humanToOMIM, OMIMToHuman
 
 	if byOrtholog == 1:
+
 	    #
-	    # select all human orthologous genes annotated to OMIM Gene or Disease Terms
+	    # select all human genes w/ mouse orthologs annotated to OMIM Gene or Disease Terms
+	    # this statement is used if we are processing a specfic Marker, Allele or Genotype
+	    # data set so that only those human markers that are orthologs to the data set specified
+	    # are selected.
 	    #
 
 	    db.sql('select _Marker_key = a._Object_key, termID = ac.accID, a._Term_key, t.term, a.isNot, e._Refs_key ' + \
@@ -736,7 +749,7 @@ def processHuman():
 	# Purpose:  process Human records
 	# Returns:
 	# Assumes:
-	# Effects:
+	# Effects:  writes records to bcp file
 	# Throws:
 	#
 
@@ -814,7 +827,7 @@ def processDeleteReload():
 	# Purpose:  processes data for BCP-type processing; aka delete/reload
 	# Returns:
 	# Assumes:
-	# Effects:
+	# Effects:  initializes global file pointers:  omimBCP, reviewBCP
 	# Throws:
 	#
 
@@ -865,6 +878,10 @@ def processByAllele(alleleKey):
 		'where g._Allele_key = ' + alleleKey, None)
 
 	db.sql('create index idx1 on #toprocess(_Genotype_key)', None)
+
+	#
+	# delete existing cache records for this allele
+	#
 
 	db.sql('delete %s from #toprocess p, %s g where p._Genotype_key = g._Genotype_key' % (table, table), None)
 
@@ -938,6 +955,10 @@ def processByMarker(markerKey):
 
 	db.sql('create index idx1 on #toprocess(_Genotype_key)', None)
 
+	#
+	# delete existing cache records for this marker
+	#
+
 	db.sql('delete %s from #toprocess p, %s g where p._Genotype_key = g._Genotype_key' % (table, table), None)
 
 	#
@@ -1000,8 +1021,12 @@ db.set_sqlLogFunction(db.sqlLogAll)
 
 scriptName = os.path.basename(sys.argv[0])
 
+# call functions based on the way the program is invoked
+
 if scriptName == 'mrkomim.py':
     processDeleteReload()
+
+# all of these invocations will only affect a certain subset of data
 
 elif scriptName == 'mrkomimByAllele.py':
     processByAllele(objectKey)
