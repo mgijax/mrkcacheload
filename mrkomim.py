@@ -618,7 +618,7 @@ def processMouse(processType):
                     mgi_utils.prvalue(genotypeFootnote), \
 	            cdate , cdate), None)
 
-def selectHuman():
+def selectHuman(byOrtholog = 0):
 	#
 	# Purpose:  selects the appropriate human annotation data
 	# Returns:
@@ -629,20 +629,39 @@ def selectHuman():
 
 	global mouseOrtholog, humanToOMIM, OMIMToHuman
 
-	#
-	# select all human genes annotated to OMIM Gene or Disease Terms
-	#
+	if byOrtholog == 1:
+	    #
+	    # select all human orthologous genes annotated to OMIM Gene or Disease Terms
+	    #
 
-	db.sql('select _Marker_key = a._Object_key, termID = ac.accID, a._Term_key, t.term, a.isNot, e._Refs_key ' + \
-		'into #omimhuman1 ' + \
-		'from VOC_Annot a, VOC_Evidence e, VOC_Term t, ACC_Accession ac ' + \
-		'where a._AnnotType_key = %s ' % (humanOMIMannotationKey) + \
-		'and a._Annot_key = e._Annot_key ' + \
-		'and a._Term_key = t._Term_key ' + \
-		'and a._Term_key = ac._Object_key ' + \
-		'and ac._MGIType_key = 13 ' + \
-		'and ac.preferred = 1', None)
-	db.sql('create index idx1 on #omimhuman1(_Marker_key)', None)
+	    db.sql('select _Marker_key = a._Object_key, termID = ac.accID, a._Term_key, t.term, a.isNot, e._Refs_key ' + \
+		    'into #omimhuman1 ' + \
+		    'from #ortholog o, VOC_Annot a, VOC_Evidence e, VOC_Term t, ACC_Accession ac ' + \
+		    'where a._AnnotType_key = %s ' % (humanOMIMannotationKey) + \
+		    'and a._Object_key = o.orthologKey ' + \
+		    'and a._Annot_key = e._Annot_key ' + \
+		    'and a._Term_key = t._Term_key ' + \
+		    'and a._Term_key = ac._Object_key ' + \
+		    'and ac._MGIType_key = 13 ' + \
+		    'and ac.preferred = 1', None)
+	    db.sql('create index idx1 on #omimhuman1(_Marker_key)', None)
+
+	else:
+	
+	    #
+	    # select all human genes annotated to OMIM Gene or Disease Terms
+	    #
+
+	    db.sql('select _Marker_key = a._Object_key, termID = ac.accID, a._Term_key, t.term, a.isNot, e._Refs_key ' + \
+		    'into #omimhuman1 ' + \
+		    'from VOC_Annot a, VOC_Evidence e, VOC_Term t, ACC_Accession ac ' + \
+		    'where a._AnnotType_key = %s ' % (humanOMIMannotationKey) + \
+		    'and a._Annot_key = e._Annot_key ' + \
+		    'and a._Term_key = t._Term_key ' + \
+		    'and a._Term_key = ac._Object_key ' + \
+		    'and ac._MGIType_key = 13 ' + \
+		    'and ac.preferred = 1', None)
+	    db.sql('create index idx1 on #omimhuman1(_Marker_key)', None)
 
 	#
 	# resolve marker symbol
@@ -854,7 +873,7 @@ def processByAllele(alleleKey):
 		'and a._Annot_key = e._Annot_key', None)
 
 	selectMouse()
-	selectHuman()
+	selectHuman(byOrtholog = 1)
 	cacheGenotypeDisplay3()
 	processMouse('sql')
 
@@ -887,7 +906,7 @@ def processByGenotype(genotypeKey):
 	        'and g._Genotype_key = %s' % (genotypeKey), None)
 
 	selectMouse()
-	selectHuman()
+	selectHuman(byOrtholog = 1)
 	cacheGenotypeDisplay3()
 	processMouse('sql')
 
@@ -926,7 +945,7 @@ def processByMarker(markerKey):
 		'and a._Annot_key = e._Annot_key', None)
 
 	selectMouse()
-	selectHuman()
+	selectHuman(byOrtholog = 1)
 	cacheGenotypeDisplay3()
 	processMouse('sql')
 
