@@ -43,16 +43,20 @@ import db
 import mgi_utils
 
 NL = '\n'
-BCPDL = os.environ['FIELDDELIM']
 RDL = '\t'
 
 omimBCP = None
 reviewBCP = None
 
 cdate = mgi_utils.date("%m/%d/%Y")
-table = os.environ['TABLE']
-createdBy = os.environ['CREATEDBY']
-outDir = os.environ['MRKCACHEBCPDIR']
+
+try:
+    BCPDL = os.environ['FIELDDELIM']
+    table = os.environ['TABLE']
+    createdBy = os.environ['CREATEDBY']
+    outDir = os.environ['MRKCACHEBCPDIR']
+except:
+    table = 'MRK_OMIM_Cache'
 
 mouseOMIMannotationKey = 1005
 humanOMIMannotationKey = 1006
@@ -530,9 +534,14 @@ def processMouse(processType):
 		orthologKey = h['orthologKey']
 		orthologSymbol = h['orthologSymbol']
             else:
-		orthologOrganism = ''
-		orthologKey = ''
-		orthologSymbol = ''
+		if processType == 'bcp':
+		    orthologOrganism = ''
+		    orthologKey = ''
+		    orthologSymbol = ''
+		else:
+		    orthologOrganism = 'NULL'
+		    orthologKey = 'NULL'
+		    orthologSymbol = 'NULL'
 
 	    if processType == 'bcp':
 
