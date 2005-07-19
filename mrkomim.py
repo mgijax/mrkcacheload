@@ -97,7 +97,7 @@ genotypeFootnote1 = '%s is associated with this disease in humans.'
 genotypeFootnote2 = '%s are associated with this disease in humans.'
 
 deleteSQL = 'delete from MRK_OMIM_Cache where _Genotype_key = %s'
-insertSQL = 'insert into MRK_OMIM_Cache values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,"%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s")'
+insertSQL = 'insert into MRK_OMIM_Cache values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,"%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s")'
 
 def showUsage():
 	'''
@@ -357,7 +357,7 @@ def selectMouse():
 	# Throws:
 	#
 
-	global humanOrtholog, mouseToOMIM, genotypeDisplay, genotypeOrtholog, genotypeCategory3
+	global humanOrtholog, mouseToOMIM, genotypeDisplay, genotypeOrtholog
 
 	db.sql('create index idx1 on #omimmouse1(_Marker_key)', None)
 	db.sql('create index idx2 on #omimmouse1(_Allele_key)', None)
@@ -467,6 +467,10 @@ def selectMouse():
 	    if not genotypeOrtholog.has_key(key):
 		genotypeOrtholog[key] = []
 	    genotypeOrtholog[key].append(value)
+
+def cacheGenotypeDisplay3():
+
+	global genotypeCategory3
 
 	#
 	# for each genotype/term, cache the mininum display category 1 value
@@ -807,6 +811,7 @@ def processDeleteReload():
 
 	selectMouse()
 	selectHuman()
+	cacheGenotypeDisplay3()
 	processMouse('bcp')
 	processHuman()
 	omimBCP.close()
@@ -849,6 +854,8 @@ def processByAllele(alleleKey):
 		'and a._Annot_key = e._Annot_key', None)
 
 	selectMouse()
+	selectHuman()
+	cacheGenotypeDisplay3()
 	processMouse('sql')
 
 def processByGenotype(genotypeKey):
@@ -880,6 +887,8 @@ def processByGenotype(genotypeKey):
 	        'and g._Genotype_key = %s' % (genotypeKey), None)
 
 	selectMouse()
+	selectHuman()
+	cacheGenotypeDisplay3()
 	processMouse('sql')
 
 def processByMarker(markerKey):
@@ -917,6 +926,8 @@ def processByMarker(markerKey):
 		'and a._Annot_key = e._Annot_key', None)
 
 	selectMouse()
+	selectHuman()
+	cacheGenotypeDisplay3()
 	processMouse('sql')
 
 #
