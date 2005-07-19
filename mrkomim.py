@@ -80,15 +80,15 @@ phenoHeader2a = 'Models with phenotypic similarity to human diseases not associa
 phenoHeader2b = 'Models with phenotypic similarity to human diseases having known causal genes with established orthologs'
 phenoHeader3a = 'Models with phenotypic similarity to human diseases with unknown etiology'
 phenoHeader3b = 'Models with phenotypic similarity to human diseases having known causal genes without established mouse orthologs, or diseases with unknown human etiology. '
-phenoHeader4 = 'No similarity to the expected human disease phenotype was found'
-phenoHeader5 = 'Models involving transgenes or other mutation types'
+phenoHeader4 = 'Models involving transgenes or other mutation types'
+phenoHeader5 = 'No similarity to the expected human disease phenotype was found'
 
 #
 # Header Footnotes on Phenotype Detail Page
 #
 headerFootnote2b = 'The human diseases are associated with human genes, but %s is not known to be an ortholog of any of them.'
-headerFootnote4 = 'One or more human genes may be associated with the human disease.  The mouse genotype may involve mutations in orthologous genes, but the phenotype does not resemble the human disease.'
-headerFootnote5 = 'Models which involve transgenes or other mutation types may appear in other sections of the table.'
+headerFootnote4 = 'Models which involve transgenes or other mutation types may appear in other sections of the table.'
+headerFootnote5 = 'One or more human genes may be associated with the human disease.  The mouse genotype may involve mutations in orthologous genes, but the phenotype does not resemble the human disease.'
 
 #
 # Genotype Footnotes on Phenotype Detail Page
@@ -166,16 +166,16 @@ def deriveCategory1(r):
         isHumanGeneAnnotated = OMIMToHuman.has_key(termID)
 
 	#
-	#  5. non-gene
+	#  4. non-gene
 	#	a. mouse genotype is annotated to Term and is a IS annotation
 	#	b. marker type != "Gene"
 	#
 
 	if markerType != gene:
-	    return 5, phenoHeader5, headerFootnote5, genotypeFootnote
+	    return 4, phenoHeader4, headerFootnote4, genotypeFootnote
 
 	#
-	#  4.  no similarity
+	#  5.  no similarity
 	#	a. mouse genotype is annotated to Term and is a IS NOT annotation
 	#
 
@@ -188,7 +188,7 @@ def deriveCategory1(r):
 		        genotypeFootnote = genotypeFootnote1 % (genotypeOrtholog[genotype][0]) + genotypeFootnote
                     else:
 		        genotypeFootnote = genotypeFootnote2 % (string.join(genotypeOrtholog[genotype], ',')) + genotypeFootnote
-	    return 4, phenoHeader4, headerFootnote4, genotypeFootnote
+	    return 5, phenoHeader5, headerFootnote5, genotypeFootnote
 
 	#
 	#  1. orthologous
