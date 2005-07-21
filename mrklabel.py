@@ -271,7 +271,7 @@ def priority8():
 
 	# human synonym
 
-	cmd = 'select o._Marker_key, o._Organism_key, o._OrthologOrganism_key, label = s.synonym ' + \
+	cmd = 'select distinct o._Marker_key, o._Organism_key, o._OrthologOrganism_key, label = s.synonym ' + \
 		'from #orthology1 o, MGI_SynonymType st, MGI_Synonym s ' + \
 		'where st._MGIType_key = 2 ' + \
 		'and st._Organism_key = o._OrthologOrganism_key ' + \
@@ -279,7 +279,7 @@ def priority8():
 		'and o.m2 = s._Object_key '
 
 	if markerKey is not None:
-		cmd = cmd + 'where s._Object_key = %s\n' % markerKey
+		cmd = cmd + 'and s._Object_key = %s\n' % markerKey
 
 	writeRecord(db.sql(cmd, 'auto'), 1, 8, 'MY', 'human synonym')
 
@@ -311,7 +311,7 @@ def priority9():
 
 	# rat synonym
 
-	cmd = 'select o._Marker_key, o._Organism_key, o._OrthologOrganism_key, label = s.synonym ' + \
+	cmd = 'select distinct o._Marker_key, o._Organism_key, o._OrthologOrganism_key, label = s.synonym ' + \
 		'from #orthology2 o, MGI_SynonymType st, MGI_Synonym s ' + \
 		'where st._MGIType_key = 2 ' + \
 		'and st._Organism_key = o._OrthologOrganism_key ' + \
@@ -319,7 +319,7 @@ def priority9():
 		'and o.m2 = s._Object_key '
 
 	if markerKey is not None:
-		cmd = cmd + 'where s._Object_key = %s\n' % markerKey
+		cmd = cmd + 'and s._Object_key = %s\n' % markerKey
 
 	writeRecord(db.sql(cmd, 'auto'), 1, 9, 'MY', 'rat synonym')
 
@@ -344,26 +344,6 @@ def priority11():
 
         print 'processing priority 11...%s' % mgi_utils.date()
 
-#	cmd = 'select distinct m._Marker_key, m2 = m2._Marker_key, m._Organism_key, _OrthologOrganism_key = m2._Organism_key ' + \
-#		'into #orthology1 ' + \
-#		'from MRK_Marker m, MRK_Marker m2, HMD_Homology h1, HMD_Homology h2, ' + \
-#		'HMD_Homology_Marker hm1, HMD_Homology_Marker hm2, MGI_Organism s ' + \
-#		'where m._Organism_key = 1 ' + \
-#		'and m._Marker_key = hm1._Marker_key ' + \
-#		'and hm1._Homology_key = h1._Homology_key ' + \
-#		'and h1._Class_key = h2._Class_key ' + \
-#		'and h2._Homology_key = hm2._Homology_key ' + \
-#		'and hm2._Marker_key = m2._Marker_key ' + \
-#		'and m2._Organism_key = 2 ' + \
-#		'and m2._Organism_key = s._Organism_key '
-#
-#	if markerKey is not None:
-#		cmd = cmd + 'and m._Marker_key = %s\n' % markerKey
-#
-#	db.sql(cmd, None)
-#	db.sql('create index idx1 on #orthology1(m2)', None)
-#	db.sql('create index idx2 on #orthology1(_OrthologOrganism_key)', None)
-
 	cmd = 'select o.*, label = m.symbol, labelTypeName = s.commonName + " ortholog symbol" ' + \
 		'from #orthology1 o, MRK_Marker m, MGI_Organism s ' + \
 		'where o.m2 = m._Marker_key ' + \
@@ -376,9 +356,6 @@ def priority11():
 	cmd = 'select _Marker_key, _Organism_key, _OrthologOrganism_key = NULL, label = symbol ' + \
 		'from MRK_Marker ' + \
 		'where _Organism_key = 2 '
-
-	if markerKey is not None:
-		cmd = cmd + 'and _Marker_key = %s\n' % markerKey
 
 	writeRecord(db.sql(cmd, 'auto'), 1, 11, 'MS', 'current symbol')
 
@@ -401,9 +378,6 @@ def priority12():
 		'from MRK_Marker ' + \
 		'where _Organism_key = 2 '
 
-	if markerKey is not None:
-		cmd = cmd + 'and _Marker_key = %s\n' % markerKey
-
 	writeRecord(db.sql(cmd, 'auto'), 1, 12, 'MN', 'current name')
 
 def priority13():
@@ -425,9 +399,6 @@ def priority13():
 		'from MRK_Marker ' + \
 		'where _Organism_key = 40 '
 
-	if markerKey is not None:
-		cmd = cmd + 'and _Marker_key = %s\n' % markerKey
-
 	# rat name
 
 	writeRecord(db.sql(cmd, 'auto'), 1, 13, 'MS', 'current symbol')
@@ -435,9 +406,6 @@ def priority13():
 	cmd = 'select _Marker_key, _Organism_key, _OrthologOrganism_key = NULL, label = name ' + \
 		'from MRK_Marker ' + \
 		'where _Organism_key = 40 '
-
-	if markerKey is not None:
-		cmd = cmd + 'and _Marker_key = %s\n' % markerKey
 
 	writeRecord(db.sql(cmd, 'auto'), 1, 13, 'MN', 'current name')
 
