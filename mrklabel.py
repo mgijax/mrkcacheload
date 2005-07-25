@@ -329,7 +329,7 @@ def priority10():
 
         print 'processing priority 10...%s' % mgi_utils.date()
 
-	cmd = 'select _Marker_key = s._Object_key, s._Organism_key, _OrthologOrganism_key = NULL, label = s.synonym ' + \
+	cmd = 'select _Marker_key = s._Object_key, st._Organism_key, _OrthologOrganism_key = NULL, label = s.synonym ' + \
 		'from MGI_SynonymType st, MGI_Synonym s ' + \
 		'where st._MGIType_key = 2 ' + \
 		'and st._Organism_key = 1 ' + \
