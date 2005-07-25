@@ -330,8 +330,11 @@ def priority10():
         print 'processing priority 10...%s' % mgi_utils.date()
 
 	cmd = 'select _Marker_key = s._Object_key, s._Organism_key, _OrthologOrganism_key = NULL, label = s.synonym ' + \
-		'from MGI_Synonym_MusMarker_View s ' + \
-		'where s.synonymType in ("similar", "broad", "narrow") '
+		'from MGI_SynonymType st, MGI_Synonym s ' + \
+		'where st._MGIType_key = 2 ' + \
+		'and st._Organism_key = 1 ' + \
+		'and st.synonymType in ("similar", "broad", "narrow") ' + \
+		'and st._SynonymType_key = s._SynonymType_key '
 
 	if markerKey is not None:
 		cmd = cmd + 'and s._Object_key = %s\n' % markerKey
