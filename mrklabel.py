@@ -329,7 +329,7 @@ def priority10():
 
         print 'processing priority 10...%s' % mgi_utils.date()
 
-	cmd = 'select distinct _Marker_key = s._Object_key, s._Organism_key, _OrthologOrganism_key = NULL, label = s.synonym ' + \
+	cmd = 'select _Marker_key = s._Object_key, s._Organism_key, _OrthologOrganism_key = NULL, label = s.synonym ' + \
 		'from MGI_Synonym_MusMarker_View s ' + \
 		'where s.synonymType in ("similar", "broad", "narrow") '
 
