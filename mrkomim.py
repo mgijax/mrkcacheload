@@ -173,20 +173,11 @@ def deriveCategory1(r):
         isHumanGeneAnnotated = OMIMToHuman.has_key(termID)
 
 	#
-	#  4. non-gene
-	#	a. mouse genotype is annotated to Term and is a IS annotation
-	#	b. marker type != "Gene"
-	#
-
-	if markerType != gene:
-	    return 4, phenoHeader4, headerFootnote4, genotypeFootnote
-
-	#
 	#  5.  no similarity
 	#	a. mouse genotype is annotated to Term and is a IS NOT annotation
 	#
 
-        elif r['isNot'] == 1:
+        if r['isNot'] == 1:
 	    if hasOrtholog and isHumanOrthologAnnotated:
 		omim = humanToOMIM[orthologKey]
 	        # human ortholog is annotated to Term
@@ -196,6 +187,15 @@ def deriveCategory1(r):
                     else:
 		        genotypeFootnote = genotypeFootnote2 % (string.join(genotypeOrtholog[genotype], ',')) + genotypeFootnote
 	    return 5, phenoHeader5, headerFootnote5, genotypeFootnote
+
+	#
+	#  4. non-gene
+	#	a. mouse genotype is annotated to Term and is a IS annotation
+	#	b. marker type != "Gene"
+	#
+
+	elif markerType != gene:
+	    return 4, phenoHeader4, headerFootnote4, genotypeFootnote
 
 	#
 	#  1. orthologous
@@ -310,17 +310,21 @@ def deriveCategory2(r):
 
 	if organism == mouseOrganismKey:
 
+	    #
+	    # Cre alleles should not appear in this table
+	    #
+
 	    if (creregex.match(r['alleleSymbol']) > -1):
 		return -1
+
+#            if r['isNot'] == 1:
+#		return -1
 
 	    if humanOrtholog.has_key(marker):
 	        hasOrtholog = 1
 	        ortholog = humanOrtholog[marker]
 	        orthologKey = ortholog['orthologKey']
 	        orthologSymbol = ortholog['orthologSymbol']
-
-#            if r['isNot'] == 1:
-#		return -1
 
 	    if hasOrtholog:
 	        if humanToOMIM.has_key(orthologKey):
