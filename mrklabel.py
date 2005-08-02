@@ -67,6 +67,7 @@ import mgi_utils
 
 NL = '\n'
 DL = os.environ['FIELDDELIM']
+labelKey = 1
 
 loaddate = mgi_utils.date("%m/%d/%Y")
 
@@ -104,12 +105,15 @@ loaddate = mgi_utils.date("%m/%d/%Y")
 
 def writeRecord(results, labelStatusKey, priority, labelType, labelTypeName):
 
+    global labelKey
+
     for r in results:
 
 	if labelTypeName is None:
 	    labelTypeName = r['labelTypeName']
 
-        outBCP.write(mgi_utils.prvalue(r['_Marker_key']) + DL + \
+        outBCP.write(mgi_utils.prvalue(labelKey) + DL + \
+                mgi_utils.prvalue(r['_Marker_key']) + DL + \
         	mgi_utils.prvalue(labelStatusKey) + DL + \
         	mgi_utils.prvalue(r['_Organism_key']) + DL + \
         	mgi_utils.prvalue(r['_OrthologOrganism_key']) + DL + \
@@ -119,6 +123,8 @@ def writeRecord(results, labelStatusKey, priority, labelType, labelTypeName):
         	mgi_utils.prvalue(labelTypeName) + DL + \
         	loaddate + DL + \
         	loaddate + NL)
+
+	labelKey = labelKey + 1
 
     print 'processed (%d) records...%s' % (len(results), mgi_utils.date())
 

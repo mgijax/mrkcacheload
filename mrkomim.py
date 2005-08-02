@@ -38,6 +38,7 @@ import sys
 import os
 import getopt
 import string
+import regex
 import regsub
 import db
 import mgi_utils
@@ -76,11 +77,13 @@ genotypeCategory3 = {}	# mouse genotype key + termID: display category 3
 
 gene = 1
 
+creregex = regex.compile(".*\(.*[Cc]re.*\).*")
+
 #
 # Headers on Phenotype Detail Page
 #
 phenoHeader1 = 'Models with phenotypic similarity to human diseases associated with %s'
-phenoHeader2a = 'Models with phenotypic similarity to human diseases not associated with %s'
+phenoHeader2a = 'Models with phenotypic similarity to human diseases not associated with human %s'
 phenoHeader2b = 'Models with phenotypic similarity to human diseases having known causal genes with established orthologs'
 phenoHeader3a = 'Models with phenotypic similarity to human diseases with unknown etiology'
 phenoHeader3b = 'Models with phenotypic similarity to human diseases having known causal genes without established mouse orthologs, or diseases with unknown human etiology. '
@@ -307,16 +310,19 @@ def deriveCategory2(r):
 
 	if organism == mouseOrganismKey:
 
+	    if (creregex.match(r['alleleSymbol']) > -1):
+		return -1
+
 	    if humanOrtholog.has_key(marker):
 	        hasOrtholog = 1
 	        ortholog = humanOrtholog[marker]
 	        orthologKey = ortholog['orthologKey']
 	        orthologSymbol = ortholog['orthologSymbol']
 
-            if r['isNot'] == 1:
-		return -1
+#            if r['isNot'] == 1:
+#		return -1
 
-	    elif hasOrtholog:
+	    if hasOrtholog:
 	        if humanToOMIM.has_key(orthologKey):
 		    omim = humanToOMIM[orthologKey]
 		    if termID in omim:
@@ -530,10 +536,10 @@ def processMouse(processType):
 	    displayCategory1, header, headerFootnote, genotypeFootnote = deriveCategory1(r)
 	    displayCategory2 = deriveCategory2(r)
 
-	    # if the genotype belongs in section 5 (non-gene), then it's section 5 for both categories
+	    # if the genotype belongs in section 4 (non-gene), then it's section 4 for both categories
 
-	    if displayCategory1 == 5:
-		displayCategory3 = 5
+	    if displayCategory1 == 4:
+		displayCategory3 = 4
 	    else:
 		displayCategory3 = genotypeCategory3[gcKey]
 
