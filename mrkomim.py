@@ -82,20 +82,20 @@ creregex = regex.compile(".*\(.*[Cc]re.*\).*")
 #
 # Headers on Phenotype Detail Page
 #
-phenoHeader1 = 'Models with phenotypic similarity to human diseases associated with %s'
+phenoHeader1 = 'Models with phenotypic similarity to human diseases associated with human %s'
 phenoHeader2a = 'Models with phenotypic similarity to human diseases not associated with human %s'
-phenoHeader2b = 'Models with phenotypic similarity to human diseases having known causal genes with established orthologs'
+phenoHeader2b = 'Models with phenotypic similarity to human diseases associated with genes with mouse orthologs'
 phenoHeader3a = 'Models with phenotypic similarity to human diseases with unknown etiology'
-phenoHeader3b = 'Models with phenotypic similarity to human diseases having known causal genes without established mouse orthologs, or diseases with unknown human etiology. '
+phenoHeader3b = 'Models with phenotypic similarity to human diseases associated with genes lacking mouse orthologs, or diseases of unknown human etiology'
 phenoHeader4 = 'Models involving transgenes or other mutation types'
-phenoHeader5 = 'No similarity to the expected human disease phenotype was found'
+phenoHeader5 = 'No similarity to expected human disease phenotype was found'
 
 #
 # Header Footnotes on Phenotype Detail Page
 #
 headerFootnote2b = 'The human diseases are associated with human genes, but %s is not known to be an ortholog of any of them.'
-headerFootnote4 = 'Models which involve transgenes or other mutation types may appear in other sections of the table.'
-headerFootnote5 = 'One or more human genes may be associated with the human disease.  The mouse genotype may involve mutations in orthologous genes, but the phenotype does not resemble the human disease.'
+headerFootnote4 = 'Models involving transgenes or other mutation types may also appear in other sections of the table.'
+headerFootnote5 = 'One or more human genes may be associated with the human disease.  The mouse genotype may involve mutations in orthologous genes, but the phenotype did not resemble the human disease.'
 
 #
 # Genotype Footnotes on Phenotype Detail Page
@@ -317,8 +317,12 @@ def deriveCategory2(r):
 	    if (creregex.match(r['alleleSymbol']) > -1):
 		return -1
 
-#            if r['isNot'] == 1:
-#		return -1
+	    #
+	    # "not" annotations are not displayed in this section
+	    #
+
+            if r['isNot'] == 1:
+		return -1
 
 	    if humanOrtholog.has_key(marker):
 	        hasOrtholog = 1
