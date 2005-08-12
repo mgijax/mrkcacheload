@@ -47,8 +47,7 @@ def createBCPfile(markerKey):
 	db.sql('select m._Marker_key, m.chromosome, m.cytogeneticOffset, o.offset, c.sequenceNum ' + \
 		'into #markers ' + \
 		'from MRK_Marker m, MRK_Offset o, MRK_Chromosome c ' + \
-		'where m._Marker_Status_key in (1,3) ' + \
-		'and m._Organism_key = 1 ' + \
+		'where m._Organism_key = 1 ' + \
 		'and m._Marker_key = o._Marker_key ' + \
 		'and o.source = 0 ' + \
 		'and m._Organism_key = c._Organism_key ' + \
