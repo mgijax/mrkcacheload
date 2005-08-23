@@ -223,9 +223,7 @@ def deriveCategory1(r):
 	        # human ortholog is annotated to Term
 		if termID in omim:
 		    header = phenoHeader1 % (orthologSymbol)
-		    if len(genotypeOrtholog[genotype]) == 1:
-		        genotypeFootnote = genotypeFootnote1 % (genotypeOrtholog[genotype][0]) + genotypeFootnote
-                    else:
+		    if len(genotypeOrtholog[genotype]) != 1:
 		        if len(genotypeOrthologToPrint) == 1:
 		            genotypeFootnote = genotypeFootnote1 % (string.join(genotypeOrthologToPrint, ',')) + genotypeFootnote 
 			else: 
