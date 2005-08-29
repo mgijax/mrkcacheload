@@ -84,7 +84,7 @@ creregex = regex.compile(".*\(.*[Cc]re.*\).*")
 #
 phenoHeader1 = 'Models with phenotypic similarity to human diseases associated with human %s'
 phenoHeader2a = 'Models with phenotypic similarity to human diseases not associated with human %s'
-phenoHeader2b = 'Models with phenotypic similarity to human diseases associated with genes with mouse orthologs'
+phenoHeader2b = 'Models with phenotypic similarity to human diseases associated with genes having mouse orthologs.'
 phenoHeader3a = 'Models with phenotypic similarity to human diseases with unknown etiology'
 phenoHeader3b = 'Models with phenotypic similarity to human diseases associated with genes lacking mouse orthologs, or diseases of unknown human etiology'
 phenoHeader4 = 'Models involving transgenes or other mutation types'
