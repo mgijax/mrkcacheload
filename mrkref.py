@@ -167,13 +167,15 @@ def createMRK_Reference(markerKey):
 	#
 	# Marker History
 
-	cmd = 'select distinct _Marker_key, _Refs_key ' + \
+	cmd = 'select distinct h._Marker_key, h._Refs_key ' + \
 		'into #temp4 ' + \
-		'from MRK_History ' + \
-		'where _Refs_key is not null '
+		'from MRK_History h, MRK_Marker m ' + \
+		'where h._Refs_key is not null ' + \
+		'and h._History_key = m._Marker_key ' + \
+		'and m._Marker_Status_key in (1,3) '
 
 	if markerKey is not None:
-		cmd = cmd + 'and _Marker_key = %s' % markerKey
+		cmd = cmd + 'and h._Marker_key = %s' % markerKey
 
 	db.sql(cmd, None)
 	db.sql('create index idx1 on #temp4(_Marker_key)', None)
