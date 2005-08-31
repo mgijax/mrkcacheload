@@ -572,7 +572,7 @@ def processMouse(processType):
 		else:
 		    orthologOrganism = 'NULL'
 		    orthologKey = 'NULL'
-		    orthologSymbol = 'NULL'
+		    orthologSymbol = None
 
 	    if processType == 'bcp':
 
@@ -638,8 +638,8 @@ def processMouse(processType):
 	            mgi_utils.prvalue(r['_Genotype_key']), \
 	            mgi_utils.prvalue(r['_Term_key']), \
 	            mgi_utils.prvalue(r['_Refs_key']), \
-	            mgi_utils.prvalue(orthologOrganism), \
-	            mgi_utils.prvalue(orthologKey), \
+	            orthologOrganism, \
+	            orthologKey, \
                     mgi_utils.prvalue(displayCategory1), \
                     mgi_utils.prvalue(displayCategory2), \
                     mgi_utils.prvalue(displayCategory3), \
