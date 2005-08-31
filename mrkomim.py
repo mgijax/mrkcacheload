@@ -66,7 +66,7 @@ humanOrganismKey = 2
 
 humanOrtholog = {}	# mouse marker key : human ortholog (key, symbol)
 mouseOrtholog = {}	# human marker key : mouse ortholog (key, symbol)
-genotypeOrtholog = {}   # genotype key : list of human orthlogs
+genotypeOrtholog = {}   # genotype key : list of human marker keys:symbols
 
 humanToOMIM = {}	# human marker key : OMIM term id
 mouseToOMIM = {}	# mouse marker key : OMIM term id
@@ -82,13 +82,13 @@ creregex = regex.compile(".*\(.*[Cc]re.*\).*")
 #
 # Headers on Phenotype Detail Page
 #
-phenoHeader1 = 'Models with phenotypic similarity to human diseases associated with human %s'
-phenoHeader2a = 'Models with phenotypic similarity to human diseases not associated with human %s'
+phenoHeader1 = 'Models with phenotypic similarity to human diseases associated with human %s.'
+phenoHeader2a = 'Models with phenotypic similarity to human diseases not associated with human %s.'
 phenoHeader2b = 'Models with phenotypic similarity to human diseases associated with genes having mouse orthologs.'
-phenoHeader3a = 'Models with phenotypic similarity to human diseases with unknown etiology'
-phenoHeader3b = 'Models with phenotypic similarity to human diseases associated with genes lacking mouse orthologs, or diseases of unknown human etiology'
-phenoHeader4 = 'Models involving transgenes or other mutation types'
-phenoHeader5 = 'No similarity to expected human disease phenotype was found'
+phenoHeader3a = 'Models with phenotypic similarity to human diseases with unknown etiology.'
+phenoHeader3b = 'Models with phenotypic similarity to human diseases associated with genes lacking mouse orthologs, or diseases of unknown human etiology.'
+phenoHeader4 = 'Models involving transgenes or other mutation types.'
+phenoHeader5 = 'No similarity to expected human disease phenotype was found.'
 
 #
 # Header Footnotes on Phenotype Detail Page
@@ -146,6 +146,7 @@ def deriveCategory1(r):
 	headerFootnote = ''
 	genotypeFootnote = ''
 	genotypeOrthologToPrint = []
+	orthologKey = 0
 
 	# this is only appropriate for mouse-centric records
 
@@ -160,14 +161,20 @@ def deriveCategory1(r):
 	    orthologKey = ortholog['orthologKey']
 	    orthologSymbol = ortholog['orthologSymbol']
             isHumanOrthologAnnotated = humanToOMIM.has_key(orthologKey)
-
-	    # list of human orthologs for this genotype that don't include this marker's ortholog
-	    for s in genotypeOrtholog[genotype]:
-		if s != orthologSymbol:
-		    genotypeOrthologToPrint.append(s)
-
 	else:
             isHumanOrthologAnnotated = 0
+
+	# list of human orthologs for this genotype that don't include this marker's ortholog
+	# but are annotated to this term
+
+	if genotypeOrtholog.has_key(genotype):
+	    for s in genotypeOrtholog[genotype]:
+	        if s['orthologKey'] != orthologKey:
+	            if humanToOMIM.has_key(s['orthologKey']):
+	                omim = humanToOMIM[s['orthologKey']]
+	                # human ortholog is annotated to Term
+	                if termID in omim:
+	                    genotypeOrthologToPrint.append(s['orthologSymbol'])
 
 	# check if any human gene is annotated to Term
         isHumanGeneAnnotated = OMIMToHuman.has_key(termID)
@@ -182,10 +189,10 @@ def deriveCategory1(r):
 		omim = humanToOMIM[orthologKey]
 	        # human ortholog is annotated to Term
 		if termID in omim:
-		    if len(genotypeOrtholog[genotype]) == 1:
-		        genotypeFootnote = genotypeFootnote1 % (genotypeOrtholog[genotype][0]) + genotypeFootnote
-                    else:
-		        genotypeFootnote = genotypeFootnote2 % (string.join(genotypeOrtholog[genotype], ',')) + genotypeFootnote
+		    if len(genotypeOrthologToPrint) == 1:
+		        genotypeFootnote = genotypeFootnote1 % (string.join(genotypeOrthologToPrint, ',')) + genotypeFootnote 
+                    elif len(genotypeOrthologToPrint) >= 1:
+		        genotypeFootnote = genotypeFootnote2 % (string.join(genotypeOrthologToPrint, ',')) + genotypeFootnote
 	    return 5, phenoHeader5, headerFootnote5, genotypeFootnote
 
 	#
@@ -215,6 +222,14 @@ def deriveCategory1(r):
 
 	elif hasOrtholog:
 
+	    # display footnote in all cases
+
+	    if len(genotypeOrtholog[genotype]) != 1:
+	        if len(genotypeOrthologToPrint) == 1:
+	            genotypeFootnote = genotypeFootnote1 % (string.join(genotypeOrthologToPrint, ',')) + genotypeFootnote 
+                elif len(genotypeOrthologToPrint) >= 1:
+	            genotypeFootnote = genotypeFootnote2 % (string.join(genotypeOrthologToPrint, ',')) + genotypeFootnote
+
 	    if not isHumanGeneAnnotated:
 	        return 3, phenoHeader3a, headerFootnote, genotypeFootnote
 
@@ -223,11 +238,6 @@ def deriveCategory1(r):
 	        # human ortholog is annotated to Term
 		if termID in omim:
 		    header = phenoHeader1 % (orthologSymbol)
-		    if len(genotypeOrtholog[genotype]) != 1:
-		        if len(genotypeOrthologToPrint) == 1:
-		            genotypeFootnote = genotypeFootnote1 % (string.join(genotypeOrthologToPrint, ',')) + genotypeFootnote 
-			else: 
-			    genotypeFootnote = genotypeFootnote2 % (string.join(genotypeOrthologToPrint, ',')) + genotypeFootnote
 		    return 1, header, headerFootnote, genotypeFootnote
 	        # human ortholog is not annotated to Term (but is to other Terms)
 		else:
@@ -475,12 +485,12 @@ def selectMouse():
 	#
 	# resolve genotype-to-orthologs
 	#
-        results = db.sql('select distinct g._Genotype_key, o.orthologSymbol ' + \
+        results = db.sql('select distinct g._Genotype_key, o.orthologKey, o.orthologSymbol ' + \
 		'from #omimmouse1 g, #ortholog o ' + \
 		'where g._Marker_key = o._Marker_key', 'auto')
 	for r in results:
 	    key = r['_Genotype_key']
-	    value = r['orthologSymbol']
+	    value = r
 	    if not genotypeOrtholog.has_key(key):
 		genotypeOrtholog[key] = []
 	    genotypeOrtholog[key].append(value)
