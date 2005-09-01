@@ -134,17 +134,17 @@ def createMRK_Reference(markerKey):
 	# more Probe/Marker/References
 	#
 
-	cmd = 'select distinct m._Marker_key, r._Refs_key ' + \
-		'into #temp2 ' + \
-		'from PRB_Marker m, PRB_Reference r ' + \
-		'where m._Probe_key = r._Probe_key '
+#	cmd = 'select distinct m._Marker_key, r._Refs_key ' + \
+#		'into #temp2 ' + \
+#		'from PRB_Marker m, PRB_Reference r ' + \
+#		'where m._Probe_key = r._Probe_key '
 
-	if markerKey is not None:
-		cmd = cmd + 'and m._Marker_key = %s' % markerKey
+#	if markerKey is not None:
+#		cmd = cmd + 'and m._Marker_key = %s' % markerKey
 
-	db.sql(cmd, None)
-	db.sql('create index idx1 on #temp2(_Marker_key)', None)
-	db.sql('create index idx2 on #temp2(_Refs_key)', None)
+#	db.sql(cmd, None)
+#	db.sql('create index idx1 on #temp2(_Marker_key)', None)
+#	db.sql('create index idx2 on #temp2(_Refs_key)', None)
 
 	#
 	# Orthology
@@ -317,9 +317,9 @@ def createMRK_Reference(markerKey):
 	#
 	# union them all together
 	#
+#		'union select _Marker_key, _Refs_key from #temp2 ' + \
 
 	results = db.sql('select _Marker_key, _Refs_key from #temp1 ' + \
-		'union select _Marker_key, _Refs_key from #temp2 ' + \
 		'union select _Marker_key, _Refs_key from #temp3 ' + \
 		'union select _Marker_key, _Refs_key from #temp4 ' + \
 		'union select _Marker_key, _Refs_key from #temp5 ' + \
