@@ -104,7 +104,7 @@ genotypeFootnote1 = '%s is associated with this disease in humans.'
 genotypeFootnote2 = '%s are associated with this disease in humans.'
 
 deleteSQL = 'delete from MRK_OMIM_Cache where _Genotype_key = %s'
-insertSQL = 'insert into MRK_OMIM_Cache values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,"%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s")'
+insertSQL = 'insert into MRK_OMIM_Cache values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,"%s","%s","%s","%s","%s","%s","%s","%s","%s",%s,%s,"%s","%s")'
 
 def showUsage():
 	'''
@@ -569,10 +569,10 @@ def processMouse(processType):
 		    orthologOrganism = ''
 		    orthologKey = ''
 		    orthologSymbol = ''
-		else:
-		    orthologOrganism = 'NULL'
-		    orthologKey = 'NULL'
-		    orthologSymbol = None
+                else:
+		    orthologOrganism = None
+		    orthologKey =  None
+		    orthologSymbol =  None
 
 	    if processType == 'bcp':
 
@@ -630,6 +630,12 @@ def processMouse(processType):
 
 	    elif processType == 'sql':
 
+		if headerFootnote == '':
+		    headerFootnote = None
+
+		if genotypeFootnote == '':
+		    genotypeFootnote = None
+
 		db.sql(insertSQL % (
 	            mgi_utils.prvalue(mouseOrganismKey), \
 	            mgi_utils.prvalue(r['_Marker_key']), \
@@ -638,8 +644,8 @@ def processMouse(processType):
 	            mgi_utils.prvalue(r['_Genotype_key']), \
 	            mgi_utils.prvalue(r['_Term_key']), \
 	            mgi_utils.prvalue(r['_Refs_key']), \
-	            orthologOrganism, \
-	            orthologKey, \
+	            mgi_utils.value(orthologOrganism), \
+	            mgi_utils.value(orthologKey), \
                     mgi_utils.prvalue(displayCategory1), \
                     mgi_utils.prvalue(displayCategory2), \
                     mgi_utils.prvalue(displayCategory3), \
@@ -654,8 +660,8 @@ def processMouse(processType):
 	            r['strain'], \
 	            string.join(genotypeDisplay[genotype]), \
                     mgi_utils.prvalue(header), \
-                    mgi_utils.prvalue(headerFootnote), \
-                    mgi_utils.prvalue(genotypeFootnote), \
+                    mgi_utils.value(headerFootnote), \
+                    mgi_utils.value(genotypeFootnote), \
 	            cdate , cdate), None)
 
 def selectHuman(byOrtholog = 0):
