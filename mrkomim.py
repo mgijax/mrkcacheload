@@ -697,6 +697,16 @@ def selectHuman(byOrtholog = 0):
 		    'and a._Term_key = t._Term_key ' + \
 		    'and a._Term_key = ac._Object_key ' + \
 		    'and ac._MGIType_key = 13 ' + \
+		    'and ac.preferred = 1 ' + \
+		    'union ' + \
+	           'select _Marker_key = a._Object_key, termID = ac.accID, a._Term_key, t.term, a.isNot, e._Refs_key ' + \
+		    'from #omimmouse3 o, VOC_Annot a, VOC_Evidence e, VOC_Term t, ACC_Accession ac ' + \
+		    'where a._AnnotType_key = %s ' % (humanOMIMannotationKey) + \
+		    'and a._Term_key = o._Term_key ' + \
+		    'and a._Annot_key = e._Annot_key ' + \
+		    'and a._Term_key = t._Term_key ' + \
+		    'and a._Term_key = ac._Object_key ' + \
+		    'and ac._MGIType_key = 13 ' + \
 		    'and ac.preferred = 1', None)
 	    db.sql('create index idx1 on #omimhuman1(_Marker_key)', None)
 
