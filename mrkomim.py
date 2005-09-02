@@ -104,7 +104,7 @@ genotypeFootnote1 = '%s is associated with this disease in humans.'
 genotypeFootnote2 = '%s are associated with this disease in humans.'
 
 deleteSQL = 'delete from MRK_OMIM_Cache where _Genotype_key = %s'
-insertSQL = 'insert into MRK_OMIM_Cache values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,"%s","%s","%s","%s","%s","%s","%s","%s","%s",%s,%s,"%s","%s")'
+insertSQL = 'insert into MRK_OMIM_Cache values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,"%s","%s","%s","%s","%s","%s","%s","%s",%s,"%s",%s,%s,"%s","%s")'
 
 def showUsage():
 	'''
@@ -574,6 +574,15 @@ def processMouse(processType):
 		    orthologKey =  None
 		    orthologSymbol =  None
 
+	    fullGenotypeDisplay = string.join(genotypeDisplay[genotype], '')
+
+	    if len(fullGenotypeDisplay) > 255:
+	        genotypeDisplay1 = fullGenotypeDisplay[:255]
+	        genotypeDisplay2 = fullGenotypeDisplay[255:]
+	    else:
+	        genotypeDisplay1 = fullGenotypeDisplay
+		genotypeDisplay2 = ''
+
 	    if processType == 'bcp':
 
                 omimBCP.write(
@@ -598,7 +607,8 @@ def processMouse(processType):
 	            r['alleleSymbol'] + BCPDL + \
 	            mgi_utils.prvalue(orthologSymbol) + BCPDL + \
 	            r['strain'] + BCPDL + \
-	            string.join(genotypeDisplay[genotype], '') + BCPDL + \
+		    genotypeDisplay1 + BCPDL + \
+		    genotypeDisplay2 + BCPDL + \
                     mgi_utils.prvalue(header) + BCPDL + \
                     mgi_utils.prvalue(headerFootnote) + BCPDL + \
                     mgi_utils.prvalue(genotypeFootnote) + BCPDL + \
@@ -630,6 +640,11 @@ def processMouse(processType):
 
 	    elif processType == 'sql':
 
+		if genotypeDisplay2 == '':
+		    printGenotypeDisplay2 = 'null'
+                else:
+		    printGenotypeDisplay2 = '"' + genotypeDisplay2 + '"'
+
 		if headerFootnote == '':
 		    printHeaderFootnote = 'null'
                 else:
@@ -638,7 +653,7 @@ def processMouse(processType):
 		if genotypeFootnote == '':
 		    printGenotypeFootnote = 'null'
                 else:
-		    printGenotypeFootnote = '"' + printGenotypeFootnote + '"'
+		    printGenotypeFootnote = '"' + genotypeFootnote + '"'
 
 		db.sql(insertSQL % (
 	            mgi_utils.prvalue(mouseOrganismKey), \
@@ -662,7 +677,8 @@ def processMouse(processType):
 	            r['alleleSymbol'], \
 	            mgi_utils.prvalue(orthologSymbol), \
 	            r['strain'], \
-	            string.join(genotypeDisplay[genotype],''), \
+	            genotypeDisplay1, \
+		    printGenotypeDisplay2, \
                     mgi_utils.prvalue(header), \
                     printHeaderFootnote, \
                     printGenotypeFootnote, \
@@ -841,6 +857,7 @@ def processHuman():
 		BCPDL + \
 		mgi_utils.prvalue(orthologSymbol) + BCPDL + \
 		BCPDL + \
+	        BCPDL + \
 	        BCPDL + \
 	        BCPDL + \
 		BCPDL + \
