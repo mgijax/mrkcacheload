@@ -598,7 +598,7 @@ def processMouse(processType):
 	            r['alleleSymbol'] + BCPDL + \
 	            mgi_utils.prvalue(orthologSymbol) + BCPDL + \
 	            r['strain'] + BCPDL + \
-	            string.join(genotypeDisplay[genotype]) + BCPDL + \
+	            string.join(genotypeDisplay[genotype], '') + BCPDL + \
                     mgi_utils.prvalue(header) + BCPDL + \
                     mgi_utils.prvalue(headerFootnote) + BCPDL + \
                     mgi_utils.prvalue(genotypeFootnote) + BCPDL + \
@@ -631,10 +631,14 @@ def processMouse(processType):
 	    elif processType == 'sql':
 
 		if headerFootnote == '':
-		    headerFootnote = None
+		    printHeaderFootnote = 'null'
+                else:
+		    printHeaderFootnote = '"' + headerFootnote + '"'
 
 		if genotypeFootnote == '':
-		    genotypeFootnote = None
+		    printGenotypeFootnote = 'null'
+                else:
+		    printGenotypeFootnote = '"' + printGenotypeFootnote + '"'
 
 		db.sql(insertSQL % (
 	            mgi_utils.prvalue(mouseOrganismKey), \
@@ -658,10 +662,10 @@ def processMouse(processType):
 	            r['alleleSymbol'], \
 	            mgi_utils.prvalue(orthologSymbol), \
 	            r['strain'], \
-	            string.join(genotypeDisplay[genotype]), \
+	            string.join(genotypeDisplay[genotype],''), \
                     mgi_utils.prvalue(header), \
-                    mgi_utils.value(headerFootnote), \
-                    mgi_utils.value(genotypeFootnote), \
+                    printHeaderFootnote, \
+                    printGenotypeFootnote, \
 	            cdate , cdate), None)
 
 def selectHuman(byOrtholog = 0):
