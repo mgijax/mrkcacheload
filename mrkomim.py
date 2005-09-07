@@ -325,13 +325,6 @@ def deriveCategory2(r):
 	    if (creregex.match(r['alleleSymbol']) > -1):
 		return -1
 
-	    #
-	    # "not" annotations are not displayed in this section
-	    #
-
-            if r['isNot'] == 1:
-		return -1
-
 	    if humanOrtholog.has_key(marker):
 	        hasOrtholog = 1
 	        ortholog = humanOrtholog[marker]
