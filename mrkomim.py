@@ -70,6 +70,7 @@ genotypeOrtholog = {}   # genotype key : list of human marker keys:symbols
 
 humanToOMIM = {}	# human marker key : OMIM term id
 mouseToOMIM = {}	# mouse marker key : OMIM term id
+mouseIsNot = {}		# mouse marker key : OMIM term id that are "NOT" annotations
 OMIMToHuman = {}	# OMIM term id : list of human marker keys
 
 genotypeDisplay = {}	# mouse genotype key: genotype display
@@ -325,6 +326,13 @@ def deriveCategory2(r):
 	    if (creregex.match(r['alleleSymbol']) > -1):
 		return -1
 
+	    #
+	    # mouse NOTs appear nowhere...
+	    #
+
+            if r['isNot'] == 1:
+		return -1
+
 	    if humanOrtholog.has_key(marker):
 	        hasOrtholog = 1
 	        ortholog = humanOrtholog[marker]
@@ -356,9 +364,20 @@ def deriveCategory2(r):
 	        orthologSymbol = ortholog['orthologSymbol']
 
 	    if hasOrtholog:
+
+		#
+		# if the corresponding mouse ortholog annotation is a NOT, then it can only be in category 3
+		#
+
+		isNot = 0
+		if mouseIsNot.has_key(orthologKey):
+		    omim = mouseIsNot[orthologKey]
+		    if termID in omim:
+			isNot = 1
+
 	        if mouseToOMIM.has_key(orthologKey):
 		    omim = mouseToOMIM[orthologKey]
-		    if termID in omim:
+		    if termID in omim and isNot == 0:
 		        return 1
 		    else:
 		        return 3
@@ -373,11 +392,11 @@ def selectMouse():
 	# Returns:
 	# Assumes:  temp table omimmouse1 has already been created
 	# Effects:  initializes global dictionaries/caches
-	#	- humanOrtholog, mouseToOMIM, genotypeDisplay, genotypeOrtholog
+	#	- humanOrtholog, mouseToOMIM, genotypeDisplay, genotypeOrtholog, mouseIsNot
 	# Throws:
 	#
 
-	global humanOrtholog, mouseToOMIM, genotypeDisplay, genotypeOrtholog
+	global humanOrtholog, mouseToOMIM, genotypeDisplay, genotypeOrtholog, mouseIsNot
 
 	db.sql('create index idx1 on #omimmouse1(_Marker_key)', None)
 	db.sql('create index idx2 on #omimmouse1(_Allele_key)', None)
@@ -407,13 +426,19 @@ def selectMouse():
 	#
 	# cache all terms annotated to mouse markers
 	#
-	results = db.sql('select distinct o._Marker_key, o.termID from #omimmouse3 o order by o._Marker_key', 'auto')
+	results = db.sql('select distinct o._Marker_key, o.termID, o.isNot from #omimmouse3 o order by o._Marker_key', 'auto')
 	for r in results:
 	    key = r['_Marker_key']
 	    value = r['termID']
 	    if not mouseToOMIM.has_key(key):
 		mouseToOMIM[key] = []
 	    mouseToOMIM[key].append(value)
+
+	    # specifically cache the "NOT" annotations
+	    if r['isNot'] == 1:
+	        if not mouseIsNot.has_key(key):
+		    mouseIsNot[key] = []
+	        mouseIsNot[key].append(value)
 
 	#
 	# resolve Jnumber
