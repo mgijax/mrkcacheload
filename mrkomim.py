@@ -450,7 +450,9 @@ def selectMouse():
 		    if value not in mouseIs[key]:
 	                if not mouseIsNot.has_key(key):
 		            mouseIsNot[key] = []
-	                mouseIsNot[key].append(value)
+		else:
+	            if not mouseIsNot.has_key(key):
+		        mouseIsNot[key] = []
 
 	#
 	# resolve Jnumber
