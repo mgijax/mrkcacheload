@@ -427,7 +427,7 @@ def selectMouse():
 	# cache all terms annotated to mouse markers
 	#
 	mouseIs = {}
-	results = db.sql('select distinct o._Marker_key, o.termID, o.isNot from #omimmouse3 o order by o._Marker_key, o.isNot', 'auto')
+	results = db.sql('select distinct o._Marker_key, o.termID, o.isNot from #omimmouse3 o order by o._Marker_key, o.termID, o.isNot', 'auto')
 
 	for r in results:
 
