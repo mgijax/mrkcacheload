@@ -426,19 +426,31 @@ def selectMouse():
 	#
 	# cache all terms annotated to mouse markers
 	#
-	results = db.sql('select distinct o._Marker_key, o.termID, o.isNot from #omimmouse3 o order by o._Marker_key', 'auto')
+	mouseIs = {}
+	results = db.sql('select distinct o._Marker_key, o.termID, o.isNot from #omimmouse3 o order by o._Marker_key, o.isNot', 'auto')
+
 	for r in results:
+
 	    key = r['_Marker_key']
 	    value = r['termID']
+
 	    if not mouseToOMIM.has_key(key):
 		mouseToOMIM[key] = []
 	    mouseToOMIM[key].append(value)
 
-	    # specifically cache the "NOT" annotations
+	    if r['isNot'] == 0:
+	        if not mouseIs.has_key(key):
+		    mouseIs[key] = []
+		mouseIs[key].append(value)
+
+	    # specifically cache the "NOT" annotations; 
+	    # only if the "NOT" is the *only* annotation for this term
 	    if r['isNot'] == 1:
-	        if not mouseIsNot.has_key(key):
-		    mouseIsNot[key] = []
-	        mouseIsNot[key].append(value)
+		if mouseIs.has_key(key):
+		    if value not in mouseIs[key]:
+	                if not mouseIsNot.has_key(key):
+		            mouseIsNot[key] = []
+	                mouseIsNot[key].append(value)
 
 	#
 	# resolve Jnumber
