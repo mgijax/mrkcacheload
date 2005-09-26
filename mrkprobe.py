@@ -87,7 +87,7 @@ def createBCPfile():
 		'and a._Object_key = m._Sequence_key ' + \
 		'and a._Object_key = p._Sequence_key ' + \
 		'and exists (select 1 from #mouseprobes mp ' + \
-		'where p._Probe_key = mp._Probe_key', None)
+		'where p._Probe_key = mp._Probe_key)', None)
 
 	db.sql('create nonclustered index idx_pkey on #annotations(_Probe_key)', None)
 	db.sql('create nonclustered index idx_mkey on #annotations(_Marker_key)', None)
@@ -116,7 +116,7 @@ def createBCPfile():
 		'where a._Probe_key = p._Probe_key ' + \
 		'and a._Marker_key = p._Marker_key) ' + \
 		'and not exists (select 1 from #excluded e ' + \
-		'where a._Probe_key = e._Probe_key', None)
+		'where a._Probe_key = e._Probe_key)', None)
 
 	# select all mouse Molecular Segments which share a Seq ID with a mouse Marker
 	# and which do not have a non-P/null association with that Marker
@@ -129,7 +129,7 @@ def createBCPfile():
 		'where a._Probe_key = p._Probe_key ' + \
 		'and a._Marker_key = p._Marker_key ' + \
 		'and not exists (select 1 from #excluded e ' + \
-		'where a._Probe_key = e._Probe_key', None)
+		'where a._Probe_key = e._Probe_key)', None)
 
 	# delete any putatives which can be trumped by an auto-E relationship
 
