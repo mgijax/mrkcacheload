@@ -127,7 +127,7 @@ def createBCPfile():
 		'from #annotations a  ' + \
 		'where not exists (select 1 from #nonputatives p ' + \
 		'where a._Probe_key = p._Probe_key ' + \
-		'and a._Marker_key = p._Marker_key ' + \
+		'and a._Marker_key = p._Marker_key) ' + \
 		'and not exists (select 1 from #excluded e ' + \
 		'where a._Probe_key = e._Probe_key)', None)
 
