@@ -77,6 +77,7 @@ genotypeDisplay = {}	# mouse genotype key: genotype display
 genotypeCategory3 = {}	# mouse genotype key + termID: display category 3
 
 gene = 1
+notQualifier = 'NOT'
 
 creregex = regex.compile(".*\(.*[Cc]re.*\).*")
 
@@ -182,10 +183,10 @@ def deriveCategory1(r):
 
 	#
 	#  5.  no similarity
-	#	a. mouse genotype is annotated to Term and is a IS NOT annotation
+	#	a. mouse genotype is annotated to Term and is a NOT annotation
 	#
 
-        if r['isNot'] == 1:
+        if r['qualifier'] == notQualifier:
 	    if hasOrtholog and isHumanOrthologAnnotated:
 		omim = humanToOMIM[orthologKey]
 	        # human ortholog is annotated to Term
@@ -330,7 +331,7 @@ def deriveCategory2(r):
 	    # mouse NOTs appear nowhere...
 	    #
 
-            if r['isNot'] == 1:
+            if r['qualifier'] == notQualifier:
 		return -1
 
 	    if humanOrtholog.has_key(marker):
@@ -427,7 +428,7 @@ def selectMouse():
 	# cache all terms annotated to mouse markers
 	#
 	mouseIs = {}
-	results = db.sql('select distinct o._Marker_key, o.termID, o.isNot from #omimmouse3 o order by o._Marker_key, o.termID, o.isNot', 'auto')
+	results = db.sql('select distinct o._Marker_key, o.termID, o.qualifier from #omimmouse3 o order by o._Marker_key, o.termID, o.qualifier', 'auto')
 
 	for r in results:
 
@@ -438,14 +439,14 @@ def selectMouse():
 		mouseToOMIM[key] = []
 	    mouseToOMIM[key].append(value)
 
-	    if r['isNot'] == 0:
+	    if r['qualifier'] != notQualifier:
 	        if not mouseIs.has_key(key):
 		    mouseIs[key] = []
 		mouseIs[key].append(value)
 
 	    # specifically cache the "NOT" annotations; 
 	    # only if the "NOT" is the *only* annotation for this term
-	    if r['isNot'] == 1:
+	    if r['qualifier'] == notQualifier:
 		if mouseIs.has_key(key):
 		    if value not in mouseIs[key]:
 	                if not mouseIsNot.has_key(key):
@@ -635,7 +636,7 @@ def processMouse(processType):
                     mgi_utils.prvalue(displayCategory2) + BCPDL + \
                     mgi_utils.prvalue(displayCategory3) + BCPDL + \
 	            mgi_utils.prvalue(r['sequenceNum']) + BCPDL + \
-	            mgi_utils.prvalue(r['isNot']) + BCPDL + \
+	            r['qualifier'] + BCPDL + \
 	            r['markerSymbol'] + BCPDL + \
 	            r['term'] + BCPDL + \
 	            r['termID'] + BCPDL + \
@@ -664,7 +665,7 @@ def processMouse(processType):
                     mgi_utils.prvalue(header) + RDL + \
                     mgi_utils.prvalue(headerFootnote) + RDL + \
                     mgi_utils.prvalue(genotypeFootnote) + RDL + \
-	            mgi_utils.prvalue(r['isNot']) + RDL)
+	            r['qualifier'] + RDL)
             
                 if humanOrtholog.has_key(r['_Marker_key']):
 	            h = humanOrtholog[r['_Marker_key']]
@@ -705,7 +706,7 @@ def processMouse(processType):
                     mgi_utils.prvalue(displayCategory2), \
                     mgi_utils.prvalue(displayCategory3), \
 	            mgi_utils.prvalue(r['sequenceNum']), \
-	            mgi_utils.prvalue(r['isNot']), \
+	            r['qualifier'], \
 	            r['markerSymbol'], \
 	            r['term'], \
 	            r['termID'], \
@@ -740,10 +741,11 @@ def selectHuman(byOrtholog = 0):
 	    # are selected.
 	    #
 
-	    db.sql('select _Marker_key = a._Object_key, termID = ac.accID, a._Term_key, t.term, a.isNot, e._Refs_key ' + \
+	    db.sql('select _Marker_key = a._Object_key, termID = ac.accID, a._Term_key, t.term, qualifier = q.term, e._Refs_key ' + \
 		    'into #omimhuman1 ' + \
-		    'from #ortholog o, VOC_Annot a, VOC_Evidence e, VOC_Term t, ACC_Accession ac ' + \
+		    'from #ortholog o, VOC_Annot a, VOC_Evidence e, VOC_Term t, ACC_Accession ac, VOC_Term q ' + \
 		    'where a._AnnotType_key = %s ' % (humanOMIMannotationKey) + \
+		    'and a._Qualifier_key = q._Term_key ' + \
 		    'and a._Object_key = o.orthologKey ' + \
 		    'and a._Annot_key = e._Annot_key ' + \
 		    'and a._Term_key = t._Term_key ' + \
@@ -751,9 +753,10 @@ def selectHuman(byOrtholog = 0):
 		    'and ac._MGIType_key = 13 ' + \
 		    'and ac.preferred = 1 ' + \
 		    'union ' + \
-	           'select _Marker_key = a._Object_key, termID = ac.accID, a._Term_key, t.term, a.isNot, e._Refs_key ' + \
-		    'from #omimmouse3 o, VOC_Annot a, VOC_Evidence e, VOC_Term t, ACC_Accession ac ' + \
+	           'select _Marker_key = a._Object_key, termID = ac.accID, a._Term_key, t.term, qualifier = q.term, e._Refs_key ' + \
+		    'from #omimmouse3 o, VOC_Annot a, VOC_Evidence e, VOC_Term t, ACC_Accession ac, VOC_Term q ' + \
 		    'where a._AnnotType_key = %s ' % (humanOMIMannotationKey) + \
+		    'and a._Qualifier_key = q._Term_key ' + \
 		    'and a._Term_key = o._Term_key ' + \
 		    'and a._Annot_key = e._Annot_key ' + \
 		    'and a._Term_key = t._Term_key ' + \
@@ -768,10 +771,11 @@ def selectHuman(byOrtholog = 0):
 	    # select all human genes annotated to OMIM Gene or Disease Terms
 	    #
 
-	    db.sql('select _Marker_key = a._Object_key, termID = ac.accID, a._Term_key, t.term, a.isNot, e._Refs_key ' + \
+	    db.sql('select _Marker_key = a._Object_key, termID = ac.accID, a._Term_key, t.term, qualifier = q.term, e._Refs_key ' + \
 		    'into #omimhuman1 ' + \
-		    'from VOC_Annot a, VOC_Evidence e, VOC_Term t, ACC_Accession ac ' + \
+		    'from VOC_Annot a, VOC_Evidence e, VOC_Term t, ACC_Accession ac, VOC_Term q ' + \
 		    'where a._AnnotType_key = %s ' % (humanOMIMannotationKey) + \
+		    'and a._Qualifier_key = q._Term_key ' + \
 		    'and a._Annot_key = e._Annot_key ' + \
 		    'and a._Term_key = t._Term_key ' + \
 		    'and a._Term_key = ac._Object_key ' + \
@@ -885,7 +889,7 @@ def processHuman():
 	        mgi_utils.prvalue(displayCategory2) + BCPDL + \
 	        mgi_utils.prvalue(displayCategory3) + BCPDL + \
 		BCPDL + \
-		mgi_utils.prvalue(r['isNot']) + BCPDL + \
+		r['qualifier'] + BCPDL + \
 		r['markerSymbol'] + BCPDL + \
 		r['term'] + BCPDL + \
 		r['termID'] + BCPDL + \
@@ -909,7 +913,7 @@ def processHuman():
 		mgi_utils.prvalue(r['term']) + RDL + \
 		r['termID'] + RDL + \
 		mgi_utils.prvalue(r['jnumID']) + RDL + \
-		mgi_utils.prvalue(r['isNot']) + RDL)
+		r['qualifier'] + RDL)
 
 	    if mouseOrtholog.has_key(marker):
 		h = mouseOrtholog[marker]
@@ -938,10 +942,11 @@ def processDeleteReload():
 	#
 
 	db.sql('select g._Marker_key, g._Allele_key, g._Genotype_key, g.sequenceNum, ' + \
-		'a._Term_key, a.isNot, e._Refs_key ' + \
+		'a._Term_key, qualifier = q.term, e._Refs_key ' + \
 		'into #omimmouse1 ' + \
-		'from GXD_AlleleGenotype g, VOC_Annot a, VOC_Evidence e ' + \
+		'from GXD_AlleleGenotype g, VOC_Annot a, VOC_Evidence e, VOC_Term q ' + \
 		'where g._Genotype_key = a._Object_key ' + \
+		'and a._Qualifier_key = q._Term_key ' + \
 		'and a._AnnotType_key = %s ' % (mouseOMIMannotationKey) + \
 		'and a._Annot_key = e._Annot_key\n', None)
 
@@ -985,11 +990,12 @@ def processByAllele(alleleKey):
 	#
 
 	db.sql('select g._Marker_key, g._Allele_key, g._Genotype_key, g.sequenceNum, ' + \
-		'a._Term_key, a.isNot, e._Refs_key ' + \
+		'a._Term_key, qualifier = q.term, e._Refs_key ' + \
 		'into #omimmouse1 ' + \
-		'from #toprocess p, GXD_AlleleGenotype g, VOC_Annot a, VOC_Evidence e ' + \
+		'from #toprocess p, GXD_AlleleGenotype g, VOC_Annot a, VOC_Evidence e, VOC_Term q ' + \
 		'where p._Genotype_key = g._Genotype_key ' + \
 		'and g._Genotype_key = a._Object_key ' + \
+		'and a._Qualifier_key = q._Term_key ' + \
 		'and a._AnnotType_key = %s ' % (mouseOMIMannotationKey) + \
 		'and a._Annot_key = e._Annot_key', None)
 
@@ -1018,10 +1024,11 @@ def processByGenotype(genotypeKey):
 	#
 
 	db.sql('select g._Marker_key, g._Allele_key, g._Genotype_key, g.sequenceNum, ' + \
-		'a._Term_key, a.isNot, e._Refs_key ' + \
+		'a._Term_key, qualifier = q.term, e._Refs_key ' + \
 		'into #omimmouse1 ' + \
-		'from GXD_AlleleGenotype g, VOC_Annot a, VOC_Evidence e ' + \
+		'from GXD_AlleleGenotype g, VOC_Annot a, VOC_Evidence e, VOC_Term q ' + \
 		'where g._Genotype_key = a._Object_key ' + \
+		'and a._Qualifier_key = q._Term_key ' + \
 		'and a._AnnotType_key = %s ' % (mouseOMIMannotationKey) + \
 		'and a._Annot_key = e._Annot_key ' + \
 	        'and g._Genotype_key = %s' % (genotypeKey), None)
@@ -1061,11 +1068,12 @@ def processByMarker(markerKey):
 	#
 
 	db.sql('select g._Marker_key, g._Allele_key, g._Genotype_key, g.sequenceNum, ' + \
-		'a._Term_key, a.isNot, e._Refs_key ' + \
+		'a._Term_key, qualifier = q.term, e._Refs_key ' + \
 		'into #omimmouse1 ' + \
-		'from #toprocess p, GXD_AlleleGenotype g, VOC_Annot a, VOC_Evidence e ' + \
+		'from #toprocess p, GXD_AlleleGenotype g, VOC_Annot a, VOC_Evidence e, VOC_Term q ' + \
 		'where p._Genotype_key = g._Genotype_key ' + \
 		'and g._Genotype_key = a._Object_key ' + \
+		'and a._Qualifier_key = q._Term_key ' + \
 		'and a._AnnotType_key = %s ' % (mouseOMIMannotationKey) + \
 		'and a._Annot_key = e._Annot_key', None)
 
