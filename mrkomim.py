@@ -692,6 +692,11 @@ def processMouse(processType):
                 else:
 		    printGenotypeFootnote = '"' + genotypeFootnote + '"'
 
+		if r['qualifier'] is None:
+		    printQualifier = 'null'
+                else:
+		    printQualifier = '"' + r['qualifier'] + '"'
+
 		db.sql(insertSQL % (
 	            mgi_utils.prvalue(mouseOrganismKey), \
 	            mgi_utils.prvalue(r['_Marker_key']), \
@@ -706,7 +711,7 @@ def processMouse(processType):
                     mgi_utils.prvalue(displayCategory2), \
                     mgi_utils.prvalue(displayCategory3), \
 	            mgi_utils.prvalue(r['sequenceNum']), \
-	            mgi_utils.prvalue(r['qualifier']), \
+	            printQualifier, \
 	            r['markerSymbol'], \
 	            r['term'], \
 	            r['termID'], \
