@@ -636,7 +636,7 @@ def processMouse(processType):
                     mgi_utils.prvalue(displayCategory2) + BCPDL + \
                     mgi_utils.prvalue(displayCategory3) + BCPDL + \
 	            mgi_utils.prvalue(r['sequenceNum']) + BCPDL + \
-	            r['qualifier'] + BCPDL + \
+	            mgi_utils.prvalue(r['qualifier']) + BCPDL + \
 	            r['markerSymbol'] + BCPDL + \
 	            r['term'] + BCPDL + \
 	            r['termID'] + BCPDL + \
@@ -665,7 +665,7 @@ def processMouse(processType):
                     mgi_utils.prvalue(header) + RDL + \
                     mgi_utils.prvalue(headerFootnote) + RDL + \
                     mgi_utils.prvalue(genotypeFootnote) + RDL + \
-	            r['qualifier'] + RDL)
+	            mgi_utils.prvalue(r['qualifier']) + RDL)
             
                 if humanOrtholog.has_key(r['_Marker_key']):
 	            h = humanOrtholog[r['_Marker_key']]
@@ -706,7 +706,7 @@ def processMouse(processType):
                     mgi_utils.prvalue(displayCategory2), \
                     mgi_utils.prvalue(displayCategory3), \
 	            mgi_utils.prvalue(r['sequenceNum']), \
-	            r['qualifier'], \
+	            mgi_utils.prvalue(r['qualifier']), \
 	            r['markerSymbol'], \
 	            r['term'], \
 	            r['termID'], \
@@ -889,7 +889,7 @@ def processHuman():
 	        mgi_utils.prvalue(displayCategory2) + BCPDL + \
 	        mgi_utils.prvalue(displayCategory3) + BCPDL + \
 		BCPDL + \
-		r['qualifier'] + BCPDL + \
+		mgi_utils.prvalue(r['qualifier']) + BCPDL + \
 		r['markerSymbol'] + BCPDL + \
 		r['term'] + BCPDL + \
 		r['termID'] + BCPDL + \
@@ -913,7 +913,7 @@ def processHuman():
 		mgi_utils.prvalue(r['term']) + RDL + \
 		r['termID'] + RDL + \
 		mgi_utils.prvalue(r['jnumID']) + RDL + \
-		r['qualifier'] + RDL)
+		mgi_utils.prvalue(r['qualifier']) + RDL)
 
 	    if mouseOrtholog.has_key(marker):
 		h = mouseOrtholog[marker]
