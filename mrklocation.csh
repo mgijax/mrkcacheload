@@ -23,7 +23,7 @@ date | tee -a ${LOG}
 # Exit if bcp file is empty
 
 if ( -z ${MRKCACHEBCPDIR}/MRK_Location_Cache.bcp ) then
-echo 'BCP File is empty' >>& $LOG
+echo 'BCP File is empty' | tee -a ${LOG}
 exit 0
 endif
 
