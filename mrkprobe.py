@@ -164,8 +164,8 @@ print '%s' % mgi_utils.date()
 
 server = os.environ['DBSERVER']
 database = os.environ['DBNAME']
-user = os.environ['DBOUSER']
-passwordFile = os.environ['DBOPASSWORDFILE']
+user = os.environ['DBUSER']
+passwordFile = os.environ['DBPASSWORDFILE']
 password = string.strip(open(passwordFile, 'r').readline())
 db.set_sqlLogin(user, password, server, database)
 
