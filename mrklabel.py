@@ -478,6 +478,7 @@ def priority14():
 #
 
 db.useOneConnection(1)
+db.set_sqlLogFunction(db.sqlLogAll)
 
 if len(sys.argv) == 2:
 	markerKey = sys.argv[1]
