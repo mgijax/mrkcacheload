@@ -26,12 +26,12 @@ exit 0
 endif
 
 # Drop indexes
-${SCHEMADIR}/index/PRB_Marker_drop.object | tee -a ${LOG}
+${MGD_DBSCHEMADIR}/index/PRB_Marker_drop.object | tee -a ${LOG}
 
 # BCP new data into tables
-cat ${DBPASSWORDFILE} | bcp ${DBNAME}..PRB_Marker in ${MRKCACHEBCPDIR}/PRB_Marker.bcp -e ${MRKCACHEBCPDIR}/PRB_Marker.bcp.error -c -t${FIELDDELIM} -S${DBSERVER} -U${DBUSER} | tee -a ${LOG}
+cat ${MGD_DBPASSWORDFILE} | bcp ${MGD_DBNAME}..PRB_Marker in ${MRKCACHEBCPDIR}/PRB_Marker.bcp -e ${MRKCACHEBCPDIR}/PRB_Marker.bcp.error -c -t${FIELDDELIM} -S${MGD_DBSERVER} -U${MGD_DBUSER} | tee -a ${LOG}
 
 # Create indexes
-${SCHEMADIR}/index/PRB_Marker_create.object | tee -a ${LOG}
+${MGD_DBSCHEMADIR}/index/PRB_Marker_create.object | tee -a ${LOG}
 
 date | tee -a ${LOG}

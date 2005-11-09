@@ -27,15 +27,15 @@ endif
 
 # truncate table
 
-${SCHEMADIR}/table/MRK_Reference_truncate.object | tee -a ${LOG}
+${MGD_DBSCHEMADIR}/table/MRK_Reference_truncate.object | tee -a ${LOG}
 
 # Drop indexes
-${SCHEMADIR}/index/MRK_Reference_drop.object | tee -a ${LOG}
+${MGD_DBSCHEMADIR}/index/MRK_Reference_drop.object | tee -a ${LOG}
 
 # BCP new data into tables
-cat ${DBPASSWORDFILE} | bcp ${DBNAME}..MRK_Reference in ${MRKCACHEBCPDIR}/MRK_Reference.bcp -e ${MRKCACHEBCPDIR}/MRK_Reference.bcp.error -c -t${FIELDDELIM} -S${DBSERVER} -U${DBUSER} | tee -a ${LOG}
+cat ${MGD_DBPASSWORDFILE} | bcp ${MGD_DBNAME}..MRK_Reference in ${MRKCACHEBCPDIR}/MRK_Reference.bcp -e ${MRKCACHEBCPDIR}/MRK_Reference.bcp.error -c -t${FIELDDELIM} -S${MGD_DBSERVER} -U${MGD_DBUSER} | tee -a ${LOG}
 
 # Create indexes
-${SCHEMADIR}/index/MRK_Reference_create.object | tee -a ${LOG}
+${MGD_DBSCHEMADIR}/index/MRK_Reference_create.object | tee -a ${LOG}
 
 date | tee -a ${LOG}

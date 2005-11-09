@@ -29,15 +29,15 @@ endif
 
 # truncate table
 
-${SCHEMADIR}/table/MRK_Location_Cache_truncate.object | tee -a ${LOG}
+${MGD_DBSCHEMADIR}/table/MRK_Location_Cache_truncate.object | tee -a ${LOG}
 
 # Drop indexes
-${SCHEMADIR}/index/MRK_Location_Cache_drop.object | tee -a ${LOG}
+${MGD_DBSCHEMADIR}/index/MRK_Location_Cache_drop.object | tee -a ${LOG}
 
 # BCP new data into tables
-cat ${DBPASSWORDFILE} | bcp ${DBNAME}..MRK_Location_Cache in ${MRKCACHEBCPDIR}/MRK_Location_Cache.bcp -e ${MRKCACHEBCPDIR}/MRK_Location_Cache.bcp.error -c -t${FIELDDELIM} -S${DBSERVER} -U${DBUSER} | tee -a ${LOG}
+cat ${MGD_DBPASSWORDFILE} | bcp ${MGD_DBNAME}..MRK_Location_Cache in ${MRKCACHEBCPDIR}/MRK_Location_Cache.bcp -e ${MRKCACHEBCPDIR}/MRK_Location_Cache.bcp.error -c -t${FIELDDELIM} -S${MGD_DBSERVER} -U${MGD_DBUSER} | tee -a ${LOG}
 
 # Create indexes
-${SCHEMADIR}/index/MRK_Location_Cache_create.object | tee -a ${LOG}
+${MGD_DBSCHEMADIR}/index/MRK_Location_Cache_create.object | tee -a ${LOG}
 
 date | tee -a ${LOG}
