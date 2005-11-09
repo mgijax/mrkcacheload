@@ -27,9 +27,8 @@ echo 'BCP File is empty' | tee -a ${LOG}
 exit 0
 endif
 
-# Allow bcp into database and truncate tables
+# truncate table
 
-${DBUTILSBINDIR}/turnonbulkcopy.csh ${DBSERVER} ${DBNAME} | tee -a ${LOG}
 ${SCHEMADIR}/table/MRK_Location_Cache_truncate.object | tee -a ${LOG}
 
 # Drop indexes
