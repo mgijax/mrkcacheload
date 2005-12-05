@@ -13,6 +13,9 @@ setenv MRKCACHEINSTALLDIR	/usr/local/mgi/live/dbutils/mrkcacheload
 # directory
 setenv MRKCACHEDIR		/data/loads/mgi/mrkcacheload
 
+# input directory
+setenv MRKCACHEINDIR		${MRKCACHEDIR}/input
+
 # bcp output directory
 setenv MRKCACHEBCPDIR		${MRKCACHEDIR}/output
 
@@ -30,3 +33,4 @@ setenv MGD	$DBNAME
 setenv FIELDDELIM	"&#&"
 
 setenv CREATEDBY        1000
+
