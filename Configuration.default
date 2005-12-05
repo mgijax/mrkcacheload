@@ -22,8 +22,7 @@ setenv MRKCACHELOGDIR		${MRKCACHEDIR}/logs
 # schema product directory
 setenv MGD_DBSCHEMADIR		/usr/local/mgi/live/dbutils/mgd/mgddbschema
 
-source ${MGD_DBSCHEMADIR}/Configuration
-
 setenv FIELDDELIM	"&#&"
-
 setenv CREATEDBY        1000
+
+source ${MGD_DBSCHEMADIR}/Configuration

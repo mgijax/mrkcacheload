@@ -54,7 +54,6 @@ cdate = mgi_utils.date("%m/%d/%Y")
 try:
     BCPDL = os.environ['FIELDDELIM']
     table = os.environ['TABLE']
-    createdBy = os.environ['CREATEDBY']
     outDir = os.environ['MRKCACHEBCPDIR']
 except:
     table = 'MRK_OMIM_Cache'

@@ -72,6 +72,7 @@ def createBCPfile():
 		'into #mouseprobes ' + \
 		'from SEQ_Probe_Cache c, PRB_Probe p, PRB_Source s ' + \
 		'where c._Probe_key = p._Probe_key ' + \
+		'and p._SegmentType_key != 63473 ' + \
 		'and p._Source_key = s._Source_key ' + \
 		'and s._Organism_key = 1', None)
 	
