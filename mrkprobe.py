@@ -86,6 +86,7 @@ def createBCPfile():
 		'where a._LogicalDB_key = 9 ' + \
 		'and a._MGIType_key = 19 ' + \
 		'and a._Object_key = m._Sequence_key ' + \
+		'and m._Organism_key = 1 ' + \
 		'and a._Object_key = p._Sequence_key ' + \
 		'and exists (select 1 from #mouseprobes mp ' + \
 		'where p._Probe_key = mp._Probe_key)', None)
