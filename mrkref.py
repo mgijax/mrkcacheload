@@ -26,6 +26,9 @@
 #
 # History
 #
+# 12/08/2005	lec
+#	- added jnumID, pubmedID, mgiID and jnum to MRK_Reference
+#
 # 12/09/2004	lec
 #	- TR 5686; replaced MRK_Other with MGI_Synonym
 #
@@ -319,7 +322,7 @@ def createMRK_Reference(markerKey):
 	#
 #		'union select _Marker_key, _Refs_key from #temp2 ' + \
 
-	results = db.sql('select _Marker_key, _Refs_key from #temp1 ' + \
+	db.sql('select _Marker_key, _Refs_key into #refs from #temp1 ' + \
 		'union select _Marker_key, _Refs_key from #temp3 ' + \
 		'union select _Marker_key, _Refs_key from #temp4 ' + \
 		'union select _Marker_key, _Refs_key from #temp5 ' + \
@@ -329,11 +332,47 @@ def createMRK_Reference(markerKey):
 		'union select _Marker_key, _Refs_key from #temp9 ' + \
 		'union select _Marker_key, _Refs_key from #temp10 ' + \
 		'union select _Marker_key, _Refs_key from #temp11 ' + \
-		'union select _Marker_key, _Refs_key from #temp12', 'auto')
+		'union select _Marker_key, _Refs_key from #temp12', None)
+        db.sql('create index idx1 on #refs(_Refs_key)', None)
 
+	mgiID = {}
+	jnumID = {}
+	jnum = {}
+	pubmedID = {}
+
+	results = db.sql('select r._Refs_key, a._LogicalDB_key, a.prefixPart, a.numericPart, a.accID from #refs r, ACC_Accession a ' + \
+		'where r._Refs_key = a._Object_key ' + \
+		'and a._MGIType_key = 1 ' + \
+		'and a._LogicalDB_key in (1, 29) ' + \
+		'and a.preferred = 1', 'auto')
+        for r in results:
+	    key = r['_Refs_key']
+	    value = r['accID']
+	    lkey = r['_LogicalDB_key']
+	    pp = r['prefixPart']
+	    np = r['numericPart']
+
+	    if lkey == 1 and pp == 'MGI:':
+		mgiID[key] = value
+	    elif lkey == 1 and pp == 'J:':
+		jnumID[key] = value
+		jnum[key] = np
+            else:
+		pubmedID[key] = value
+
+	results = db.sql('select _Marker_key, _Refs_key from #refs', 'auto')
 	for r in results:
+	    key = r['_Refs_key']
+
 	    refBCP.write(mgi_utils.prvalue(r['_Marker_key']) + DL + \
-		       	mgi_utils.prvalue(r['_Refs_key']) + DL + \
+		       	mgi_utils.prvalue(key) + DL + \
+			mgi_utils.prvalue(mgiID[key]) + DL + \
+			mgi_utils.prvalue(jnumID[key]) + DL)
+
+            if pubmedID.has_key(key):
+		refBCP.write(mgi_utils.prvalue(pubmedID[key]))
+
+            refBCP.write(DL + mgi_utils.prvalue(jnum[key]) + DL + \
 			cdate + DL + \
 			cdate + NL)
 	    refBCP.flush()
