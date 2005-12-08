@@ -14,6 +14,8 @@
 #
 # If markerkey is provided, then only create the bcp file for that marker.
 #
+# IMPORTANT:  Keep in synch with stored procedure MRK_reloadReference.
+#
 # Processing:
 #
 #	1. Select all unique Marker/Reference pairs from the other parts of the database.
@@ -120,7 +122,7 @@ def createMRK_Reference(markerKey):
 	refBCP = open(outDir + '/MRK_Reference.bcp', 'w')
 
 	#
-	# Probe/Marker/References
+	# Probe/Marker
 	#
 
 	cmd = 'select distinct m._Marker_key, m._Refs_key ' + \
@@ -324,7 +326,8 @@ def createMRK_Reference(markerKey):
 	jnum = {}
 	pubmedID = {}
 
-	results = db.sql('select r._Refs_key, a._LogicalDB_key, a.prefixPart, a.numericPart, a.accID from #refs r, ACC_Accession a ' + \
+	results = db.sql('select r._Refs_key, a._LogicalDB_key, a.prefixPart, a.numericPart, a.accID ' + \
+		'from #refs r, ACC_Accession a ' + \
 		'where r._Refs_key = a._Object_key ' + \
 		'and a._MGIType_key = 1 ' + \
 		'and a._LogicalDB_key in (1, 29) ' + \
