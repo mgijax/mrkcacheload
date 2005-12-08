@@ -101,16 +101,17 @@ def createMRK_Reference(markerKey):
 	#
 	# Datasets:
 	#
-	# Molecular Segments
-	# Homology
-	# Marker History
-	# Mapping
-	# GXD Index
-	# GXD Assay
-	# Accession Reference
-	# Marker Sequence Accession Numbers
-	# Allele References
-	# Any References which have been added manually to Markers (MGI_Reference_Assoc)
+	# 1.  Molecular Segments
+	# 2.  Orthology
+	# 3.  Marker History
+	# 4.  Mapping
+	# 5.  GXD Index
+	# 6.  GXD Assay
+	# 7.  Synonyms
+	# 8.  Accession Reference
+	# 9.  Allele References
+	# 10. GO Annotations
+	# 11. Manually curated (MGI_Reference_Assoc)
 	#
 	'''
 
@@ -132,22 +133,6 @@ def createMRK_Reference(markerKey):
 	db.sql(cmd, None)
 	db.sql('create index idx1 on #temp1(_Marker_key)', None)
 	db.sql('create index idx2 on #temp1(_Refs_key)', None)
-
-	#
-	# more Probe/Marker/References
-	#
-
-#	cmd = 'select distinct m._Marker_key, r._Refs_key ' + \
-#		'into #temp2 ' + \
-#		'from PRB_Marker m, PRB_Reference r ' + \
-#		'where m._Probe_key = r._Probe_key '
-
-#	if markerKey is not None:
-#		cmd = cmd + 'and m._Marker_key = %s' % markerKey
-
-#	db.sql(cmd, None)
-#	db.sql('create index idx1 on #temp2(_Marker_key)', None)
-#	db.sql('create index idx2 on #temp2(_Refs_key)', None)
 
 	#
 	# Orthology
@@ -311,7 +296,7 @@ def createMRK_Reference(markerKey):
 		'where m._MGIType_key = 2 '
 
 	if markerKey is not None:
-		cmd = cmd + 'and m._Marker_key = %s' % markerKey
+		cmd = cmd + 'and m._Object_key = %s' % markerKey
 
 	db.sql(cmd, None)
 	db.sql('create index idx1 on #temp12(_Marker_key)', None)
@@ -320,7 +305,6 @@ def createMRK_Reference(markerKey):
 	#
 	# union them all together
 	#
-#		'union select _Marker_key, _Refs_key from #temp2 ' + \
 
 	db.sql('select _Marker_key, _Refs_key into #refs from #temp1 ' + \
 		'union select _Marker_key, _Refs_key from #temp3 ' + \
