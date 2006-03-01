@@ -173,12 +173,13 @@ def createMRK_Reference(markerKey):
 	# Mapping
 	#
 
-	cmd = 'select distinct _Marker_key, _Refs_key ' + \
+	cmd = 'select distinct em._Marker_key, e._Refs_key ' + \
 		'into #temp5 ' + \
-		'from MLD_Marker '
+		'from MLD_Expt_Marker em, MLD_Expts e ' + \
+		'where em._Expt_key = e._Expt_key '
 
 	if markerKey is not None:
-		cmd = cmd + 'where _Marker_key = %s' % markerKey
+		cmd = cmd + 'and _Marker_key = %s' % markerKey
 
 	db.sql(cmd, None)
 	db.sql('create index idx1 on #temp5(_Marker_key)', None)
