@@ -17,7 +17,6 @@ touch $LOG
 date | tee -a ${LOG}
 
 # Create the bcp file
-
 ./mrklocation.py | tee -a ${LOG}
 
 # Exit if bcp file is empty

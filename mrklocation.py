@@ -55,12 +55,38 @@ def createBCPfile(markerKey):
 
 	db.sql('create index idx1 on #markers(_Marker_key)', None)
 
+	#
+	# coordinates for Markers w/ Sequence coordinates
+	#
+
+	coord = {}
+
 	results = db.sql('select m._Marker_key, c.startCoordinate, c.endCoordinate, c.strand, c.mapUnits, c.provider, c.version ' + \
 		'from #markers m, SEQ_Marker_Cache mc, SEQ_Coord_Cache c ' + \
 		'where m._Marker_key = mc._Marker_key ' + \
 		'and mc._Qualifier_key = 615419 ' + \
 		'and mc._Sequence_key = c._Sequence_key', 'auto')
-	coord = {}
+	for r in results:
+	    key = r['_Marker_key']
+	    value = r
+
+	    if not coord.has_key(key):
+		coord[key] = []
+            coord[key].append(r)
+
+	#
+	# coordinates for UniSTS Markers
+	#
+
+	results = db.sql('select m._Marker_key, f.startCoordinate, f.endCoordinate, f.strand, ' + \
+		'mapUnits = u.term, provider = c.name, cc.version ' + \
+		'from #markers m, MAP_Coord_Collection c, MAP_Coordinate cc, MAP_Coord_Feature f, VOC_Term u ' + \
+		'where m._Marker_key = f._Object_key ' + \
+		'and f._MGIType_key = 2 ' + \
+		'and f._Map_key = cc._Map_key ' + \
+		'and cc._Collection_key = c._Collection_key ' + \
+		'and c.name = "NCBI UniSTS" ' + \
+		'and cc._Units_key = u._Term_key', 'auto')
 	for r in results:
 	    key = r['_Marker_key']
 	    value = r
@@ -117,12 +143,12 @@ def createBCPfile(markerKey):
 # Main Routine
 #
 
+print '%s' % mgi_utils.date()
+
 if len(sys.argv) == 2:
 	markerKey = sys.argv[1]
 else:
 	markerKey = None
-
-print '%s' % mgi_utils.date()
 
 db.useOneConnection(1)
 db.set_sqlLogFunction(db.sqlLogAll)

@@ -1,0 +1,173 @@
+#!/usr/local/bin/python
+
+'''
+#
+# Purpose:
+#
+# Create bcp file for MRK_Homology_Cache; a cache table of Marker Homology data
+#
+# Uses environment variables to determine Server and Database
+# (DSQUERY and MGD).
+#
+# Usage:
+#	mrkhomology.py [markerkey]
+#
+# If markerkey is provided, then only create the bcp file for that marker.
+#
+# Processing:
+#
+# History
+#
+'''
+
+import sys
+import os
+import getopt
+import string
+import db
+import mgi_utils
+
+NL = '\n'
+DL = os.environ['FIELDDELIM']
+
+outDir = os.environ['MRKCACHEBCPDIR']
+table = 'MRK_Homology_Cache'
+
+insertSQL = 'insert into MRK_Homology_Cache values (%s,%s,%s,%s,%s)'
+
+def showUsage():
+	'''
+	#
+	# Purpose: Displays the correct usage of this program and exits
+	#
+	'''
+ 
+	usage = 'usage: %s\n' % sys.argv[0] + \
+		'-S server\n' + \
+		'-D database\n' + \
+		'-U user\n' + \
+		'-P password file\n' + \
+		'-K object key\n'
+
+	sys.stderr.write(usage)
+	sys.exit(1)
+ 
+def processDeleteReload():
+	#
+	# Purpose:  processes data for BCP-type processing; aka delete/reload
+	# Returns:
+	# Assumes:
+	# Effects:
+	# Throws:
+	#
+
+	print '%s' % mgi_utils.date()
+
+	cacheBCP = open(outDir + '/%s.bcp' % (table), 'w')
+
+	results = db.sql('select h._Class_key, h._Homology_key, h._Refs_key, hm._Marker_key, m._Organism_key ' + \
+		'from HMD_Homology h, HMD_Homology_Marker hm, MRK_Marker m ' + \
+		'where h._Homology_key = hm._Homology_key ' + \
+		'and hm._Marker_key = m._Marker_key ', 'auto')
+
+	for r in results:
+
+	    cacheBCP.write(
+		     mgi_utils.prvalue(r['_Class_key']) + DL + \
+		     mgi_utils.prvalue(r['_Homology_key']) + DL + \
+		     mgi_utils.prvalue(r['_Refs_key']) + DL + \
+		     mgi_utils.prvalue(r['_Marker_key']) + DL + \
+		     mgi_utils.prvalue(r['_Organism_key']) + NL)
+	    cacheBCP.flush()
+
+	cacheBCP.close()
+
+	print '%s' % mgi_utils.date()
+
+def processByClass(classKey):
+	#
+	# Purpose:  processes data for a specific homology Class
+	# Returns:
+	# Assumes:
+	# Effects:
+	# Throws:
+	#
+
+	#
+	# delete existing cache records for this Class
+	#
+
+	db.sql('delete from %s where _Class_key = %s' % (table, classKey), None)
+
+	#
+	# select all records of specified Class
+	#
+
+	results = db.sql('select h._Class_key, h._Homology_key, h._Refs_key, hm._Marker_key, m._Organism_key ' + \
+		'from HMD_Homology h, HMD_Homology_Marker hm, MRK_Marker m ' + \
+		'where h._Class_key = %s ' % (classKey) + \
+		'and h._Homology_key = hm._Homology_key ' + \
+		'and hm._Marker_key = m._Marker_key ', 'auto')
+
+	for r in results:
+	    db.sql(insertSQL % (
+                mgi_utils.prvalue(r['_Class_key']), \
+                mgi_utils.prvalue(r['_Homology_key']), \
+                mgi_utils.prvalue(r['_Refs_key']), \
+                mgi_utils.prvalue(r['_Marker_key']), \
+                mgi_utils.prvalue(r['_Organism_key'])))
+
+#
+# Main Routine
+#
+
+try:
+	optlist, args = getopt.getopt(sys.argv[1:], 'S:D:U:P:K:')
+except:
+	showUsage()
+
+server = None
+database = None
+user = None
+password = None
+objectKey = None
+
+for opt in optlist:
+	if opt[0] == '-S':
+		server = opt[1]
+	elif opt[0] == '-D':
+		database = opt[1]
+	elif opt[0] == '-U':
+		user = opt[1]
+	elif opt[0] == '-P':
+		password = string.strip(open(opt[1], 'r').readline())
+	elif opt[0] == '-K':
+		objectKey = opt[1]
+	else:
+		showUsage()
+
+if server is None or \
+   database is None or \
+   user is None or \
+   password is None or \
+   objectKey is None:
+	showUsage()
+
+db.set_sqlLogin(user, password, server, database)
+db.useOneConnection(1)
+db.set_sqlLogFunction(db.sqlLogAll)
+
+scriptName = os.path.basename(sys.argv[0])
+
+# call functions based on the way the program is invoked
+
+if scriptName == 'mrkhomology.py':
+    processDeleteReload()
+
+# all of these invocations will only affect a certain subset of data
+
+elif scriptName == 'mrkhomologyByClass.py':
+    processByClass(classKey)
+
+db.useOneConnection(0)
+
