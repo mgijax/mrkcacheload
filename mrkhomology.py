@@ -27,12 +27,14 @@ import string
 import db
 import mgi_utils
 
+try:
+    BCPDL = os.environ['FIELDDELIM']
+    table = os.environ['TABLE']
+    outDir = os.environ['MRKCACHEBCPDIR']
+except:
+    table = 'MRK_Homology_Cache'
+
 NL = '\n'
-DL = os.environ['FIELDDELIM']
-
-outDir = os.environ['MRKCACHEBCPDIR']
-table = 'MRK_Homology_Cache'
-
 insertSQL = 'insert into MRK_Homology_Cache values (%s,%s,%s,%s,%s)'
 
 def showUsage():
@@ -73,10 +75,10 @@ def processDeleteReload():
 	for r in results:
 
 	    cacheBCP.write(
-		     mgi_utils.prvalue(r['_Class_key']) + DL + \
-		     mgi_utils.prvalue(r['_Homology_key']) + DL + \
-		     mgi_utils.prvalue(r['_Refs_key']) + DL + \
-		     mgi_utils.prvalue(r['_Marker_key']) + DL + \
+		     mgi_utils.prvalue(r['_Class_key']) + BCPDL + \
+		     mgi_utils.prvalue(r['_Homology_key']) + BCPDL + \
+		     mgi_utils.prvalue(r['_Refs_key']) + BCPDL + \
+		     mgi_utils.prvalue(r['_Marker_key']) + BCPDL + \
 		     mgi_utils.prvalue(r['_Organism_key']) + NL)
 	    cacheBCP.flush()
 
@@ -115,7 +117,7 @@ def processByClass(classKey):
                 mgi_utils.prvalue(r['_Homology_key']), \
                 mgi_utils.prvalue(r['_Refs_key']), \
                 mgi_utils.prvalue(r['_Marker_key']), \
-                mgi_utils.prvalue(r['_Organism_key'])))
+                mgi_utils.prvalue(r['_Organism_key'])), None)
 
 #
 # Main Routine
@@ -130,7 +132,7 @@ server = None
 database = None
 user = None
 password = None
-objectKey = None
+classKey = None
 
 for opt in optlist:
 	if opt[0] == '-S':
@@ -142,7 +144,7 @@ for opt in optlist:
 	elif opt[0] == '-P':
 		password = string.strip(open(opt[1], 'r').readline())
 	elif opt[0] == '-K':
-		objectKey = opt[1]
+		classKey = opt[1]
 	else:
 		showUsage()
 
@@ -150,7 +152,7 @@ if server is None or \
    database is None or \
    user is None or \
    password is None or \
-   objectKey is None:
+   classKey is None:
 	showUsage()
 
 db.set_sqlLogin(user, password, server, database)

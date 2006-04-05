@@ -18,10 +18,6 @@ if ( ! -d ${MRKCACHEDIR} ) then
 	mkdir ${MRKCACHEDIR}
 endif
 
-if ( ! -d ${MRKCACHEINDIR} ) then
-	mkdir ${MRKCACHEINDIR}
-endif
-
 if ( ! -d ${MRKCACHEBCPDIR} ) then
 	mkdir ${MRKCACHEBCPDIR}
 endif
