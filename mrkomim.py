@@ -29,6 +29,9 @@
 #
 # History
 #
+# 04/06/2006	lec
+#	- replaced regex with re
+#
 # 05/26/2005	lec
 #	- TR 3853/OMIM
 #
@@ -38,8 +41,7 @@ import sys
 import os
 import getopt
 import string
-import regex
-import regsub
+import re
 import db
 import mgi_utils
 
@@ -78,7 +80,7 @@ genotypeCategory3 = {}	# mouse genotype key + termID: display category 3
 gene = 1
 notQualifier = 'NOT'
 
-creregex = regex.compile(".*\(.*[Cc]re.*\).*")
+crepattern = re.compile(".*\(.*[Cc]re.*\).*")
 
 #
 # Headers on Phenotype Detail Page
@@ -323,7 +325,8 @@ def deriveCategory2(r):
 	    # Cre alleles should not appear in this table
 	    #
 
-	    if (creregex.match(r['alleleSymbol']) > -1):
+	    m = crepattern.match(r['alleleSymbol'])
+	    if m is not None:
 		return -1
 
 	    #
