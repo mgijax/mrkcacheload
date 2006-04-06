@@ -77,7 +77,7 @@
 #	- added argument for creating BCPs for just one Marker
 #
 # 05/14/98	lec
-#	- added GXD_Assay to createMRK_Reference
+#	- added GXD_Assay to createBCPfile
 #
 '''
 
@@ -86,17 +86,20 @@ import os
 import db
 import mgi_utils
 
-NL = '\n'
-DL = os.environ['FIELDDELIM']
+try:
+    BCPDL = os.environ['FIELDDELIM']
+    table = os.environ['TABLE']
+    outDir = os.environ['MRKCACHEBCPDIR']
+except:
+    table = 'MRK_Reference'
 
+NL = '\n'
 cdate = mgi_utils.date("%m/%d/%Y")
 
-outDir = os.environ['MRKCACHEBCPDIR']
-
-def createMRK_Reference(markerKey):
+def createBCPfile(markerKey):
 	'''
 	#
-	# MRK_Reference is a cache table of
+	# Create a cache table of
 	# the union of all distinct Marker/Reference pairs
 	# in the database + annotated Reference (MGI_Reference_Assoc)
 	# EXCEPT for MLC.
@@ -117,9 +120,9 @@ def createMRK_Reference(markerKey):
 	#
 	'''
 
-	print 'Creating MRK_Reference.bcp...'
+	print 'Creating %s.bcp...' % (table)
 
-	refBCP = open(outDir + '/MRK_Reference.bcp', 'w')
+	refBCP = open(outDir + '/%s.bcp' % (table), 'w')
 
 	#
 	# Probe/Marker
@@ -352,16 +355,16 @@ def createMRK_Reference(markerKey):
 	for r in results:
 	    key = r['_Refs_key']
 
-	    refBCP.write(mgi_utils.prvalue(r['_Marker_key']) + DL + \
-		       	mgi_utils.prvalue(key) + DL + \
-			mgi_utils.prvalue(mgiID[key]) + DL + \
-			mgi_utils.prvalue(jnumID[key]) + DL)
+	    refBCP.write(mgi_utils.prvalue(r['_Marker_key']) + BCPDL + \
+		       	mgi_utils.prvalue(key) + BCPDL + \
+			mgi_utils.prvalue(mgiID[key]) + BCPDL + \
+			mgi_utils.prvalue(jnumID[key]) + BCPDL)
 
             if pubmedID.has_key(key):
 		refBCP.write(mgi_utils.prvalue(pubmedID[key]))
 
-            refBCP.write(DL + mgi_utils.prvalue(jnum[key]) + DL + \
-			cdate + DL + \
+            refBCP.write(DL + mgi_utils.prvalue(jnum[key]) + BCPDL + \
+			cdate + BCPDL + \
 			cdate + NL)
 	    refBCP.flush()
 
@@ -371,16 +374,16 @@ def createMRK_Reference(markerKey):
 # Main Routine
 #
 
+print '%s' % mgi_utils.date()
+
 if len(sys.argv) == 2:
 	markerKey = sys.argv[1]
 else:
 	markerKey = None
 
-print '%s' % mgi_utils.date()
-
 db.useOneConnection(1)
 db.set_sqlLogFunction(db.sqlLogAll)
-createMRK_Reference(markerKey)
+createBCPfile(markerKey)
 db.useOneConnection(0)
 
 print '%s' % mgi_utils.date()

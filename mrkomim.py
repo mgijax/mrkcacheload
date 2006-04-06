@@ -43,6 +43,13 @@ import regsub
 import db
 import mgi_utils
 
+try:
+    BCPDL = os.environ['FIELDDELIM']
+    table = os.environ['TABLE']
+    outDir = os.environ['MRKCACHEBCPDIR']
+except:
+    table = 'MRK_OMIM_Cache'
+
 NL = '\n'
 RDL = '\t'
 
@@ -50,13 +57,6 @@ omimBCP = None
 reviewBCP = None
 
 cdate = mgi_utils.date("%m/%d/%Y")
-
-try:
-    BCPDL = os.environ['FIELDDELIM']
-    table = os.environ['TABLE']
-    outDir = os.environ['MRKCACHEBCPDIR']
-except:
-    table = 'MRK_OMIM_Cache'
 
 mouseOMIMannotationKey = 1005
 humanOMIMannotationKey = 1006
@@ -1090,6 +1090,8 @@ def processByMarker(markerKey):
 # Main Routine
 #
 
+print '%s' % mgi_utils.date()
+
 try:
 	optlist, args = getopt.getopt(sys.argv[1:], 'S:D:U:P:K:')
 except:
@@ -1145,4 +1147,6 @@ elif scriptName == 'mrkomimByMarker.py':
     processByMarker(objectKey)
 
 db.useOneConnection(0)
+
+print '%s' % mgi_utils.date()
 

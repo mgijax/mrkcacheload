@@ -24,36 +24,34 @@ import string
 import db
 import mgi_utils
 
-NL = '\n'
-DL = os.environ['FIELDDELIM']
+try:
+    BCPDL = os.environ['FIELDDELIM']
+    table = os.environ['TABLE']
+    outDir = os.environ['MRKCACHEBCPDIR']
+except:
+    table = 'PRB_Marker'
 
+NL = '\n'
 cdate = mgi_utils.date("%m/%d/%Y")
 createdBy = '1000'
 refsKey = 86302	# J:85324
 relationship = 'E'
 lowQualityKey = 316340
 
-outDir = os.environ['MRKCACHEBCPDIR']
-
-def deleteAutoE():
-	'''
-	#
-	# Delete existing Auto-Es
-	#
-	'''
-
-	db.sql('delete from PRB_Marker where _Refs_key = %s' % (refsKey), None)
-
 def createBCPfile():
 	'''
 	#
-	# PRB_Marker
+	# Create bcp file
 	#
 	'''
 
-	print 'Creating PRB_Marker.bcp...'
+	print 'Creating %s.bcp...' % (table)
 
-	bcpFile = open(outDir + '/PRB_Marker.bcp', 'w')
+        bcpFile = open(outDir + '/%s.bcp' % (table), 'w')
+
+	# delete existing entries
+
+	db.sql('delete from %s where _Refs_key = %s' % (table, refsKey), None)
 
 	# exclude all problem Molecular Segments
 	# (those with at least one Sequence of Low Quality)
@@ -96,14 +94,14 @@ def createBCPfile():
 
 	# select all Probes and Markers with Putative annotation
 	
-	db.sql('select _Probe_key, _Marker_key into #putatives from PRB_Marker where relationship = "P"', None)
+	db.sql('select _Probe_key, _Marker_key into #putatives from %s where relationship = "P"' % (table), None)
 
 	db.sql('create nonclustered index idx_pkey on #putatives(_Probe_key)', None)
 	db.sql('create nonclustered index idx_mkey on #putatives(_Marker_key)', None)
 
 	# select all Probes and Markers with a non-Putative (E, H), or null Annotation
 
-	db.sql('select _Probe_key, _Marker_key into #nonputatives from PRB_Marker where relationship != "P" or relationship is null', None)
+	db.sql('select _Probe_key, _Marker_key into #nonputatives from %s where relationship != "P" or relationship is null' % (table), None)
 
 	db.sql('create nonclustered index idx_pkey on #nonputatives(_Probe_key)', None)
 	db.sql('create nonclustered index idx_mkey on #nonputatives(_Marker_key)', None)
@@ -135,8 +133,8 @@ def createBCPfile():
 
 	# delete any putatives which can be trumped by an auto-E relationship
 
-	db.sql('delete PRB_Marker ' + \
-		'from #haveputative p, #createautoe e, PRB_Marker pm ' + \
+	db.sql('delete %s ' % (table) + \
+		'from #haveputative p, #createautoe e, %s pm ' % (table) + \
 		'where p._Probe_key = e._Probe_key ' + \
 		'and p._Marker_key = e._Marker_key ' + \
 		'and e._Probe_key = pm._Probe_key ' + \
@@ -147,13 +145,13 @@ def createBCPfile():
 
         results = db.sql('select distinct _Probe_key, _Marker_key from #createautoe', 'auto')
 	for r in results:
-	    bcpFile.write(mgi_utils.prvalue(r['_Probe_key']) + DL + \
-	        mgi_utils.prvalue(r['_Marker_key']) + DL + \
-	        mgi_utils.prvalue(refsKey) + DL + \
-	    	relationship + DL + \
-	    	createdBy + DL + \
-	    	createdBy + DL + \
-	    	cdate + DL + \
+	    bcpFile.write(mgi_utils.prvalue(r['_Probe_key']) + BCPDL + \
+	        mgi_utils.prvalue(r['_Marker_key']) + BCPDL + \
+	        mgi_utils.prvalue(refsKey) + BCPDL + \
+	    	relationship + BCPDL + \
+	    	createdBy + BCPDL + \
+	    	createdBy + BCPDL + \
+	    	cdate + BCPDL + \
 	    	cdate + NL)
 
 	bcpFile.close()
@@ -164,6 +162,7 @@ def createBCPfile():
 
 print '%s' % mgi_utils.date()
 
+# need to delete data, so we need a user with delete permission
 server = os.environ['DBSERVER']
 database = os.environ['DBNAME']
 user = os.environ['DBUSER']
@@ -173,7 +172,6 @@ db.set_sqlLogin(user, password, server, database)
 
 db.useOneConnection(1)
 db.set_sqlLogFunction(db.sqlLogAll)
-deleteAutoE()
 createBCPfile()
 db.useOneConnection(0)
 

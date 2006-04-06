@@ -25,13 +25,16 @@ import os
 import db
 import mgi_utils
 
-NL = '\n'
-DL = os.environ['FIELDDELIM']
+try:
+    BCPDL = os.environ['FIELDDELIM']
+    table = os.environ['TABLE']
+    outDir = os.environ['MRKCACHEBCPDIR']
+except:
+    table = 'MRK_Location_Cache'
 
+NL = '\n'
 cdate = mgi_utils.date("%m/%d/%Y")
 createdBy = '1000'
-
-outDir = os.environ['MRKCACHEBCPDIR']
 
 def createBCPfile(markerKey):
 	'''
@@ -40,9 +43,9 @@ def createBCPfile(markerKey):
 	#
 	'''
 
-	print 'Creating MRK_Location_Cache.bcp...'
+	print 'Creating %s.bcp...' % (table)
 
-	locBCP = open(outDir + '/MRK_Location_Cache.bcp', 'w')
+	locBCP = open(outDir + '/%s.bcp' % (table), 'w')
 
 	db.sql('select m._Marker_key, m.chromosome, m.cytogeneticOffset, o.offset, c.sequenceNum ' + \
 		'into #markers ' + \
@@ -104,36 +107,36 @@ def createBCPfile(markerKey):
 
 	    if coord.has_key(key):
 		for c in coord[key]:
-	            locBCP.write(mgi_utils.prvalue(r['_Marker_key']) + DL + \
-			        r['chromosome'] + DL + \
-			        mgi_utils.prvalue(r['sequenceNum']) + DL + \
-			        mgi_utils.prvalue(r['cytogeneticOffset']) + DL + \
-			        mgi_utils.prvalue(r['offset']) + DL + \
-			        mgi_utils.prvalue(c['startCoordinate']) + DL + \
-			        mgi_utils.prvalue(c['endCoordinate']) + DL + \
-			        mgi_utils.prvalue(c['strand']) + DL + \
-			        mgi_utils.prvalue(c['mapUnits']) + DL + \
-			        mgi_utils.prvalue(c['provider']) + DL + \
-			        mgi_utils.prvalue(c['version']) + DL + \
-			        createdBy + DL + \
-			        createdBy + DL + \
-			        cdate + DL + \
+	            locBCP.write(mgi_utils.prvalue(r['_Marker_key']) + BCPDL + \
+			        r['chromosome'] + BCPDL + \
+			        mgi_utils.prvalue(r['sequenceNum']) + BCPDL + \
+			        mgi_utils.prvalue(r['cytogeneticOffset']) + BCPDL + \
+			        mgi_utils.prvalue(r['offset']) + BCPDL + \
+			        mgi_utils.prvalue(c['startCoordinate']) + BCPDL + \
+			        mgi_utils.prvalue(c['endCoordinate']) + BCPDL + \
+			        mgi_utils.prvalue(c['strand']) + BCPDL + \
+			        mgi_utils.prvalue(c['mapUnits']) + BCPDL + \
+			        mgi_utils.prvalue(c['provider']) + BCPDL + \
+			        mgi_utils.prvalue(c['version']) + BCPDL + \
+			        createdBy + BCPDL + \
+			        createdBy + BCPDL + \
+			        cdate + BCPDL + \
 			        cdate + NL)
 	    else:
-	        locBCP.write(mgi_utils.prvalue(r['_Marker_key']) + DL + \
-			     r['chromosome'] + DL + \
-			     mgi_utils.prvalue(r['sequenceNum']) + DL + \
-			     mgi_utils.prvalue(r['cytogeneticOffset']) + DL + \
-			     mgi_utils.prvalue(r['offset']) + DL + \
-			     DL + \
-			     DL + \
-			     DL + \
-			     DL + \
-			     DL + \
-			     DL + \
-			     createdBy + DL + \
-			     createdBy + DL + \
-			     cdate + DL + \
+	        locBCP.write(mgi_utils.prvalue(r['_Marker_key']) + BCPDL + \
+			     r['chromosome'] + BCPDL + \
+			     mgi_utils.prvalue(r['sequenceNum']) + BCPDL + \
+			     mgi_utils.prvalue(r['cytogeneticOffset']) + BCPDL + \
+			     mgi_utils.prvalue(r['offset']) + BCPDL + \
+			     BCPDL + \
+			     BCPDL + \
+			     BCPDL + \
+			     BCPDL + \
+			     BCPDL + \
+			     BCPDL + \
+			     createdBy + BCPDL + \
+			     createdBy + BCPDL + \
+			     cdate + BCPDL + \
 			     cdate + NL)
 	    locBCP.flush()
 

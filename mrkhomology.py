@@ -123,6 +123,8 @@ def processByClass(classKey):
 # Main Routine
 #
 
+print '%s' % mgi_utils.date()
+
 try:
 	optlist, args = getopt.getopt(sys.argv[1:], 'S:D:U:P:K:')
 except:
@@ -172,4 +174,6 @@ elif scriptName == 'mrkhomologyByClass.py':
     processByClass(classKey)
 
 db.useOneConnection(0)
+
+print '%s' % mgi_utils.date()
 
