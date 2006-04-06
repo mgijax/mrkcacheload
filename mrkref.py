@@ -363,7 +363,7 @@ def createBCPfile(markerKey):
             if pubmedID.has_key(key):
 		refBCP.write(mgi_utils.prvalue(pubmedID[key]))
 
-            refBCP.write(DL + mgi_utils.prvalue(jnum[key]) + BCPDL + \
+            refBCP.write(BCPDL + mgi_utils.prvalue(jnum[key]) + BCPDL + \
 			cdate + BCPDL + \
 			cdate + NL)
 	    refBCP.flush()
