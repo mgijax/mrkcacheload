@@ -66,7 +66,7 @@ import db
 import mgi_utils
 
 try:
-    BCPDL = os.environ['FIELDDELIM']
+    BCPDL = os.environ['COLDELIM']
     table = os.environ['TABLE']
     outDir = os.environ['MRKCACHEBCPDIR']
 except:

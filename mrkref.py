@@ -87,13 +87,13 @@ import db
 import mgi_utils
 
 try:
-    BCPDL = os.environ['FIELDDELIM']
+    COLDL = os.environ['COLDELIM']
+    LINEDL = os.environ['LINEDELIM']
     table = os.environ['TABLE']
     outDir = os.environ['MRKCACHEBCPDIR']
 except:
     table = 'MRK_Reference'
 
-NL = '\n'
 cdate = mgi_utils.date("%m/%d/%Y")
 
 def createBCPfile(markerKey):
@@ -355,17 +355,17 @@ def createBCPfile(markerKey):
 	for r in results:
 	    key = r['_Refs_key']
 
-	    refBCP.write(mgi_utils.prvalue(r['_Marker_key']) + BCPDL + \
-		       	mgi_utils.prvalue(key) + BCPDL + \
-			mgi_utils.prvalue(mgiID[key]) + BCPDL + \
-			mgi_utils.prvalue(jnumID[key]) + BCPDL)
+	    refBCP.write(mgi_utils.prvalue(r['_Marker_key']) + COLDL + \
+		       	mgi_utils.prvalue(key) + COLDL + \
+			mgi_utils.prvalue(mgiID[key]) + COLDL + \
+			mgi_utils.prvalue(jnumID[key]) + COLDL)
 
             if pubmedID.has_key(key):
 		refBCP.write(mgi_utils.prvalue(pubmedID[key]))
 
-            refBCP.write(BCPDL + mgi_utils.prvalue(jnum[key]) + BCPDL + \
-			cdate + BCPDL + \
-			cdate + NL)
+            refBCP.write(COLDL + mgi_utils.prvalue(jnum[key]) + COLDL + \
+			cdate + COLDL + \
+			cdate + LINEDL)
 	    refBCP.flush()
 
 	refBCP.close()

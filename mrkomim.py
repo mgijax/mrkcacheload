@@ -46,13 +46,13 @@ import db
 import mgi_utils
 
 try:
-    BCPDL = os.environ['FIELDDELIM']
+    COLDL = os.environ['COLDELIM']
+    LINEDL = os.environ['LINEDELIM']
     table = os.environ['TABLE']
     outDir = os.environ['MRKCACHEBCPDIR']
 except:
     table = 'MRK_OMIM_Cache'
 
-NL = '\n'
 RDL = '\t'
 
 omimBCP = None
@@ -625,33 +625,33 @@ def processMouse(processType):
 	    if processType == 'bcp':
 
                 omimBCP.write(
-	            mgi_utils.prvalue(mouseOrganismKey) + BCPDL +  \
-	            mgi_utils.prvalue(r['_Marker_key']) + BCPDL +  \
-	            mgi_utils.prvalue(r['_Marker_Type_key']) + BCPDL +  \
-	            mgi_utils.prvalue(r['_Allele_key']) + BCPDL + \
-	            mgi_utils.prvalue(r['_Genotype_key']) + BCPDL + \
-	            mgi_utils.prvalue(r['_Term_key']) + BCPDL + \
-	            mgi_utils.prvalue(r['_Refs_key']) + BCPDL + \
-	            mgi_utils.prvalue(orthologOrganism) + BCPDL + \
-	            mgi_utils.prvalue(orthologKey) + BCPDL + \
-                    mgi_utils.prvalue(displayCategory1) + BCPDL + \
-                    mgi_utils.prvalue(displayCategory2) + BCPDL + \
-                    mgi_utils.prvalue(displayCategory3) + BCPDL + \
-	            mgi_utils.prvalue(r['sequenceNum']) + BCPDL + \
-	            mgi_utils.prvalue(r['qualifier']) + BCPDL + \
-	            r['markerSymbol'] + BCPDL + \
-	            r['term'] + BCPDL + \
-	            r['termID'] + BCPDL + \
-	            r['jnumID'] + BCPDL + \
-	            r['alleleSymbol'] + BCPDL + \
-	            mgi_utils.prvalue(orthologSymbol) + BCPDL + \
-	            r['strain'] + BCPDL + \
-		    genotypeDisplay1 + BCPDL + \
-		    genotypeDisplay2 + BCPDL + \
-                    mgi_utils.prvalue(header) + BCPDL + \
-                    mgi_utils.prvalue(headerFootnote) + BCPDL + \
-                    mgi_utils.prvalue(genotypeFootnote) + BCPDL + \
-	            cdate + BCPDL + cdate + NL)
+	            mgi_utils.prvalue(mouseOrganismKey) + COLDL +  \
+	            mgi_utils.prvalue(r['_Marker_key']) + COLDL +  \
+	            mgi_utils.prvalue(r['_Marker_Type_key']) + COLDL +  \
+	            mgi_utils.prvalue(r['_Allele_key']) + COLDL + \
+	            mgi_utils.prvalue(r['_Genotype_key']) + COLDL + \
+	            mgi_utils.prvalue(r['_Term_key']) + COLDL + \
+	            mgi_utils.prvalue(r['_Refs_key']) + COLDL + \
+	            mgi_utils.prvalue(orthologOrganism) + COLDL + \
+	            mgi_utils.prvalue(orthologKey) + COLDL + \
+                    mgi_utils.prvalue(displayCategory1) + COLDL + \
+                    mgi_utils.prvalue(displayCategory2) + COLDL + \
+                    mgi_utils.prvalue(displayCategory3) + COLDL + \
+	            mgi_utils.prvalue(r['sequenceNum']) + COLDL + \
+	            mgi_utils.prvalue(r['qualifier']) + COLDL + \
+	            r['markerSymbol'] + COLDL + \
+	            r['term'] + COLDL + \
+	            r['termID'] + COLDL + \
+	            r['jnumID'] + COLDL + \
+	            r['alleleSymbol'] + COLDL + \
+	            mgi_utils.prvalue(orthologSymbol) + COLDL + \
+	            r['strain'] + COLDL + \
+		    genotypeDisplay1 + COLDL + \
+		    genotypeDisplay2 + COLDL + \
+                    mgi_utils.prvalue(header) + COLDL + \
+                    mgi_utils.prvalue(headerFootnote) + COLDL + \
+                    mgi_utils.prvalue(genotypeFootnote) + COLDL + \
+	            cdate + COLDL + cdate + LINEDL)
 
                 reviewBCP.write(
                     mgi_utils.prvalue(displayCategory1) + RDL + \
@@ -675,7 +675,7 @@ def processMouse(processType):
                 else:
                     reviewBCP.write(RDL)
 
-                reviewBCP.write(NL)
+                reviewBCP.write(LINEDL)
 
 	    elif processType == 'sql':
 
@@ -883,33 +883,33 @@ def processHuman():
 #		continue
 
 	    omimBCP.write(
-		mgi_utils.prvalue(humanOrganismKey) + BCPDL +  \
-		mgi_utils.prvalue(marker) + BCPDL +  \
-	        mgi_utils.prvalue(r['_Marker_Type_key']) + BCPDL +  \
-		BCPDL + \
-		BCPDL + \
-		mgi_utils.prvalue(r['_Term_key']) + BCPDL + \
-		mgi_utils.prvalue(r['_Refs_key']) + BCPDL + \
-		mgi_utils.prvalue(orthologOrganism) + BCPDL + \
-		mgi_utils.prvalue(orthologKey) + BCPDL + \
-	        mgi_utils.prvalue(displayCategory1) + BCPDL + \
-	        mgi_utils.prvalue(displayCategory2) + BCPDL + \
-	        mgi_utils.prvalue(displayCategory3) + BCPDL + \
-		BCPDL + \
-		mgi_utils.prvalue(r['qualifier']) + BCPDL + \
-		r['markerSymbol'] + BCPDL + \
-		r['term'] + BCPDL + \
-		r['termID'] + BCPDL + \
-		r['jnumID'] + BCPDL + \
-		BCPDL + \
-		mgi_utils.prvalue(orthologSymbol) + BCPDL + \
-		BCPDL + \
-	        BCPDL + \
-	        BCPDL + \
-	        BCPDL + \
-		BCPDL + \
-		BCPDL + \
-		cdate + BCPDL + cdate + NL)
+		mgi_utils.prvalue(humanOrganismKey) + COLDL +  \
+		mgi_utils.prvalue(marker) + COLDL +  \
+	        mgi_utils.prvalue(r['_Marker_Type_key']) + COLDL +  \
+		COLDL + \
+		COLDL + \
+		mgi_utils.prvalue(r['_Term_key']) + COLDL + \
+		mgi_utils.prvalue(r['_Refs_key']) + COLDL + \
+		mgi_utils.prvalue(orthologOrganism) + COLDL + \
+		mgi_utils.prvalue(orthologKey) + COLDL + \
+	        mgi_utils.prvalue(displayCategory1) + COLDL + \
+	        mgi_utils.prvalue(displayCategory2) + COLDL + \
+	        mgi_utils.prvalue(displayCategory3) + COLDL + \
+		COLDL + \
+		mgi_utils.prvalue(r['qualifier']) + COLDL + \
+		r['markerSymbol'] + COLDL + \
+		r['term'] + COLDL + \
+		r['termID'] + COLDL + \
+		r['jnumID'] + COLDL + \
+		COLDL + \
+		mgi_utils.prvalue(orthologSymbol) + COLDL + \
+		COLDL + \
+	        COLDL + \
+	        COLDL + \
+	        COLDL + \
+		COLDL + \
+		COLDL + \
+		cdate + COLDL + cdate + LINEDL)
 
 	    reviewBCP.write(
 	        mgi_utils.prvalue(displayCategory1) + RDL + \
@@ -926,7 +926,7 @@ def processHuman():
 		h = mouseOrtholog[marker]
 	        reviewBCP.write(h['orthologSymbol'])
 
-	    reviewBCP.write(NL)
+	    reviewBCP.write(LINEDL)
 
 def processDeleteReload():
 	#

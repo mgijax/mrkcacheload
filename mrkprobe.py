@@ -25,13 +25,13 @@ import db
 import mgi_utils
 
 try:
-    BCPDL = os.environ['FIELDDELIM']
+    COLDL = os.environ['COLDELIM']
+    LINEDL = os.environ['LINEDELIM']
     table = os.environ['TABLE']
     outDir = os.environ['MRKCACHEBCPDIR']
 except:
     table = 'PRB_Marker'
 
-NL = '\n'
 cdate = mgi_utils.date("%m/%d/%Y")
 createdBy = '1000'
 refsKey = 86302	# J:85324
@@ -145,14 +145,14 @@ def createBCPfile():
 
         results = db.sql('select distinct _Probe_key, _Marker_key from #createautoe', 'auto')
 	for r in results:
-	    bcpFile.write(mgi_utils.prvalue(r['_Probe_key']) + BCPDL + \
-	        mgi_utils.prvalue(r['_Marker_key']) + BCPDL + \
-	        mgi_utils.prvalue(refsKey) + BCPDL + \
-	    	relationship + BCPDL + \
-	    	createdBy + BCPDL + \
-	    	createdBy + BCPDL + \
-	    	cdate + BCPDL + \
-	    	cdate + NL)
+	    bcpFile.write(mgi_utils.prvalue(r['_Probe_key']) + COLDL + \
+	        mgi_utils.prvalue(r['_Marker_key']) + COLDL + \
+	        mgi_utils.prvalue(refsKey) + COLDL + \
+	    	relationship + COLDL + \
+	    	createdBy + COLDL + \
+	    	createdBy + COLDL + \
+	    	cdate + COLDL + \
+	    	cdate + LINEDL)
 
 	bcpFile.close()
 

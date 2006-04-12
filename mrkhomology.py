@@ -28,13 +28,13 @@ import db
 import mgi_utils
 
 try:
-    BCPDL = os.environ['FIELDDELIM']
+    COLDL = os.environ['COLDELIM']
+    LINEDL = os.environ['LINEDELIM']
     table = os.environ['TABLE']
     outDir = os.environ['MRKCACHEBCPDIR']
 except:
     table = 'MRK_Homology_Cache'
 
-NL = '\n'
 insertSQL = 'insert into MRK_Homology_Cache values (%s,%s,%s,%s,%s)'
 
 def showUsage():
@@ -75,11 +75,11 @@ def processDeleteReload():
 	for r in results:
 
 	    cacheBCP.write(
-		     mgi_utils.prvalue(r['_Class_key']) + BCPDL + \
-		     mgi_utils.prvalue(r['_Homology_key']) + BCPDL + \
-		     mgi_utils.prvalue(r['_Refs_key']) + BCPDL + \
-		     mgi_utils.prvalue(r['_Marker_key']) + BCPDL + \
-		     mgi_utils.prvalue(r['_Organism_key']) + NL)
+		     mgi_utils.prvalue(r['_Class_key']) + COLDL + \
+		     mgi_utils.prvalue(r['_Homology_key']) + COLDL + \
+		     mgi_utils.prvalue(r['_Refs_key']) + COLDL + \
+		     mgi_utils.prvalue(r['_Marker_key']) + COLDL + \
+		     mgi_utils.prvalue(r['_Organism_key']) + LINEDL)
 	    cacheBCP.flush()
 
 	cacheBCP.close()
