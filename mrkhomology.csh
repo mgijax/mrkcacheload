@@ -38,7 +38,7 @@ ${MGD_DBSCHEMADIR}/table/${TABLE}_truncate.object | tee -a ${LOG}
 ${MGD_DBSCHEMADIR}/index/${TABLE}_drop.object | tee -a ${LOG}
 
 # BCP new data into tables
-${MGIDBUTILITIESBIN}/bcpin.csh ${MGD_DBSCHEMADIR} ${TABLE} ${MRKCACHEBCPDIR} ${TABLE}.bcp ${COLDELIM} ${LINEDELIM}
+#${MGIDBUTILSBINDIR}/bcpin.csh ${MGD_DBSCHEMADIR} ${TABLE} ${MRKCACHEBCPDIR} ${TABLE}.bcp ${COLDELIM} ${LINEDELIM}
 cat ${MGD_DBPASSWORDFILE} | bcp ${MGD_DBNAME}..${TABLE} in ${MRKCACHEBCPDIR}/${TABLE}.bcp -e ${MRKCACHEBCPDIR}/${TABLE}.bcp.error -c -t${COLDELIM} -S${MGD_DBSERVER} -U${MGD_DBUSER} | tee -a ${LOG}
 
 # Create indexes

@@ -29,7 +29,7 @@ import mgi_utils
 
 try:
     COLDL = os.environ['COLDELIM']
-    LINEDL = os.environ['LINEDELIM']
+    LINEDL = '\n'
     table = os.environ['TABLE']
     outDir = os.environ['MRKCACHEBCPDIR']
 except:
