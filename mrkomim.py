@@ -610,7 +610,10 @@ def processMouse(processType):
 		    orthologKey =  None
 		    orthologSymbol =  None
 
-	    fullGenotypeDisplay = string.join(genotypeDisplay[genotype], '')
+	    if not genotypeDisplay.has_key(genotype):
+		fullGenotypeDisplay = ''
+	    else:
+	        fullGenotypeDisplay = string.join(genotypeDisplay[genotype], '')
 
 	    if len(fullGenotypeDisplay) > 255:
 	        genotypeDisplay1 = fullGenotypeDisplay[:255]
