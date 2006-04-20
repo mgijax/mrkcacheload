@@ -65,11 +65,16 @@ import os
 import db
 import mgi_utils
 
-NL = '\n'
-DL = os.environ['FIELDDELIM']
-labelKey = 1
+try:
+    BCPDL = os.environ['COLDELIM']
+    table = os.environ['TABLE']
+    outDir = os.environ['MRKCACHEBCPDIR']
+except:
+    table = 'MRK_Label'
 
-loaddate = mgi_utils.date("%m/%d/%Y")
+NL = '\n'
+labelKey = 1
+cdate = mgi_utils.date("%m/%d/%Y")
 
 #
 # priority	label type	label name
@@ -112,17 +117,17 @@ def writeRecord(results, labelStatusKey, priority, labelType, labelTypeName):
 	if labelTypeName is None:
 	    labelTypeName = r['labelTypeName']
 
-        outBCP.write(mgi_utils.prvalue(labelKey) + DL + \
-                mgi_utils.prvalue(r['_Marker_key']) + DL + \
-        	mgi_utils.prvalue(labelStatusKey) + DL + \
-        	mgi_utils.prvalue(r['_Organism_key']) + DL + \
-        	mgi_utils.prvalue(r['_OrthologOrganism_key']) + DL + \
-        	mgi_utils.prvalue(priority) + DL + \
-        	mgi_utils.prvalue(r['label']) + DL + \
-        	mgi_utils.prvalue(labelType) + DL + \
-        	mgi_utils.prvalue(labelTypeName) + DL + \
-        	loaddate + DL + \
-        	loaddate + NL)
+        outBCP.write(mgi_utils.prvalue(labelKey) + BCPDL + \
+                mgi_utils.prvalue(r['_Marker_key']) + BCPDL + \
+        	mgi_utils.prvalue(labelStatusKey) + BCPDL + \
+        	mgi_utils.prvalue(r['_Organism_key']) + BCPDL + \
+        	mgi_utils.prvalue(r['_OrthologOrganism_key']) + BCPDL + \
+        	mgi_utils.prvalue(priority) + BCPDL + \
+        	mgi_utils.prvalue(r['label']) + BCPDL + \
+        	mgi_utils.prvalue(labelType) + BCPDL + \
+        	mgi_utils.prvalue(labelTypeName) + BCPDL + \
+        	cdate + BCPDL + \
+        	cdate + NL)
 
 	labelKey = labelKey + 1
 
@@ -477,16 +482,17 @@ def priority14():
 # Main Routine
 #
 
+print '%s' % mgi_utils.date()
+
 db.useOneConnection(1)
+db.set_sqlLogFunction(db.sqlLogAll)
 
 if len(sys.argv) == 2:
 	markerKey = sys.argv[1]
 else:
 	markerKey = None
 
-outputDir = os.environ['MRKCACHEBCPDIR']
-print '%s' % mgi_utils.date()
-outBCP = open(outputDir + '/MRK_Label.bcp', 'w')
+outBCP = open(outDir + '/%s.bcp' % (table), 'w')
 
 priority1()
 priority2()
@@ -503,7 +509,8 @@ priority12()
 priority13()
 priority14()
 
-print '%s' % mgi_utils.date()
 outBCP.close()
 db.useOneConnection(0)
+
+print '%s' % mgi_utils.date()
 

@@ -23,14 +23,10 @@ setenv MRKCACHEBCPDIR		${MRKCACHEDIR}/output
 setenv MRKCACHELOGDIR		${MRKCACHEDIR}/logs
 
 # schema product directory
-setenv SCHEMADIR		/usr/local/mgi/live/dbutils/mgd/mgddbschema
+setenv MGD_DBSCHEMADIR		/usr/local/mgi/live/dbutils/mgd/mgddbschema
 
-source $SCHEMADIR/Configuration
-
-setenv DSQUERY	$DBSERVER
-setenv MGD	$DBNAME
-
-setenv FIELDDELIM	"&#&"
-
+setenv COLDELIM		"&#&"
+setenv LINEDELIM	"\n"
 setenv CREATEDBY        1000
 
+source ${MGD_DBSCHEMADIR}/Configuration

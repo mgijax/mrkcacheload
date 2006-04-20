@@ -10,6 +10,8 @@
 
 cd `dirname $0` && source ./Configuration
 
+setenv TABLE MRK_Label
+
 setenv LOG	${MRKCACHELOGDIR}/`basename $0`.log
 rm -rf $LOG
 touch $LOG
@@ -22,23 +24,22 @@ date | tee -a ${LOG}
 
 # Exit if bcp file is empty
 
-if ( -z ${MRKCACHEBCPDIR}/MRK_Label.bcp ) then
+if ( -z ${MRKCACHEBCPDIR}/${TABLE}.bcp ) then
 echo 'BCP File is empty' | tee -a ${LOG}
 exit 0
 endif
 
-# Allow bcp into database and truncate tables
+# truncate table
 
-${DBUTILSBINDIR}/turnonbulkcopy.csh ${DBSERVER} ${DBNAME} | tee -a ${LOG}
-${SCHEMADIR}/table/MRK_Label_truncate.object | tee -a ${LOG}
+${MGD_DBSCHEMADIR}/table/${TABLE}_truncate.object | tee -a ${LOG}
 
 # Drop indexes
-${SCHEMADIR}/index/MRK_Label_drop.object | tee -a ${LOG}
+${MGD_DBSCHEMADIR}/index/${TABLE}_drop.object | tee -a ${LOG}
 
 # BCP new data into tables
-cat ${DBPASSWORDFILE} | bcp ${DBNAME}..MRK_Label in ${MRKCACHEBCPDIR}/MRK_Label.bcp -e ${MRKCACHEBCPDIR}/MRK_Label.bcp.error -c -t${FIELDDELIM} -S${DBSERVER} -U${DBUSER} | tee -a ${LOG}
+${MGIDBUTILSBINDIR}/bcpin.csh ${MGD_DBSCHEMADIR} ${TABLE} ${MRKCACHEBCPDIR} ${TABLE}.bcp ${COLDELIM} ${LINEDELIM} | tee -a ${LOG}
 
 # Create indexes
-${SCHEMADIR}/index/MRK_Label_create.object | tee -a ${LOG}
+${MGD_DBSCHEMADIR}/index/${TABLE}_create.object | tee -a ${LOG}
 
 date | tee -a ${LOG}

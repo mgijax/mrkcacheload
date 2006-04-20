@@ -1,16 +1,16 @@
 #!/bin/csh -fx
 
 #
-# Usage:  mrkomim.csh
+# Usage:  mrkhomology.csh
 #
 # History
 #
-# lec	05/17/2000
+# lec	04/27/2005
 #
 
 cd `dirname $0` && source ./Configuration
 
-setenv TABLE MRK_OMIM_Cache
+setenv TABLE MRK_Homology_Cache
 setenv OBJECTKEY 0
 
 setenv LOG	${MRKCACHELOGDIR}/`basename $0`.log
@@ -21,7 +21,9 @@ date | tee -a ${LOG}
 
 # Create the bcp file
 
-./mrkomim.py -S${MGD_DBSERVER} -D${MGD_DBNAME} -U${MGD_DBUSER} -P${MGD_DBPASSWORDFILE} -K${OBJECTKEY} | tee -a ${LOG}
+./mrkhomology.py -S${MGD_DBSERVER} -D${MGD_DBNAME} -U${MGD_DBUSER} -P${MGD_DBPASSWORDFILE} -K${OBJECTKEY} | tee -a ${LOG}
+
+# Exit if bcp file is empty
 
 if ( -z ${MRKCACHEBCPDIR}/${TABLE}.bcp ) then
 echo 'BCP File is empty' | tee -a ${LOG}

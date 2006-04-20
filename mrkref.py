@@ -14,6 +14,8 @@
 #
 # If markerkey is provided, then only create the bcp file for that marker.
 #
+# IMPORTANT:  Keep in synch with stored procedure MRK_reloadReference.
+#
 # Processing:
 #
 #	1. Select all unique Marker/Reference pairs from the other parts of the database.
@@ -25,6 +27,9 @@
 #	3. Result of the union is a file of unique Marker/Reference pairs.
 #
 # History
+#
+# 12/08/2005	lec
+#	- added jnumID, pubmedID, mgiID and jnum to MRK_Reference
 #
 # 12/09/2004	lec
 #	- TR 5686; replaced MRK_Other with MGI_Synonym
@@ -72,7 +77,7 @@
 #	- added argument for creating BCPs for just one Marker
 #
 # 05/14/98	lec
-#	- added GXD_Assay to createMRK_Reference
+#	- added GXD_Assay to createBCPfile
 #
 '''
 
@@ -81,42 +86,46 @@ import os
 import db
 import mgi_utils
 
-NL = '\n'
-DL = os.environ['FIELDDELIM']
+try:
+    COLDL = os.environ['COLDELIM']
+    LINEDL = '\n'
+    table = os.environ['TABLE']
+    outDir = os.environ['MRKCACHEBCPDIR']
+except:
+    table = 'MRK_Reference'
 
 cdate = mgi_utils.date("%m/%d/%Y")
 
-outDir = os.environ['MRKCACHEBCPDIR']
-
-def createMRK_Reference(markerKey):
+def createBCPfile(markerKey):
 	'''
 	#
-	# MRK_Reference is a cache table of
+	# Create a cache table of
 	# the union of all distinct Marker/Reference pairs
 	# in the database + annotated Reference (MGI_Reference_Assoc)
 	# EXCEPT for MLC.
 	#
 	# Datasets:
 	#
-	# Molecular Segments
-	# Homology
-	# Marker History
-	# Mapping
-	# GXD Index
-	# GXD Assay
-	# Accession Reference
-	# Marker Sequence Accession Numbers
-	# Allele References
-	# Any References which have been added manually to Markers (MGI_Reference_Assoc)
+	# 1.  Molecular Segments
+	# 2.  Orthology
+	# 3.  Marker History
+	# 4.  Mapping
+	# 5.  GXD Index
+	# 6.  GXD Assay
+	# 7.  Synonyms
+	# 8.  Accession Reference
+	# 9.  Allele References
+	# 10. GO Annotations
+	# 11. Manually curated (MGI_Reference_Assoc)
 	#
 	'''
 
-	print 'Creating MRK_Reference.bcp...'
+	print 'Creating %s.bcp...' % (table)
 
-	refBCP = open(outDir + '/MRK_Reference.bcp', 'w')
+	refBCP = open(outDir + '/%s.bcp' % (table), 'w')
 
 	#
-	# Probe/Marker/References
+	# Probe/Marker
 	#
 
 	cmd = 'select distinct m._Marker_key, m._Refs_key ' + \
@@ -129,22 +138,6 @@ def createMRK_Reference(markerKey):
 	db.sql(cmd, None)
 	db.sql('create index idx1 on #temp1(_Marker_key)', None)
 	db.sql('create index idx2 on #temp1(_Refs_key)', None)
-
-	#
-	# more Probe/Marker/References
-	#
-
-#	cmd = 'select distinct m._Marker_key, r._Refs_key ' + \
-#		'into #temp2 ' + \
-#		'from PRB_Marker m, PRB_Reference r ' + \
-#		'where m._Probe_key = r._Probe_key '
-
-#	if markerKey is not None:
-#		cmd = cmd + 'and m._Marker_key = %s' % markerKey
-
-#	db.sql(cmd, None)
-#	db.sql('create index idx1 on #temp2(_Marker_key)', None)
-#	db.sql('create index idx2 on #temp2(_Refs_key)', None)
 
 	#
 	# Orthology
@@ -309,7 +302,7 @@ def createMRK_Reference(markerKey):
 		'where m._MGIType_key = 2 '
 
 	if markerKey is not None:
-		cmd = cmd + 'and m._Marker_key = %s' % markerKey
+		cmd = cmd + 'and m._Object_key = %s' % markerKey
 
 	db.sql(cmd, None)
 	db.sql('create index idx1 on #temp12(_Marker_key)', None)
@@ -318,9 +311,8 @@ def createMRK_Reference(markerKey):
 	#
 	# union them all together
 	#
-#		'union select _Marker_key, _Refs_key from #temp2 ' + \
 
-	results = db.sql('select _Marker_key, _Refs_key from #temp1 ' + \
+	db.sql('select _Marker_key, _Refs_key into #refs from #temp1 ' + \
 		'union select _Marker_key, _Refs_key from #temp3 ' + \
 		'union select _Marker_key, _Refs_key from #temp4 ' + \
 		'union select _Marker_key, _Refs_key from #temp5 ' + \
@@ -330,13 +322,50 @@ def createMRK_Reference(markerKey):
 		'union select _Marker_key, _Refs_key from #temp9 ' + \
 		'union select _Marker_key, _Refs_key from #temp10 ' + \
 		'union select _Marker_key, _Refs_key from #temp11 ' + \
-		'union select _Marker_key, _Refs_key from #temp12', 'auto')
+		'union select _Marker_key, _Refs_key from #temp12', None)
+        db.sql('create index idx1 on #refs(_Refs_key)', None)
 
+	mgiID = {}
+	jnumID = {}
+	jnum = {}
+	pubmedID = {}
+
+	results = db.sql('select r._Refs_key, a._LogicalDB_key, a.prefixPart, a.numericPart, a.accID ' + \
+		'from #refs r, ACC_Accession a ' + \
+		'where r._Refs_key = a._Object_key ' + \
+		'and a._MGIType_key = 1 ' + \
+		'and a._LogicalDB_key in (1, 29) ' + \
+		'and a.preferred = 1', 'auto')
+        for r in results:
+	    key = r['_Refs_key']
+	    value = r['accID']
+	    lkey = r['_LogicalDB_key']
+	    pp = r['prefixPart']
+	    np = r['numericPart']
+
+	    if lkey == 1 and pp == 'MGI:':
+		mgiID[key] = value
+	    elif lkey == 1 and pp == 'J:':
+		jnumID[key] = value
+		jnum[key] = np
+            else:
+		pubmedID[key] = value
+
+	results = db.sql('select _Marker_key, _Refs_key from #refs', 'auto')
 	for r in results:
-	    refBCP.write(mgi_utils.prvalue(r['_Marker_key']) + DL + \
-		       	mgi_utils.prvalue(r['_Refs_key']) + DL + \
-			cdate + DL + \
-			cdate + NL)
+	    key = r['_Refs_key']
+
+	    refBCP.write(mgi_utils.prvalue(r['_Marker_key']) + COLDL + \
+		       	mgi_utils.prvalue(key) + COLDL + \
+			mgi_utils.prvalue(mgiID[key]) + COLDL + \
+			mgi_utils.prvalue(jnumID[key]) + COLDL)
+
+            if pubmedID.has_key(key):
+		refBCP.write(mgi_utils.prvalue(pubmedID[key]))
+
+            refBCP.write(COLDL + mgi_utils.prvalue(jnum[key]) + COLDL + \
+			cdate + COLDL + \
+			cdate + LINEDL)
 	    refBCP.flush()
 
 	refBCP.close()
@@ -345,16 +374,16 @@ def createMRK_Reference(markerKey):
 # Main Routine
 #
 
+print '%s' % mgi_utils.date()
+
 if len(sys.argv) == 2:
 	markerKey = sys.argv[1]
 else:
 	markerKey = None
 
-print '%s' % mgi_utils.date()
-
 db.useOneConnection(1)
 db.set_sqlLogFunction(db.sqlLogAll)
-createMRK_Reference(markerKey)
+createBCPfile(markerKey)
 db.useOneConnection(0)
 
 print '%s' % mgi_utils.date()
