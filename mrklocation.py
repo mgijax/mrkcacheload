@@ -47,7 +47,7 @@ def createBCPfile(markerKey):
 
 	locBCP = open(outDir + '/%s.bcp' % (table), 'w')
 
-	db.sql('select m._Marker_key, m.chromosome, m.cytogeneticOffset, o.offset, c.sequenceNum ' + \
+	db.sql('select m._Marker_key, m.symbol, m.chromosome, m.cytogeneticOffset, o.offset, c.sequenceNum ' + \
 		'into #markers ' + \
 		'from MRK_Marker m, MRK_Offset o, MRK_Chromosome c ' + \
 		'where m._Organism_key = 1 ' + \
@@ -102,6 +102,14 @@ def createBCPfile(markerKey):
 	for r in results:
 
 	    key = r['_Marker_key']
+	    symbol = r['symbol']
+
+	    # determine if this symbol is an MIT Marker
+
+            if string.find(symbol, 'Mit') >= 0 and string.find(symbol, 'D') == 0:
+                isMIT = 1
+            else:
+		isMIT = 0
 
 	    # print one record out per coordinate
 
@@ -118,6 +126,7 @@ def createBCPfile(markerKey):
 			        mgi_utils.prvalue(c['mapUnits']) + COLDL + \
 			        mgi_utils.prvalue(c['provider']) + COLDL + \
 			        mgi_utils.prvalue(c['version']) + COLDL + \
+				isMIT + COLDL + \
 			        createdBy + COLDL + \
 			        createdBy + COLDL + \
 			        cdate + COLDL + \
@@ -134,6 +143,7 @@ def createBCPfile(markerKey):
 			     COLDL + \
 			     COLDL + \
 			     COLDL + \
+			     isMIT + COLDL + \
 			     createdBy + COLDL + \
 			     createdBy + COLDL + \
 			     cdate + COLDL + \
