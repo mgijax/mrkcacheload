@@ -104,13 +104,6 @@ def createBCPfile(markerKey):
 	    key = r['_Marker_key']
 	    symbol = r['symbol']
 
-	    # determine if this symbol is an MIT Marker
-
-            if string.find(symbol, 'Mit') >= 0 and string.find(symbol, 'D') == 0:
-                isMIT = 1
-            else:
-		isMIT = 0
-
 	    # print one record out per coordinate
 
 	    if coord.has_key(key):
@@ -126,7 +119,6 @@ def createBCPfile(markerKey):
 			        mgi_utils.prvalue(c['mapUnits']) + COLDL + \
 			        mgi_utils.prvalue(c['provider']) + COLDL + \
 			        mgi_utils.prvalue(c['version']) + COLDL + \
-				isMIT + COLDL + \
 			        createdBy + COLDL + \
 			        createdBy + COLDL + \
 			        cdate + COLDL + \
@@ -143,7 +135,6 @@ def createBCPfile(markerKey):
 			     COLDL + \
 			     COLDL + \
 			     COLDL + \
-			     isMIT + COLDL + \
 			     createdBy + COLDL + \
 			     createdBy + COLDL + \
 			     cdate + COLDL + \
