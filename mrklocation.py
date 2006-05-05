@@ -18,6 +18,10 @@
 #
 # History
 #
+# 05/03/2006	lec
+#	- MGI 3.5; added UniSTS and miRBase coordinates
+#
+#
 '''
 
 import sys
@@ -78,7 +82,7 @@ def createBCPfile(markerKey):
             coord[key].append(r)
 
 	#
-	# coordinates for UniSTS Markers
+	# coordinates for UniSTS or miRBase coordinates
 	#
 
 	results = db.sql('select m._Marker_key, f.startCoordinate, f.endCoordinate, f.strand, ' + \
@@ -88,7 +92,7 @@ def createBCPfile(markerKey):
 		'and f._MGIType_key = 2 ' + \
 		'and f._Map_key = cc._Map_key ' + \
 		'and cc._Collection_key = c._Collection_key ' + \
-		'and c.name = "NCBI UniSTS" ' + \
+		'and c.name in ("NCBI UniSTS", "miRBase") ' + \
 		'and cc._Units_key = u._Term_key', 'auto')
 	for r in results:
 	    key = r['_Marker_key']
