@@ -12,6 +12,7 @@ if ( ${?MGICONFIG} == 0 ) then
 endif
 
 source ${MGICONFIG}/master.config.csh
+source ${MGD_DBSCHEMA}/Configuration
 
 # install directory
 setenv MRKCACHEINSTALLDIR	${USRLOCALMGI}/dbutils/mrkcacheload
@@ -31,6 +32,4 @@ setenv MRKCACHELOGDIR		${MRKCACHEDIR}/logs
 setenv COLDELIM		"&#&"
 setenv LINEDELIM	"\n"
 setenv CREATEDBY        1000
-
-source ${MGD_DBSCHEMA}/Configuration
 
