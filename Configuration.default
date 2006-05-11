@@ -7,8 +7,14 @@
 # env variables
 #
 
+if ( ${?MGICONFIG} == 0 ) then
+	setenv MGICONFIG /usr/local/mgi/live/mgiconfig
+endif
+
+source ${MGICONFIG}/master.config.csh
+
 # install directory
-setenv MRKCACHEINSTALLDIR	/usr/local/mgi/live/dbutils/mrkcacheload
+setenv MRKCACHEINSTALLDIR	${USRLOCALMGI}/dbutils/mrkcacheload
 
 # directory
 setenv MRKCACHEDIR		/data/loads/mgi/mrkcacheload
@@ -22,11 +28,7 @@ setenv MRKCACHEBCPDIR		${MRKCACHEDIR}/output
 # log directory
 setenv MRKCACHELOGDIR		${MRKCACHEDIR}/logs
 
-# schema product directory
-setenv MGD_DBSCHEMADIR		/usr/local/mgi/live/dbutils/mgd/mgddbschema
-
 setenv COLDELIM		"&#&"
 setenv LINEDELIM	"\n"
 setenv CREATEDBY        1000
 
-source ${MGD_DBSCHEMADIR}/Configuration
