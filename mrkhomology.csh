@@ -38,7 +38,7 @@ ${MGD_DBSCHEMADIR}/table/${TABLE}_truncate.object | tee -a ${LOG}
 ${MGD_DBSCHEMADIR}/index/${TABLE}_drop.object | tee -a ${LOG}
 
 # BCP new data into tables
-${MGI_DBUTILS}/bcpin.csh ${MGD_DBSCHEMADIR} ${TABLE} ${MRKCACHEBCPDIR} ${TABLE}.bcp ${COLDELIM} ${LINEDELIM} | tee -a ${LOG}
+${MGI_DBUTILS}/bin/bcpin.csh ${MGD_DBSCHEMADIR} ${TABLE} ${MRKCACHEBCPDIR} ${TABLE}.bcp ${COLDELIM} ${LINEDELIM} | tee -a ${LOG}
 
 # Create indexes
 ${MGD_DBSCHEMADIR}/index/${TABLE}_create.object | tee -a ${LOG}
