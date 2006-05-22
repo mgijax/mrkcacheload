@@ -12,7 +12,7 @@ if ( ${?MGICONFIG} == 0 ) then
 endif
 
 source ${MGICONFIG}/master.config.csh
-source ${MGD_DBSCHEMA}/Configuration
+source ${MGD_DBSCHEMADIR}/Configuration
 
 # install directory
 setenv MRKCACHEINSTALLDIR	${USRLOCALMGI}/dbutils/mrkcacheload

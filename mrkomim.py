@@ -78,7 +78,7 @@ genotypeDisplay = {}	# mouse genotype key: genotype display
 genotypeCategory3 = {}	# mouse genotype key + termID: display category 3
 
 gene = 1
-notQualifier = 'NOT'
+notQualifier = [1525839]
 
 crepattern = re.compile(".*\(.*[Cc]re.*\).*")
 
@@ -129,7 +129,7 @@ def showUsage():
 def deriveCategory1(r):
 	#
 	# Purpose: derives the appropriate Phenotype Detail page category for the record 
-	#          and hence the appropriate Human Disease Detai page, table 2
+	#          and hence the appropriate Human Disease Detail page, table 2
 	# Returns: the category (1,2,3,4,5), -1 if no category could be determined
 	#          the phenotype header
 	#          the phenotype header footnote
@@ -187,7 +187,7 @@ def deriveCategory1(r):
 	#	a. mouse genotype is annotated to Term and is a NOT annotation
 	#
 
-        if r['qualifier'] == notQualifier:
+        if r['_Qualifier_key'] in notQualifier:
 	    if hasOrtholog and isHumanOrthologAnnotated:
 		omim = humanToOMIM[orthologKey]
 	        # human ortholog is annotated to Term
@@ -333,7 +333,7 @@ def deriveCategory2(r):
 	    # mouse NOTs appear nowhere...
 	    #
 
-            if r['qualifier'] == notQualifier:
+            if r['_Qualifier_key'] in notQualifier:
 		return -1
 
 	    if humanOrtholog.has_key(marker):
@@ -430,7 +430,8 @@ def selectMouse():
 	# cache all terms annotated to mouse markers
 	#
 	mouseIs = {}
-	results = db.sql('select distinct o._Marker_key, o.termID, o.qualifier from #omimmouse3 o order by o._Marker_key, o.termID, o.qualifier', 'auto')
+	results = db.sql('select distinct o._Marker_key, o.termID, o.qualifier, o._Qualifier_key ' + \
+	     'from #omimmouse3 o order by o._Marker_key, o.termID, o.qualifier', 'auto')
 
 	for r in results:
 
@@ -441,25 +442,23 @@ def selectMouse():
 		mouseToOMIM[key] = []
 	    mouseToOMIM[key].append(value)
 
-	    if r['qualifier'] != notQualifier:
+	    if r['_Qualifier_key'] not in notQualifier:
 	        if not mouseIs.has_key(key):
 		    mouseIs[key] = []
 		mouseIs[key].append(value)
 
 	    # specifically cache the "NOT" annotations; 
 	    # only if the "NOT" is the *only* annotation for this term
-	    if r['qualifier'] == notQualifier:
+	    if r['_Qualifier_key'] in notQualifier:
 		if mouseIs.has_key(key):
 		    if value not in mouseIs[key]:
 	                if not mouseIsNot.has_key(key):
 		            mouseIsNot[key] = []
-		        else:
-			    mouseIsNot[key].append(value)
+			mouseIsNot[key].append(value)
 		else:
 	            if not mouseIsNot.has_key(key):
 		        mouseIsNot[key] = []
-		    else:
-			mouseIsNot[key].append(value)
+		    mouseIsNot[key].append(value)
 
 	#
 	# resolve Jnumber
@@ -751,7 +750,8 @@ def selectHuman(byOrtholog = 0):
 	    # are selected.
 	    #
 
-	    db.sql('select _Marker_key = a._Object_key, termID = ac.accID, a._Term_key, t.term, qualifier = q.term, e._Refs_key ' + \
+	    db.sql('select _Marker_key = a._Object_key, termID = ac.accID, ' + \
+		    'a._Term_key, t.term, qualifier = q.term, a._Qualifier_key, e._Refs_key ' + \
 		    'into #omimhuman1 ' + \
 		    'from #ortholog o, VOC_Annot a, VOC_Evidence e, VOC_Term t, ACC_Accession ac, VOC_Term q ' + \
 		    'where a._AnnotType_key = %s ' % (humanOMIMannotationKey) + \
@@ -763,7 +763,8 @@ def selectHuman(byOrtholog = 0):
 		    'and ac._MGIType_key = 13 ' + \
 		    'and ac.preferred = 1 ' + \
 		    'union ' + \
-	           'select _Marker_key = a._Object_key, termID = ac.accID, a._Term_key, t.term, qualifier = q.term, e._Refs_key ' + \
+	           'select _Marker_key = a._Object_key, termID = ac.accID, ' + \
+		    'a._Term_key, t.term, qualifier = q.term, a._Qualifier_key, e._Refs_key ' + \
 		    'from #omimmouse3 o, VOC_Annot a, VOC_Evidence e, VOC_Term t, ACC_Accession ac, VOC_Term q ' + \
 		    'where a._AnnotType_key = %s ' % (humanOMIMannotationKey) + \
 		    'and a._Qualifier_key = q._Term_key ' + \
@@ -781,7 +782,8 @@ def selectHuman(byOrtholog = 0):
 	    # select all human genes annotated to OMIM Gene or Disease Terms
 	    #
 
-	    db.sql('select _Marker_key = a._Object_key, termID = ac.accID, a._Term_key, t.term, qualifier = q.term, e._Refs_key ' + \
+	    db.sql('select _Marker_key = a._Object_key, termID = ac.accID, ' + \
+		    'a._Term_key, t.term, qualifier = q.term, a._Qualifier_key, e._Refs_key ' + \
 		    'into #omimhuman1 ' + \
 		    'from VOC_Annot a, VOC_Evidence e, VOC_Term t, ACC_Accession ac, VOC_Term q ' + \
 		    'where a._AnnotType_key = %s ' % (humanOMIMannotationKey) + \
@@ -952,7 +954,7 @@ def processDeleteReload():
 	#
 
 	db.sql('select g._Marker_key, g._Allele_key, g._Genotype_key, g.sequenceNum, ' + \
-		'a._Term_key, qualifier = q.term, e._Refs_key ' + \
+		'a._Term_key, qualifier = q.term, a._Qualifier_key, e._Refs_key ' + \
 		'into #omimmouse1 ' + \
 		'from GXD_AlleleGenotype g, VOC_Annot a, VOC_Evidence e, VOC_Term q ' + \
 		'where g._Genotype_key = a._Object_key ' + \
@@ -1000,7 +1002,7 @@ def processByAllele(alleleKey):
 	#
 
 	db.sql('select g._Marker_key, g._Allele_key, g._Genotype_key, g.sequenceNum, ' + \
-		'a._Term_key, qualifier = q.term, e._Refs_key ' + \
+		'a._Term_key, qualifier = q.term, a._Qualifier_key, e._Refs_key ' + \
 		'into #omimmouse1 ' + \
 		'from #toprocess p, GXD_AlleleGenotype g, VOC_Annot a, VOC_Evidence e, VOC_Term q ' + \
 		'where p._Genotype_key = g._Genotype_key ' + \
@@ -1034,7 +1036,7 @@ def processByGenotype(genotypeKey):
 	#
 
 	db.sql('select g._Marker_key, g._Allele_key, g._Genotype_key, g.sequenceNum, ' + \
-		'a._Term_key, qualifier = q.term, e._Refs_key ' + \
+		'a._Term_key, qualifier = q.term, a._Qualifier_key, e._Refs_key ' + \
 		'into #omimmouse1 ' + \
 		'from GXD_AlleleGenotype g, VOC_Annot a, VOC_Evidence e, VOC_Term q ' + \
 		'where g._Genotype_key = a._Object_key ' + \
@@ -1078,7 +1080,7 @@ def processByMarker(markerKey):
 	#
 
 	db.sql('select g._Marker_key, g._Allele_key, g._Genotype_key, g.sequenceNum, ' + \
-		'a._Term_key, qualifier = q.term, e._Refs_key ' + \
+		'a._Term_key, qualifier = q.term, a._Qualifier_key, e._Refs_key ' + \
 		'into #omimmouse1 ' + \
 		'from #toprocess p, GXD_AlleleGenotype g, VOC_Annot a, VOC_Evidence e, VOC_Term q ' + \
 		'where p._Genotype_key = g._Genotype_key ' + \

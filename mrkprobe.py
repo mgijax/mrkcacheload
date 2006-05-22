@@ -64,7 +64,7 @@ def createBCPfile():
 
 	db.sql('create nonclustered index idx_key on #excluded(_Probe_key)', None)
 
-	# select all mouse probes
+	# select all mouse probes (exclude primers, 63473)
 
 	db.sql('select p._Probe_key ' + \
 		'into #mouseprobes ' + \
