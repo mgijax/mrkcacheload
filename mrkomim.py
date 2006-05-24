@@ -78,7 +78,7 @@ genotypeDisplay = {}	# mouse genotype key: genotype display
 genotypeCategory3 = {}	# mouse genotype key + termID: display category 3
 
 gene = 1
-notQualifier = [1525839]
+notQualifier = []
 
 crepattern = re.compile(".*\(.*[Cc]re.*\).*")
 
@@ -1137,6 +1137,10 @@ db.useOneConnection(1)
 db.set_sqlLogFunction(db.sqlLogAll)
 
 scriptName = os.path.basename(sys.argv[0])
+
+results = db.sql('select _Term_key from VOC_Term where _Vocab_key = 53 and term like "NOT%"', 'auto')
+for r in results:
+    notQualifier.append(r['_Term_key'])
 
 # call functions based on the way the program is invoked
 
