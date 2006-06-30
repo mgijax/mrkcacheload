@@ -25,9 +25,16 @@
 #	5.  Categorize them
 #	6.  Write records to output file
 #
+# alleleMouseModels is the Allele Detail Mouse Model table.
+# diseaseAssociatedGenes is the Disease Detail Associated Genes and Transgenes sections.
+# diseaseMouseModels is the Disease Detail Mouse Model table.
+#
 # TR 3853/OMIM User Requirements
 #
 # History
+#
+# 06/30/2006	lec
+#	- TR 7728; add filter for Cre alleles to Disease/Mouse Models/Transgene section
 #
 # 04/06/2006	lec
 #	- replaced regex with re
@@ -75,7 +82,7 @@ mouseIsNot = {}		# mouse marker key : OMIM term id that are "NOT" annotations
 OMIMToHuman = {}	# OMIM term id : list of human marker keys
 
 genotypeDisplay = {}	# mouse genotype key: genotype display
-genotypeCategory3 = {}	# mouse genotype key + termID: display category 3
+genotypeAlleleMouseModels = {}	# mouse genotype key + termID: display category 3
 
 gene = 1
 notQualifier = []
@@ -126,10 +133,10 @@ def showUsage():
 	sys.stderr.write(usage)
 	sys.exit(1)
  
-def deriveCategory1(r):
+def deriveAlleleDetailMouseModels(r):
 	#
 	# Purpose: derives the appropriate Phenotype Detail page category for the record 
-	#          and hence the appropriate Human Disease Detail page, table 2
+	#          and hence the appropriate Human Disease Detail page (Mouse Models)
 	# Returns: the category (1,2,3,4,5), -1 if no category could be determined
 	#          the phenotype header
 	#          the phenotype header footnote
@@ -144,6 +151,7 @@ def deriveCategory1(r):
 	termID = r['termID']
 	genotype = r['_Genotype_key']
 	markerType = r['_Marker_Type_key']
+	alleleSymbol = r['alleleSymbol']
 	hasOrtholog = 0
 	header = ''
 	headerFootnote = ''
@@ -292,9 +300,10 @@ def deriveCategory1(r):
 
 	return -1, header, headerFootnote, genotypeFootnote
 
-def deriveCategory2(r):
+def deriveDiseaseAssociatedGenes(r):
 	#
-	# Purpose: derives the appropriate Human Disease Detail page Table 1 category for the record 
+	# Purpose: derives the appropriate Human Disease Detail page Table 1 (Associated Genes)
+	#          category for the record 
 	# Returns: the category (1,2,3), -1 if no category could be determined
 	# Assumes:
 	# Effects:
@@ -324,7 +333,6 @@ def deriveCategory2(r):
 	    #
 	    # Cre alleles should not appear in this table
 	    #
-
 	    m = crepattern.match(r['alleleSymbol'])
 	    if m is not None:
 		return -1
@@ -538,15 +546,15 @@ def cacheGenotypeDisplay3():
 	# Purpose:  initializes global dictionary of genotype/terms and minimum display category 1 values
 	# Returns:
 	# Assumes:  temp table #omimmouse5 exists
-	# Effects:  initializes global genotypeCategory3 dictionary
+	# Effects:  initializes global genotypeAlleleMouseModels dictionary
 	# Throws:
 	#
 
-	global genotypeCategory3
+	global genotypeAlleleMouseModels
 
 	#
 	# for each genotype/term, cache the mininum display category 1 value
-	# this will be display category 3 (human disease table 2)
+	# this will be display category 3 (human disease table 2 (Mouse Models))
 	#
 
 	results = db.sql('select * from #omimmouse5 order by _Genotype_key, termID', 'auto')
@@ -556,13 +564,13 @@ def cacheGenotypeDisplay3():
 	    genotype = r['_Genotype_key']
 	    termID = r['termID']
 	    gcKey = `genotype` + termID
-	    displayCategory1, header, headerFootnote, genotypeFootnote = deriveCategory1(r)
+	    alleleDetailMouseModels, header, headerFootnote, genotypeFootnote = deriveAlleleDetailMouseModels(r)
 
-	    if genotypeCategory3.has_key(gcKey):
-		if displayCategory1 < genotypeCategory3[gcKey]:
-		    genotypeCategory3[gcKey] = displayCategory1
+	    if genotypeAlleleMouseModels.has_key(gcKey):
+		if alleleDetailMouseModels < genotypeAlleleMouseModels[gcKey]:
+		    genotypeAlleleMouseModels[gcKey] = alleleDetailMouseModels
 	    else:
-		genotypeCategory3[gcKey] = displayCategory1
+		genotypeAlleleMouseModels[gcKey] = alleleDetailMouseModels
 
 def processMouse(processType):
 	#
@@ -587,15 +595,23 @@ def processMouse(processType):
 	    termID = r['termID']
 	    gcKey = `genotype` + termID
 
-	    displayCategory1, header, headerFootnote, genotypeFootnote = deriveCategory1(r)
-	    displayCategory2 = deriveCategory2(r)
+	    alleleDetailMouseModels, header, headerFootnote, genotypeFootnote = deriveAlleleDetailMouseModels(r)
+	    diseaseAssociatedGenes = deriveDiseaseAssociatedGenes(r)
 
-	    # if the genotype belongs in section 4 (non-gene), then it's section 4 for both categories
+	    # If non-gene (transgenes, other mutations)...
+	    # then Cre alleles should not appear in the Mouse Model/Transgene section on the Disease page
+	    # However, Cre alleles will, by default, appear in the Mouse Model section on the Allele page,
+	    # and the front-end must apply another filter to exclude Cre alleles (when appropriate)
+	    # from these Allele page.
 
-	    if displayCategory1 == 4:
-		displayCategory3 = 4
+	    if alleleDetailMouseModels == 4:
+	        m = crepattern.match(r['alleleSymbol'])
+	        if m is not None:
+		    diseaseMouseModels = -1
+                else:
+		    diseaseMouseModels = 4
 	    else:
-		displayCategory3 = genotypeCategory3[gcKey]
+		diseaseMouseModels = genotypeAlleleMouseModels[gcKey]
 
 	    if humanOrtholog.has_key(marker):
 		h = humanOrtholog[marker]
@@ -636,9 +652,9 @@ def processMouse(processType):
 	            mgi_utils.prvalue(r['_Refs_key']) + COLDL + \
 	            mgi_utils.prvalue(orthologOrganism) + COLDL + \
 	            mgi_utils.prvalue(orthologKey) + COLDL + \
-                    mgi_utils.prvalue(displayCategory1) + COLDL + \
-                    mgi_utils.prvalue(displayCategory2) + COLDL + \
-                    mgi_utils.prvalue(displayCategory3) + COLDL + \
+                    mgi_utils.prvalue(alleleDetailMouseModels) + COLDL + \
+                    mgi_utils.prvalue(diseaseAssociatedGenes) + COLDL + \
+                    mgi_utils.prvalue(diseaseMouseModels) + COLDL + \
 	            mgi_utils.prvalue(r['sequenceNum']) + COLDL + \
 	            mgi_utils.prvalue(r['qualifier']) + COLDL + \
 	            r['markerSymbol'] + COLDL + \
@@ -656,9 +672,9 @@ def processMouse(processType):
 	            cdate + COLDL + cdate + LINEDL)
 
                 reviewBCP.write(
-                    mgi_utils.prvalue(displayCategory1) + RDL + \
-                    mgi_utils.prvalue(displayCategory2) + RDL + \
-                    mgi_utils.prvalue(displayCategory3) + RDL + \
+                    mgi_utils.prvalue(alleleDetailMouseModels) + RDL + \
+                    mgi_utils.prvalue(diseaseAssociatedGenes) + RDL + \
+                    mgi_utils.prvalue(diseaseMouseModels) + RDL + \
 	            mgi_utils.prvalue(genotype) + RDL + \
 	            r['markerSymbol'] + RDL + \
 	            r['alleleSymbol'] + RDL + \
@@ -711,9 +727,9 @@ def processMouse(processType):
 	            mgi_utils.prvalue(r['_Refs_key']), \
 	            mgi_utils.value(orthologOrganism), \
 	            mgi_utils.value(orthologKey), \
-                    mgi_utils.prvalue(displayCategory1), \
-                    mgi_utils.prvalue(displayCategory2), \
-                    mgi_utils.prvalue(displayCategory3), \
+                    mgi_utils.prvalue(alleleDetailMouseModels), \
+                    mgi_utils.prvalue(diseaseAssociatedGenes), \
+                    mgi_utils.prvalue(diseaseMouseModels), \
 	            mgi_utils.prvalue(r['sequenceNum']), \
 	            printQualifier, \
 	            r['markerSymbol'], \
@@ -868,9 +884,9 @@ def processHuman():
 	for r in results:
 
 	    marker = r['_Marker_key']
-	    displayCategory1 = -1
-	    displayCategory2 = deriveCategory2(r)
-	    displayCategory3 = -1
+	    alleleDetailMouseModels = -1
+	    diseaseAssociatedGenes = deriveDiseaseAssociatedGenes(r)
+	    diseaseMouseModels = -1
 
 	    if mouseOrtholog.has_key(marker):
 		h = mouseOrtholog[marker]
@@ -884,7 +900,7 @@ def processHuman():
 
 	    # don't really have to write these out because the mouse counterpart is already there
 
-#	    if displayCategory2 == 1:
+#	    if diseaseAssociatedGenes == 1:
 #		continue
 
 	    omimBCP.write(
@@ -897,9 +913,9 @@ def processHuman():
 		mgi_utils.prvalue(r['_Refs_key']) + COLDL + \
 		mgi_utils.prvalue(orthologOrganism) + COLDL + \
 		mgi_utils.prvalue(orthologKey) + COLDL + \
-	        mgi_utils.prvalue(displayCategory1) + COLDL + \
-	        mgi_utils.prvalue(displayCategory2) + COLDL + \
-	        mgi_utils.prvalue(displayCategory3) + COLDL + \
+	        mgi_utils.prvalue(alleleDetailMouseModels) + COLDL + \
+	        mgi_utils.prvalue(diseaseAssociatedGenes) + COLDL + \
+	        mgi_utils.prvalue(diseaseMouseModels) + COLDL + \
 		COLDL + \
 		mgi_utils.prvalue(r['qualifier']) + COLDL + \
 		r['markerSymbol'] + COLDL + \
@@ -917,9 +933,9 @@ def processHuman():
 		cdate + COLDL + cdate + LINEDL)
 
 	    reviewBCP.write(
-	        mgi_utils.prvalue(displayCategory1) + RDL + \
-	        mgi_utils.prvalue(displayCategory2) + RDL + \
-	        mgi_utils.prvalue(displayCategory3) + RDL + \
+	        mgi_utils.prvalue(alleleDetailMouseModels) + RDL + \
+	        mgi_utils.prvalue(diseaseAssociatedGenes) + RDL + \
+	        mgi_utils.prvalue(diseaseMouseModels) + RDL + \
 		r['markerSymbol'] + RDL + \
 		RDL + \
 		mgi_utils.prvalue(r['term']) + RDL + \
