@@ -51,7 +51,7 @@ def createBCPfile(markerKey):
 
 	locBCP = open(outDir + '/%s.bcp' % (table), 'w')
 
-	db.sql('select m._Marker_key, m.symbol, m.chromosome, m.cytogeneticOffset, o.offset, c.sequenceNum ' + \
+	db.sql('select m._Marker_key, m._Marker_Type_key, m.symbol, m.chromosome, m.cytogeneticOffset, o.offset, c.sequenceNum ' + \
 		'into #markers ' + \
 		'from MRK_Marker m, MRK_Offset o, MRK_Chromosome c ' + \
 		'where m._Organism_key = 1 ' + \
@@ -113,6 +113,7 @@ def createBCPfile(markerKey):
 	    if coord.has_key(key):
 		for c in coord[key]:
 	            locBCP.write(mgi_utils.prvalue(r['_Marker_key']) + COLDL + \
+			        mgi_utils.prvalue(r['_Marker_Type_key']) + COLDL + \
 			        r['chromosome'] + COLDL + \
 			        mgi_utils.prvalue(r['sequenceNum']) + COLDL + \
 			        mgi_utils.prvalue(r['cytogeneticOffset']) + COLDL + \
@@ -129,6 +130,7 @@ def createBCPfile(markerKey):
 			        cdate + LINEDL)
 	    else:
 	        locBCP.write(mgi_utils.prvalue(r['_Marker_key']) + COLDL + \
+			     mgi_utils.prvalue(r['_Marker_Type_key']) + COLDL + \
 			     r['chromosome'] + COLDL + \
 			     mgi_utils.prvalue(r['sequenceNum']) + COLDL + \
 			     mgi_utils.prvalue(r['cytogeneticOffset']) + COLDL + \
