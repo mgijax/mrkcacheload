@@ -106,6 +106,10 @@ def createBCPfile(markerKey):
 
 	    key = r['_Marker_key']
 	    symbol = r['symbol']
+	    chr = r['chromosome']
+
+	    if chr == 'UN' and coord.has_key(key):
+		print 'Marker has UN chromosome and a coordinate:  ' + symbol
 
 	    # print one record out per coordinate
 
@@ -113,7 +117,7 @@ def createBCPfile(markerKey):
 		for c in coord[key]:
 	            locBCP.write(mgi_utils.prvalue(r['_Marker_key']) + COLDL + \
 			        mgi_utils.prvalue(r['_Marker_Type_key']) + COLDL + \
-			        r['chromosome'] + COLDL + \
+			        chr + COLDL + \
 			        mgi_utils.prvalue(r['sequenceNum']) + COLDL + \
 			        mgi_utils.prvalue(r['cytogeneticOffset']) + COLDL + \
 			        mgi_utils.prvalue(r['offset']) + COLDL + \
@@ -130,7 +134,7 @@ def createBCPfile(markerKey):
 	    else:
 	        locBCP.write(mgi_utils.prvalue(r['_Marker_key']) + COLDL + \
 			     mgi_utils.prvalue(r['_Marker_Type_key']) + COLDL + \
-			     r['chromosome'] + COLDL + \
+			     chr + COLDL + \
 			     mgi_utils.prvalue(r['sequenceNum']) + COLDL + \
 			     mgi_utils.prvalue(r['cytogeneticOffset']) + COLDL + \
 			     mgi_utils.prvalue(r['offset']) + COLDL + \
