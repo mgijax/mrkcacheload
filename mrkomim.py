@@ -25,9 +25,18 @@
 #	5.  Categorize them
 #	6.  Write records to output file
 #
-# alleleMouseModels is the Allele Detail Mouse Model table.
-# diseaseAssociatedGenes is the Disease Detail Associated Genes and Transgenes sections.
-# diseaseMouseModels is the Disease Detail Mouse Model table.
+# alleleMouseModels is the Allele Detail Mouse Model table. (MRK_OMIM_Cache.omimCategory1)
+# diseaseAssociatedGenes is the Disease Detail Associated Genes and Transgenes sections. (MRK_OMIM_Cache.omimCategory2)
+# diseaseMouseModels is the Disease Detail Mouse Model table. (MRK_OMIM_Cache.omimCategory3)
+#
+# possible values for omimCategory1, omimCategory2, omimCategory3):
+#
+#	-1: ignore
+#	1 : Models with phenotypic similarity to human disease where etiologies involve orthologs.
+#	2 : Models with phenotypic similarity to human disease where etiologies are distinct.
+#	3 : Models with phenotypic similarity to human diseases where etiology is unknown or involving genes where ortholog is unknown.
+#	4 : Models involving transgenes or other mutation types.
+#	5 : No similarity to the expected human disease phenotype was found.
 #
 # TR 3853/OMIM User Requirements
 #
