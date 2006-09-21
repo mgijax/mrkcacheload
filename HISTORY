@@ -1,8 +1,13 @@
+TAG: mrkcacheload-3-5-1-3
+DATE: 09/21/2006
+STAFF: lec
+CHANGES:
+1) TR 7894; mgiconfig
+
 TAG: mrkcacheload-3-5-1-2
 TAG: mrkcacheload-3-5-1-1
 DATE: 09/06/2006
 STAFF: lec
-RELEASE: A
 CHANGES:
 1) build 36; merge
 
@@ -10,42 +15,36 @@ TAG: mrkcacheload-build36-4
 TAG: mrkcacheload-build36-3
 DATE: 08/11/2006
 STAFF: lec
-RELEASE: A
 CHANGES:
 1) build 36
 
 TAG: mrkcacheload-build36-2
 DATE: 07/17/2006
 STAFF: lec
-RELEASE: A
 CHANGES:
 1) build 36
 
 TAG: mrkcacheload-build36-1
 DATE: 07/12/2006
 STAFF: lec
-RELEASE: A
 CHANGES:
 1) build 36
 
 TAG: mrkcacheload-build36-BP
 DATE: 07/12/2006
 STAFF: lec
-RELEASE: A
 CHANGES:
 1) branch point tag for build 36
 
 TAG: mrkcacheload-3-5-0-9
 DATE: 07/03/2006
 STAFF: lec
-RELEASE: A
 CHANGES:
 1) TR 7728
 
 TAG: mrkcacheload-3-5-0-8
 DATE: 06/30/2006
 STAFF: lec
-RELEASE: A
 CHANGES:
 1) TR 7728
 
@@ -53,70 +52,60 @@ TAG: mrkcacheload-3-5-0-7
 TAG: mrkcacheload-3-5-0-6
 DATE: 05/24/2006
 STAFF: lec
-RELEASE: A
 CHANGES:
 1) MGI 3.5
 
 TAG: mrkcacheload-3-5-0-5
 DATE: 05/22/2006
 STAFF: lec
-RELEASE: A
 CHANGES:
 1) MGI 3.5
 
 TAG: mrkcacheload-3-5-0-4
 DATE: 05/11/2006
 STAFF: lec
-RELEASE: A
 CHANGES:
 1) MGI 3.5
 
 TAG: mrkcacheload-3-5-0-3
 DATE: 05/10/2006
 STAFF: lec
-RELEASE: A
 CHANGES:
 1) MGI 3.5
 
 TAG: mrkcacheload-3-5-0-2
 DATE: 05/05/2006
 STAFF: lec
-RELEASE: A
 CHANGES:
 1) MGI 3.5
 
 TAG: mrkcacheload-3-5-0-1
 DATE: 04/20/2006
 STAFF: lec
-RELEASE: A
 CHANGES:
 1) MGI 3.5; merge tr7062 branch
 
 TAG: mrkcacheload-3-4-3-1
 DATE: 03/01/2006
 STAFF: lec
-RELEASE: A
 CHANGES:
 1) mrkrefs.py; replace MLD_Marker w/ MLD_Expts, MLD_Expt_Marker
 
 TAG: mrkcacheload-3-3-0-25
 DATE: 12/05/2005
 STAFF: lec
-RELEASE: A
 CHANGES:
 1) TR 7305/mrkprobe.py fix
 
 TAG: mrkcacheload-3-3-0-24
 DATE: 11/07/2005
 STAFF: lec
-RELEASE: A
 CHANGES:
 1) DBO should be DB in mrkprobe.py
 
 TAG: mrkcacheload-tr7062-8
 DATE: 04/20/2005
 STAFF: lec
-RELEASE: A
 CHANGES:
 1) MGI 3.5
 
@@ -124,7 +113,6 @@ TAG: mrkcacheload-tr7062-7
 TAG: mrkcacheload-tr7062-6
 DATE: 04/06/2005
 STAFF: lec
-RELEASE: A
 CHANGES:
 1) MGI 3.5
 
@@ -132,49 +120,42 @@ TAG: mrkcacheload-tr7062-5
 TAG: mrkcacheload-tr7062-4
 DATE: 12/08/2005
 STAFF: lec
-RELEASE: A
 CHANGES:
 1) MGI 3.5
 
 TAG: mrkcacheload-tr7062-3
 DATE: 12/05/2005
 STAFF: lec
-RELEASE: A
 CHANGES:
 1) MGI 3.5
 
 TAG: mrkcacheload-tr7062-2
 DATE: 11/08/2005
 STAFF: lec
-RELEASE: A
 CHANGES:
 1) MGI 3.5
 
 TAG: mrkcacheload-tr7062-1
 DATE: 10/25/2005
 STAFF: lec
-RELEASE: A
 CHANGES:
 1) MGI 3.5
 
 TAG: mrkcacheload-BP-tr7062
 DATE: 09/26/2005
 STAFF: lec
-RELEASE: A
 CHANGES:
 1) branch point for MGI 3.5 (TR 7062)
 
 TAG: mrkcacheload-3-3-0-23
 DATE: 09/26/2005
 STAFF: lec
-RELEASE: A
 CHANGES:
 1) add mrkprobe.csh; mrkprobe.py - Auto E
 
 TAG: mrkcacheload-3-3-0-22
 DATE: 09/14/2005
 STAFF: lec
-RELEASE: A
 CHANGES:
 1) OMIM/MGI 3.3
 
@@ -183,7 +164,6 @@ TAG: mrkcacheload-3-3-0-20
 TAG: mrkcacheload-3-3-0-19
 DATE: 09/09/2005
 STAFF: lec
-RELEASE: A
 CHANGES:
 1) OMIM/MGI 3.3
 
@@ -191,7 +171,6 @@ TAG: mrkcacheload-3-3-0-18
 TAG: mrkcacheload-3-3-0-17
 DATE: 09/07/2005
 STAFF: lec
-RELEASE: A
 CHANGES:
 1) OMIM/MGI 3.3
 
@@ -200,7 +179,6 @@ TAG: mrkcacheload-3-3-0-15
 TAG: mrkcacheload-3-3-0-14
 DATE: 09/02/2005
 STAFF: lec
-RELEASE: A
 CHANGES:
 1) OMIM/MGI 3.3
 
@@ -208,7 +186,6 @@ TAG: mrkcacheload-3-3-0-13
 TAG: mrkcacheload-3-3-0-12
 DATE: 09/01/2005
 STAFF: lec
-RELEASE: A
 CHANGES:
 1) OMIM/MGI 3.3
 
@@ -216,7 +193,6 @@ TAG: mrkcacheload-3-3-0-11
 TAG: mrkcacheload-3-3-0-10
 DATE: 08/31/2005
 STAFF: lec
-RELEASE: A
 CHANGES:
 1) OMIM/MGI 3.3
 
@@ -224,42 +200,36 @@ TAG: mrkcacheload-3-3-0-9
 TAG: mrkcacheload-3-3-0-8
 DATE: 08/30/2005
 STAFF: lec
-RELEASE: A
 CHANGES:
 1) OMIM/MGI 3.3
 
 TAG: mrkcacheload-3-3-0-7
 DATE: 08/29/2005
 STAFF: lec
-RELEASE: A
 CHANGES:
 1) OMIM/MGI 3.3
 
 TAG: mrkcacheload-3-3-0-6
 DATE: 08/23/2005
 STAFF: lec
-RELEASE: A
 CHANGES:
 1) OMIM/MGI 3.3
 
 TAG: mrkcacheload-3-3-0-5
 DATE: 08/12/2005
 STAFF: lec
-RELEASE: A
 CHANGES:
 1) OMIM/MGI 3.3
 
 TAG: mrkcacheload-3-3-0-4
 DATE: 08/09/2005
 STAFF: lec
-RELEASE: A
 CHANGES:
 1) OMIM/MGI 3.3
 
 TAG: mrkcacheload-3-3-0-3
 DATE: 05/21/2005
 STAFF: lec
-RELEASE: A
 CHANGES:
 1) OMIM/MGI 3.3
 
@@ -267,7 +237,6 @@ TAG: mrkcacheload-3-3-0-2
 TAG: mrkcacheload-3-3-0-1
 DATE: 05/19/2005
 STAFF: lec
-RELEASE: A
 CHANGES:
 1) OMIM/MGI 3.3
 
@@ -275,7 +244,6 @@ TAG: mrkcacheload-3-2-0-4
 TAG: mrkcacheload-3-2-0-3
 DATE: 05/10/2005
 STAFF: lec
-RELEASE: A
 CHANGES:
 1) changed bcp delimiter because "|" is found in some gene names
 
@@ -283,8 +251,6 @@ TAG: mrkcacheload-3-2-0-2
 TAG: mrkcacheload-3-2-0-1
 DATE: 04/27/2005
 STAFF: lec
-RELEASE: A
-CHANGES:
 1) MPR
 2) combines mrklabelload, mrkrefload into one product
 

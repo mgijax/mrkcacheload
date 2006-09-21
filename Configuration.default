@@ -13,9 +13,6 @@ endif
 
 source ${MGICONFIG}/master.config.csh
 
-# install directory
-setenv MRKCACHEINSTALLDIR	${USRLOCALMGI}/dbutils/mrkcacheload
-
 # directory
 setenv MRKCACHEDIR		/data/loads/mgi/mrkcacheload
 
