@@ -163,12 +163,11 @@ def createBCPfile():
 print '%s' % mgi_utils.date()
 
 # need to delete data, so we need a user with delete permission
-server = os.environ['DBSERVER']
-database = os.environ['DBNAME']
-user = os.environ['DBUSER']
-passwordFile = os.environ['DBPASSWORDFILE']
+user = os.environ['MGD_DBUSER']
+passwordFile = os.environ['MGD_DBPASSWORDFILE']
 password = string.strip(open(passwordFile, 'r').readline())
-db.set_sqlLogin(user, password, server, database)
+db.set_sqlUser(user)
+db.set_sqlPassword(password)
 
 db.useOneConnection(1)
 db.set_sqlLogFunction(db.sqlLogAll)
