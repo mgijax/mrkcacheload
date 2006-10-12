@@ -15,19 +15,19 @@
 cd `dirname $0` && source ./Configuration
 
 if ( ! -d ${MRKCACHEDIR} ) then
-	mkdir ${MRKCACHEDIR}
+	mkdir -p ${MRKCACHEDIR}
 endif
 
 if ( ! -d ${MRKCACHEINDIR} ) then
-	mkdir ${MRKCACHEINDIR}
+	mkdir -p ${MRKCACHEINDIR}
 endif
 
 if ( ! -d ${MRKCACHEBCPDIR} ) then
-	mkdir ${MRKCACHEBCPDIR}
+	mkdir -p ${MRKCACHEBCPDIR}
 endif
 
 if ( ! -d ${MRKCACHELOGDIR} ) then
-	mkdir ${MRKCACHELOGDIR}
+	mkdir -p ${MRKCACHELOGDIR}
 endif
 
 #
