@@ -7,7 +7,6 @@
 # Create bcp file for MRK_Location_Cache
 #
 # Uses environment variables to determine Server and Database
-# (DSQUERY and MGD).
 #
 # Usage:
 #	mrklocation.py [markerkey]

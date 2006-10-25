@@ -7,7 +7,6 @@
 # Create bcp file for MRK_Reference
 #
 # Uses environment variables to determine Server and Database
-# (DSQUERY and MGD).
 #
 # Usage:
 #	mrkref.py [markerkey]

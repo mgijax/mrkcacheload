@@ -7,7 +7,6 @@
 # Create bcp file for PRB_Marker
 #
 # Uses environment variables to determine Server and Database
-# (DSQUERY and MGD).
 #
 # Usage:
 #	mrkprobe.py

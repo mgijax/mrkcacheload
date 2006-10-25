@@ -7,7 +7,6 @@
 # Create bcp file for MRK_Homology_Cache; a cache table of Marker Homology data
 #
 # Uses environment variables to determine Server and Database
-# (DSQUERY and MGD).
 #
 # Usage:
 #	mrkhomology.py [markerkey]

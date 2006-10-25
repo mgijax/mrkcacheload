@@ -9,11 +9,8 @@
 #	1.  Mouse genotype-to-OMIM Disease annotations
 #	2.  Human-to-OMIM Disease/Gene annotations
 #
-# Uses environment variables to determine Server and Database
-# (DSQUERY and MGD).
-#
 # Usage:
-#	mrkomim.py
+#	mrkomim.py -Sdbserver -Ddatabase -Uuser -Ppasswordfile -Kobjectkey
 #
 # Processing:
 #
