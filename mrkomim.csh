@@ -1,4 +1,4 @@
-#!/bin/csh -fx
+#!/bin/csh -f
 
 #
 # Usage:  mrkomim.csh
@@ -13,7 +13,7 @@ cd `dirname $0` && source ./Configuration
 setenv TABLE MRK_OMIM_Cache
 setenv OBJECTKEY 0
 
-setenv LOG	${MRKCACHELOGDIR}/`basename $0`.log
+setenv LOG	${MRKCACHELOGDIR}/`basename $0 .csh`.log
 rm -rf $LOG
 touch $LOG
 

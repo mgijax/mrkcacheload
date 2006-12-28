@@ -1,4 +1,4 @@
-#!/bin/csh -fx
+#!/bin/csh -f
 
 #
 # Usage:  mrkprobe.csh
@@ -12,7 +12,7 @@ cd `dirname $0` && source ./Configuration
 
 setenv TABLE PRB_Marker
 
-setenv LOG	${MRKCACHELOGDIR}/`basename $0`.log
+setenv LOG	${MRKCACHELOGDIR}/`basename $0 .csh`.log
 rm -rf $LOG
 touch $LOG
 
