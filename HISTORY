@@ -1,3 +1,9 @@
+TAG: mrkcacheload-4-1-2-1
+DATE: 09/15/2008
+STAFF: sc
+CHANGES: mrklabel.py - fixed writeRecord function which assumed labelTypeName
+  was the same for each result in the result set parameter.
+
 TAG: mrkcacheload-3-5-1-7
 DATE: 12/28/2006
 STAFF: sc

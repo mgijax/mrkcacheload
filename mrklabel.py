@@ -110,12 +110,12 @@ cdate = mgi_utils.date("%m/%d/%Y")
 def writeRecord(results, labelStatusKey, priority, labelType, labelTypeName):
 
     global labelKey
-
+    originalLTN = labelTypeName
+    
     for r in results:
 
-	if labelTypeName is None:
+	if originalLTN is None:
 	    labelTypeName = r['labelTypeName']
-
         outBCP.write(mgi_utils.prvalue(labelKey) + BCPDL + \
                 mgi_utils.prvalue(r['_Marker_key']) + BCPDL + \
         	mgi_utils.prvalue(labelStatusKey) + BCPDL + \
