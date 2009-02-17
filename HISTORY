@@ -1,3 +1,8 @@
+TAG: mrkcacheload-4-2-0-1
+DATE: 02/17/2009
+STAFF: lec
+CHANGES: mrklabel.py - use "isWildType = 0" instead of "name != "'ild type'"
+
 TAG: mrkcacheload-4-1-2-1
 DATE: 09/15/2008
 STAFF: sc
