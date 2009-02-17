@@ -173,7 +173,7 @@ def priority3():
 	cmd = 'select distinct a._Marker_key, m._Organism_key, _OrthologOrganism_key = NULL, label = a.symbol ' + \
 		'from ALL_Allele a, MRK_Marker m ' + \
 		'where a._Marker_key = m._Marker_key ' + \
-		'and a.name != "wild type" ' + \
+		'and a.isWildType = 0 ' + \
 		'and m._Organism_key = 1 '
 
 	if markerKey is not None:
