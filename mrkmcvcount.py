@@ -45,11 +45,13 @@ def createBCPfile():
     '''
     print 'Creating %s ...' % countBCP
     countFp = open(countBCP, 'w')
-    db.sql('''select _MCVTerm_key, count(_MCVTerm_key) as mkrCt
+    db.sql('''select distinct _MCVTerm_key, count(_MCVTerm_key) as mkrCt
 	into #mkrCt
 	from MRK_MCV_Cache
 	group by _MCVTerm_key''', None)
-    results = db.sql('''select a.accid, v.term, m.*
+    # must be distinct or dups will be returned where there are both
+    # SO and MCV ids associated with a term
+    results = db.sql('''select distinct v.term, m.*
 	from VOC_Term v, ACC_Accession a, #mkrCt m
 	where m._MCVTerm_key = v._Term_key
 	and v._Term_key = a._Object_key

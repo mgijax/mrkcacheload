@@ -358,14 +358,20 @@ def createBCPfile():
 	#mcvMkrTypeKey = '' # default if there isn't one
 	if mkrKeyToMCVAnnotDict.has_key(mkrKey):
 	    annotList = mkrKeyToMCVAnnotDict[mkrKey]
-	    print 'annotList %s mTypeKey %s' % (annotList, mTypeKey)
+	    #print 'DIRECT annotations %s mkrKey %s mTypeKey %s' % (annotList, mkrKey, mTypeKey)
 	annotateToList = processDirectAnnot(annotList, mTypeKey)
+	annotMadeList = []
 	for a in annotateToList:
 	    writeRecord(mkrKey, a, DIRECT)
+	    annotMadeList.append(a)
 	    # Now add indirect associations from the closure
 	    ancList = descKeyToAncKeyDict[a]
+	    #print 'INDIRECT annotations  %s mkrKey %s ' % (ancList, mkrKey)
+	    
 	    for ancKey in ancList:
-		writeRecord(mkrKey, ancKey, INDIRECT)
+		if ancKey not in annotMadeList:
+		    annotMadeList.append(ancKey)
+		    writeRecord(mkrKey, ancKey, INDIRECT)
     mcvFp.close()
 
 def processByMarker(markerKey):
