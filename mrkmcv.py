@@ -51,7 +51,7 @@ deleteSQL='delete from MRK_MCV_Cache where _Marker_key = %s'
 insertSQL='insert into MRK_MCV_Cache values(%s,%s,"%s","%s",%s,%s,"%s","%s")'
 
 #
-# map marker keys to their set of MCV annotations
+# map marker keys to their set of MCV annotations from VOC_Annot
 # looks like {markerKey:[mcvTermKey1, ...], ...}
 mkrKeyToMCVAnnotDict = {}
 
@@ -125,6 +125,8 @@ def init ():
 	where n._MGIType_key = 13
             and n._NoteType_key = 1001
             and n._Note_key = nc._Note_key''', None)
+
+    db.sql('''create index idx1 on #notes(_Object_key)''', None)
 
     results = db.sql('''select t._Term_key, t.term, n.chunk
 	    from VOC_Term t, #notes n
@@ -242,7 +244,7 @@ def init ():
 	mkrKey = r['_Marker_key']
 	mkrKeyToMkrTypeKeyDict[mkrKey] = mkrTypeKey
 
-def writeRecord (markerKey, mcvKey, qualifier):
+def writeRecord (markerKey, mcvKey, directTerms, qualifier):
     global mcvFp
 
     if  mcvKeyToTermDict.has_key(mcvKey):
@@ -250,10 +252,12 @@ def writeRecord (markerKey, mcvKey, qualifier):
     else:
 	print 'term does not exist for mcvKey %s' % mcvKey
 	sys.exit(1)
+
     mcvFp.write(mgi_utils.prvalue(markerKey) + COLDL + \
                 mgi_utils.prvalue(mcvKey) + COLDL + \
                 mgi_utils.prvalue(term) + COLDL + \
 		mgi_utils.prvalue(qualifier) + COLDL + \
+		mgi_utils.prvalue(directTerms) + COLDL + \
                 createdBy + COLDL + \
                 createdBy + COLDL + \
                 date + COLDL + \
@@ -353,16 +357,33 @@ def createBCPfile():
     for r in results:
 	mkrKey = r['_Marker_key']
         mTypeKey = r['_Marker_Type_key']
+
+        # list of VOC_Annot keys for current marker
 	annotList = [] # default if there are none
-	#annotateKey = ''
-	#mcvMkrTypeKey = '' # default if there isn't one
+	# list of VOC_Annot terms for current marker
 	if mkrKeyToMCVAnnotDict.has_key(mkrKey):
 	    annotList = mkrKeyToMCVAnnotDict[mkrKey]
 	    #print 'DIRECT annotations %s mkrKey %s mTypeKey %s' % (annotList, mkrKey, mTypeKey)
 	annotateToList = processDirectAnnot(annotList, mTypeKey)
+
+	# get the terms  for the direct annotations, every annotation in the cache
+	# will have a list of direct terms
+	directTermList = []
+	for mcvKey in annotateToList:
+	    if mcvKeyToTermDict.has_key(mcvKey):
+		term = mcvKeyToTermDict[mcvKey]
+		directTermList.append(term)
+	    else:
+		print 'term does not exist for mcvKey %s' % mcvKey
+		sys.exit(1)
+
+	# annotations already made so we don't create dups
 	annotMadeList = []
+
+	# create a comma delimited string of direct terms for the marker
+	directTerms = string.join(directTermList, ',')
 	for a in annotateToList:
-	    writeRecord(mkrKey, a, DIRECT)
+	    writeRecord(mkrKey, a, directTerms, DIRECT)
 	    annotMadeList.append(a)
 	    # Now add indirect associations from the closure
 	    ancList = descKeyToAncKeyDict[a]
@@ -371,7 +392,7 @@ def createBCPfile():
 	    for ancKey in ancList:
 		if ancKey not in annotMadeList:
 		    annotMadeList.append(ancKey)
-		    writeRecord(mkrKey, ancKey, INDIRECT)
+		    writeRecord(mkrKey, ancKey, directTerms, INDIRECT)
     mcvFp.close()
 
 def processByMarker(markerKey):
@@ -403,6 +424,9 @@ def processByMarker(markerKey):
     annotList = [] # default if there are none
     for r in results:
 	annotList.append(r['_Term_key'])
+
+    # get the set of direct annotations which includes inferred from marker type where
+    # applicable
     annotateToList = processDirectAnnot(annotList, mTypeKey)
     #print 'annotateToList: %s' % annotateToList
     for a in annotateToList:
