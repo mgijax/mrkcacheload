@@ -48,7 +48,7 @@ mcvFp = None
 
 # delete and insert statements
 deleteSQL='delete from MRK_MCV_Cache where _Marker_key = %s'
-insertSQL='insert into MRK_MCV_Cache values(%s,%s,"%s","%s",%s,%s,"%s","%s")'
+insertSQL='insert into MRK_MCV_Cache values(%s,%s,"%s","%s","%s", %s,%s,"%s","%s")'
 
 #
 # map marker keys to their set of MCV annotations from VOC_Annot
@@ -99,7 +99,7 @@ def showUsage():
         sys.stderr.write(usage)
         sys.exit(1)
 
-def init ():
+def init (markerKey):
     global mkrKeyToMCVAnnotDict, mcvKeyToParentMkrTypeTermKeyDict 
     global mcvKeyToTermDict, mkrTypeKeyToAssocMCVTermKeyDict 
     global descKeyToAncKeyDict, mcvTermKeyToMkrTypeKeyDict
@@ -117,8 +117,10 @@ def init ():
     #
     # _Vocab_key = 79 = Marker Category Vocab
     # _NoteType_key = 1001 = Private Vocab Term Comment'
-
+   
     # Get the MCV vocab terms and their notes from the database
+    # Notes tell us the term's MGI marker type if term maps directly to a 
+    # marker type
     db.sql('''select n._Object_key, rtrim(nc.note) as chunk, nc.sequenceNum
 	into #notes
 	from MGI_Note n, MGI_NoteChunk nc
@@ -177,10 +179,15 @@ def init ():
     # now get all MCV marker annotations
     # and load into a dictionary
     #
-    results = db.sql('''select distinct a._Term_key, a._Object_key as _Marker_key
+    cmd = '''select distinct a._Term_key, a._Object_key as _Marker_key
         from VOC_Annot a
         where a._AnnotType_key = 1011
-        and a._Qualifier_key = 1614158''', 'auto')
+        and a._Qualifier_key = 1614158'''
+    if markerKey != 0:
+	cmd = cmd + ' and _Object_key = %s' % markerKey
+
+    results = db.sql(cmd, 'auto')
+
     for r in results:
         mKey = r['_Marker_key']
 	termKey = r['_Term_key']
@@ -236,9 +243,13 @@ def init ():
 	descKeyToAncKeyDict[dKey].append(aKey)
 
     # map marker keys to their marker type
-    results = db.sql(''' select _Marker_Type_key, _Marker_key
+    cmd = ''' select _Marker_Type_key, _Marker_key
 		from MRK_Marker
-		where _Marker_Status_key = 1''', 'auto')
+		where _Marker_Status_key = 1'''
+    if markerKey != 0:
+        cmd = cmd + ' and _Marker_key = %s' % markerKey
+
+    results = db.sql(cmd, 'auto')
     for r in results:
 	mkrTypeKey = r['_Marker_Type_key']
 	mkrKey = r['_Marker_key']
@@ -263,7 +274,8 @@ def writeRecord (markerKey, mcvKey, directTerms, qualifier):
                 date + COLDL + \
                 date + LINEDL)
 
-def insertCache (markerKey, mcvKey, qualifier):
+def insertCache (markerKey, mcvKey, directTerms, qualifier):
+    #print "%s %s %s %s" % (markerKey, mcvKey, directTerms, qualifier)
     if  mcvKeyToTermDict.has_key(mcvKey):
         term = mcvKeyToTermDict[mcvKey]
     else:
@@ -274,6 +286,7 @@ def insertCache (markerKey, mcvKey, qualifier):
 	mgi_utils.prvalue(markerKey), \
 	mgi_utils.prvalue(mcvKey), \
 	mgi_utils.prvalue(term), \
+        mgi_utils.prvalue(directTerms), \
 	mgi_utils.prvalue(qualifier), \
 	createdBy, \
 	createdBy, \
@@ -429,15 +442,31 @@ def processByMarker(markerKey):
     # applicable
     annotateToList = processDirectAnnot(annotList, mTypeKey)
     #print 'annotateToList: %s' % annotateToList
+
+    # get the terms  for the direct annotations, every annotation in the cache
+    # will have a list of direct terms
+    directTermList = []
+    for mcvKey in annotateToList:
+	if mcvKeyToTermDict.has_key(mcvKey):
+	    term = mcvKeyToTermDict[mcvKey]
+	    directTermList.append(term)
+	else:
+	    sys.exit(1)
+	    print 'term does not exist for mcvKey %s' % mcvKey
+
+    # annotations already made so we don't create dups
+    annotMadeList = []
+
+    directTerms = string.join(directTermList, ',')
     for a in annotateToList:
-	#print 'insertCache(markerKey: %s, a:%s, DIRECT) a is type: %s' % (markerKey, a, type(a))
-	insertCache(markerKey, a, DIRECT)
+	insertCache(markerKey, a, directTerms, DIRECT)
 	# Now add indirect associations from the closure
 	ancList = descKeyToAncKeyDict[a]
 	for ancKey in ancList:
-	    if ancKey not in annotateToList:
+	    if ancKey not in annotMadeList:
 		#print 'insertCache(markerKey: %s, ancKey:%s, INDIRECT) ancKey is type: %s' % (markerKey, ancKey, type(ancKey))
-		insertCache(markerKey, ancKey, INDIRECT)
+	 	annotMadeList.append(ancKey)
+		insertCache(markerKey, ancKey, directTerms, INDIRECT)
 #
 # Main Routine
 #
@@ -479,7 +508,7 @@ db.set_sqlLogin(user, password, server, database)
 db.useOneConnection(1)
 db.set_sqlLogFunction(db.sqlLogAll)
 
-init()
+init(markerKey)
 if markerKey == 0:
     createBCPfile()
 else:
