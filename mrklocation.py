@@ -17,6 +17,9 @@
 #
 # History
 #
+# 07/01/2010	lec
+#	- TR10207/multiple coordinates for microRNA markers
+#
 # 05/03/2006	lec
 #	- MGI 3.5; added UniSTS and miRBase coordinates
 #
@@ -62,23 +65,16 @@ def createBCPfile(markerKey):
 	db.sql('create index idx1 on #markers(_Marker_key)', None)
 
 	#
-	# coordinates for Markers w/ Sequence coordinates
+	# the coordinate lookup should contain only one marker coordinate.
+	#
+	# see TR10207 for more information
+	#
+	# 1) add to the lookup all coordinates that do not contain a sequence
+	# 2) add to the lookup all coordinates that do contain a sequence,
+	#    but are not already in the lookup
 	#
 
 	coord = {}
-
-	results = db.sql('select m._Marker_key, c.startCoordinate, c.endCoordinate, c.strand, c.mapUnits, c.provider, c.version ' + \
-		'from #markers m, SEQ_Marker_Cache mc, SEQ_Coord_Cache c ' + \
-		'where m._Marker_key = mc._Marker_key ' + \
-		'and mc._Qualifier_key = 615419 ' + \
-		'and mc._Sequence_key = c._Sequence_key', 'auto')
-	for r in results:
-	    key = r['_Marker_key']
-	    value = r
-
-	    if not coord.has_key(key):
-		coord[key] = []
-            coord[key].append(r)
 
 	#
 	# coordinates for Marker w/out Sequence coordinates
@@ -99,6 +95,26 @@ def createBCPfile(markerKey):
 	    if not coord.has_key(key):
 		coord[key] = []
             coord[key].append(r)
+
+	#
+	# coordinates for Markers w/ Sequence coordinates
+	#
+
+	results = db.sql('select m._Marker_key, c.startCoordinate, c.endCoordinate, c.strand, c.mapUnits, c.provider, c.version ' + \
+		'from #markers m, SEQ_Marker_Cache mc, SEQ_Coord_Cache c ' + \
+		'where m._Marker_key = mc._Marker_key ' + \
+		'and mc._Qualifier_key = 615419 ' + \
+		'and mc._Sequence_key = c._Sequence_key', 'auto')
+	for r in results:
+	    key = r['_Marker_key']
+	    value = r
+
+	    # only one coordinate per marker
+	    if not coord.has_key(key):
+		coord[key] = []
+                coord[key].append(r)
+            #else:
+	#	print key, value
 
 	results = db.sql('select * from #markers order by _Marker_key', 'auto')
 	for r in results:
