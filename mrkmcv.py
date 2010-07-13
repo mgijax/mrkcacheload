@@ -55,7 +55,7 @@ rptFp = None
 
 # header for rptFp
 rptHeader1 = string.center('Markers  with conflict between the Marker Type and the MCV Marker Type\n\n', 100)
-rptHeader2 = 'MGI ID%sMarker Type%sMCV Term%sMCV Marker Type Term %s Annotate to Term%s' % \
+rptHeader2 = 'MGI ID%sMarker Type%sMCV Term%sMCV Marker Type Term %s Load-Assigned MCV Term%s' % \
     (TAB, TAB, TAB, TAB, CRT)
 
 # true if there is at least one marker type mismatch
@@ -273,7 +273,8 @@ def init (mkrKey):
     # map marker keys to their marker type
     cmd = ''' select _Marker_Type_key, _Marker_key
 		from MRK_Marker
-		where _Marker_Status_key = 1'''
+		where _Marker_Status_key = 1
+		and _Organism_key = 1'''
     if mkrKey != 0:
         cmd = cmd + ' and _Marker_key = %s' % mkrKey
 
@@ -435,13 +436,13 @@ def createBCPfile():
 	    mkrTypeKey = int(l[1])
 	    mcvTermKey = int(l[2])
 	    mcvMkrTypeTermKey = int(l[3])
-	    annotToTermKey = int(l[4])
+	    loadAssignedTermKey = int(l[4])
 	    mgiID = mkrKeyToIdDict[mkrKey]
 	    mkrType = mkrTypeKeyToTypeDict[mkrTypeKey]
 	    mcvTerm = mcvKeyToTermDict[mcvTermKey]
 	    mcvMkrTypeTerm = mcvKeyToTermDict[mcvMkrTypeTermKey]
-	    annotToTerm = mcvKeyToTermDict[annotToTermKey]
-	    rptFp.write('%s%s%s%s%s%s%s%s%s%s' % (mgiID, TAB, mkrType, TAB, mcvTerm, TAB, mcvMkrTypeTerm, TAB, annotToTerm, CRT))
+	    loadAssignedTerm = mcvKeyToTermDict[loadAssignedTermKey]
+	    rptFp.write('%s%s%s%s%s%s%s%s%s%s' % (mgiID, TAB, mkrType, TAB, mcvTerm, TAB, mcvMkrTypeTerm, TAB, loadAssignedTerm, CRT))
 	rptFp.write('%sTotal: %s' % (CRT, len(mismatchList) ))
 	rptFp.close()
 
