@@ -55,7 +55,7 @@ rptFp = None
 
 # header for rptFp
 rptHeader1 = string.center('Markers  with conflict between the Marker Type and the MCV Marker Type\n\n', 100)
-rptHeader2 = 'MGI ID%sMarker Type%sMCV Term%sMCV Marker Type Term %s Load-Assigned MCV Term%s' % \
+rptHeader2 = 'MGI ID%sMarker Type%sMCV Term%sMCV Marker Type Term %s Web Display MCV Term%s' % \
     (TAB, TAB, TAB, TAB, CRT)
 
 # true if there is at least one marker type mismatch
@@ -330,28 +330,27 @@ def processDirectAnnot(annotList, mTypeKey, mkrKey):
     annotateToList = []
     
     if len(annotList) > 0: # there are annotations
-	curatedAnnot = 0   # curated annotataions where the term matches the marker type
+	curatedAnnot = 0   # curated annotations where the term matches the marker type
 	for mcvKey in annotList:
 	    annotateKey = mcvKey # default; we may not annot to this term
 	    # get the marker type of this mcv
 	    if mcvKeyToParentMkrTypeTermKeyDict.has_key(mcvKey):
-		# get the the mcv term key representing the marker type for this mcv, note it could
-		# be the same mcv term
+		# get the the mcv term key representing the mkr type for the 
+		# mcv term, note that it could be the same mcv term
 		mkrTypeMcvKey = mcvKeyToParentMkrTypeTermKeyDict[mcvKey]
 		# now get the marker type value for the MCV term
 		mcvMkrTypeKey = mcvTermKeyToMkrTypeKeyDict[mkrTypeMcvKey]
 		#print 'mcvMkrTypeKey %s' % mcvMkrTypeKey
 		#print 'MGI mTypeKey  %s' % mTypeKey
 	    # if the marker's type and the mcv marker type don't match then
-	    # annotate to the term representing the marker's type so all markers have an mcv annotation
+	    # annotate to the term representing the marker's type so all 
+	    # markers have an mcv annotation
 	    if mcvMkrTypeKey != '' and mcvMkrTypeKey != mTypeKey:
 		# report error; marker types don't match
-		# We've already checked that all marker types have mcv terms, so don't need to test
-		# that the key is in the dictionary
+		# We've already checked that all marker types have mcv terms, 
+		# so don't need to test that the key is in the dictionary
 		annotateKey = mkrTypeKeyToAssocMCVTermKeyDict[mTypeKey]
 		markerTypeMismatch = 1
-		#print 'appending mismatchList marker key %s marker type key %s != mcvMkrTypeKey %s for mcvKey \
-                    #%s annotating to %s' % (mkrKey, mTypeKey, mcvMkrTypeKey, mcvKey, annotateKey)
 		mismatchList.append('%s%s%s%s%s%s%s%s%s%s' % (mkrKey, TAB, mTypeKey, TAB, mcvKey, TAB, mkrTypeMcvKey, TAB, annotateKey, CRT) )
 	    else:
 	        annotateToList.append(annotateKey)
