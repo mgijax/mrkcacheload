@@ -34,6 +34,10 @@ try:
     groupingTermIds = os.environ['GROUPING_TERMIDS']
     table = os.environ['TABLE']
 except:
+    COLDELIM = '\t'
+    outDir = './'
+    curatorLog = './mrkmcv.log'
+    groupingTermIds = None
     table = 'MRK_MCV_Cache'
 
 # qualifier column values
@@ -322,9 +326,10 @@ def init (mkrKey):
 	mcvTermToIdDict[term] = mcvId
 
     # init the grouping term id list
-    tokens = string.split(groupingTermIds, ',')
-    for t in tokens:
-	groupingIdList.append(string.strip(t))
+    if groupingTermIds != None:
+	tokens = string.split(groupingTermIds, ',')
+	for t in tokens:
+	    groupingIdList.append(string.strip(t))
 
 def writeRecord (mkrKey, mcvKey, directTerms, qualifier):
     global mcvFp
@@ -447,7 +452,7 @@ def createBCPfile():
 	# list of VOC_Annot terms for current marker
 	if mkrKeyToMCVAnnotDict.has_key(mkrKey):
 	    annotList = mkrKeyToMCVAnnotDict[mkrKey]
-	    if mkrKey in (23123, 24792, 51332):
+	    #if mkrKey in (23123, 24792, 51332):
                 #print 'mkrKey %s annotList %s' % (mkrKey, annotList)
 	    #print 'DIRECT annotations %s mkrKey %s mTypeKey %s' % \
 		#(annotList, mkrKey, mTypeKey)
