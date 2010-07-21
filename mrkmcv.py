@@ -381,8 +381,6 @@ def processDirectAnnot(annotList, mTypeKey, mkrKey):
 	    # to term representing the marker's type
 	    term = string.strip(mcvKeyToTermDict[mcvKey])
 	    id = mcvTermToIdDict[term]
-	    if id == "MCV:0000029":
-		#print 'term %s ID %s groupingIdList %s' % (term, id, groupingIdList)
 	    if id in groupingIdList:
 		#print 'id in groupingIdList'
 		annotateKey = mkrTypeKeyToAssocMCVTermKeyDict[mTypeKey]	
