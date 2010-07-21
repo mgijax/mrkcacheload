@@ -29,3 +29,5 @@ setenv COLDELIM		"&#&"
 setenv LINEDELIM	"\n"
 setenv CREATEDBY        1000
 
+# config for mrkmcv cacheload
+setenv GROUPING_TERMIDS "MCV:0000029, MCV:0000001"

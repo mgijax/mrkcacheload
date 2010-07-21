@@ -28,10 +28,10 @@ import db
 import mgi_utils
 
 try:
-    COLDL = os.environ['COLDELIM']
-    LINEDL = '\n'
+    COLDELIM = os.environ['COLDELIM']
     outDir = os.environ['MRKCACHEBCPDIR']
     curatorLog = os.environ['CURATORLOG']
+    groupingTermIds = os.environ['GROUPING_TERMIDS']
     table = os.environ['TABLE']
 except:
     table = 'MRK_MCV_Cache'
@@ -40,8 +40,9 @@ except:
 DIRECT='D'
 INDIRECT='I'
 
-TAB = '\t'
-CRT = '\n'
+# for reports
+TAB='\t'
+CRT='\n'
 
 # date and created by column values
 date = mgi_utils.date("%m/%d/%Y")
@@ -50,20 +51,34 @@ createdBy = '1000'
 # file descriptor for the bcp file
 mcvFp = None
 
-# file descriptor for curator log
+# file descriptor for marker conflict curator log
 rptFp = None
 
-# header for rptFp
-rptHeader1 = string.center('Markers  with conflict between the Marker Type and the MCV Marker Type\n\n', 100)
+# Mismatch header for rptFp
+rptHeader1 = 'Markers  with conflict between the Marker Type and the MCV Marker Type%s%s' % (CRT, CRT)
 rptHeader2 = 'MGI ID%sMarker Type%sMCV Term%sMCV Marker Type Term %s Web Display MCV Term%s' % \
     (TAB, TAB, TAB, TAB, CRT)
 
 # true if there is at least one marker type mismatch
 # Used to tell if we need to create a curator log
-markerTypeMismatch = 0
+hasMkrTypeMismatch = 0
 
-# list of mismatches
+# list of mismatches to report
 mismatchList = []
+
+# grouping term annotation header for rptFp
+rptHeader3 =  'Markers Annotated to Grouping Terms%s%s' % (CRT, CRT)
+rptHeader4 = 'MGI ID%s Grouping Term%s' % (TAB, CRT)
+
+# true if there is at least one marker annotated
+# to a grouping term
+hasGroupingAnnot = 0
+
+# list of grouping annotations to report
+groupingAnnotList = []
+
+# list of grouping Ids
+groupingIdList = []
 
 # delete and insert statements
 deleteSQL='delete from MRK_MCV_Cache where _Marker_key = %s'
@@ -83,6 +98,10 @@ mcvKeyToParentMkrTypeTermKeyDict = {}
 # looks like {mcvTermKey:term, ...}
 mcvKeyToTermDict = {}
 
+#
+# map mcv term to mcv ID
+# looks like (term:ID, ...}
+mcvTermToIdDict = {}
 #
 # map marker type key to the MCV Term Key associated with the marker type
 #  looks like {mTypeKey:mcvTermKey, ...}
@@ -132,7 +151,8 @@ def init (mkrKey):
     global mkrKeyToMCVAnnotDict, mcvKeyToParentMkrTypeTermKeyDict 
     global mcvKeyToTermDict, mkrTypeKeyToAssocMCVTermKeyDict 
     global descKeyToAncKeyDict, mcvTermKeyToMkrTypeKeyDict
-    global mkrKeyToMkrTypeKeyDict
+    global mkrKeyToMkrTypeKeyDict, groupingIdList
+    global mcvTermToIdDict
 
     #
     # parse the MCV Note and load 
@@ -236,7 +256,8 @@ def init (mkrKey):
 
     # the mcv term keys that represent marker types
     mcvMarkerTypeValues  = mkrTypeKeyToAssocMCVTermKeyDict.values() 
-    #print 'the mcv term keys that represent marker types: %s' % mcvMarkerTypeValues
+    #print 'the mcv term keys that represent marker types: %s' \
+	#% mcvMarkerTypeValues
     for r in results:
         aKey = r['_AncestorObject_key']
         dKey = r['_DescendentObject_key']
@@ -244,7 +265,8 @@ def init (mkrKey):
         #print 'dKey: %s' % dKey
         if mcvKeyToParentMkrTypeTermKeyDict.has_key(dKey):
 	    # we've already mapped this descendent to its marker type parent
-	    #print 'dKey %s already in dict mapped to %s' % (dKey, mcvKeyToParentMkrTypeTermKeyDict[dKey])
+	    #print 'dKey %s already in dict mapped to %s' \
+		#% (dKey, mcvKeyToParentMkrTypeTermKeyDict[dKey])
 	    continue
 	# dKey may be a marker type term
 	elif dKey in mcvMarkerTypeValues:
@@ -253,7 +275,8 @@ def init (mkrKey):
         # if the ancestor of this descendent term is a 
         # marker type term load it into the dict
         elif aKey in mcvMarkerTypeValues:
-	    #print 'adding aKey %s as parent rep marker type for dkey %s' % (aKey, dKey)
+	    #print 'adding aKey %s as parent rep marker type for dkey %s' \
+		#% (aKey, dKey)
 	    mcvKeyToParentMkrTypeTermKeyDict[dKey] = aKey
     # map descendent keys from the MCV Closure to their ancestor keys
     # we'll use these to add the 'Indirect' annotations to the Cache
@@ -273,7 +296,7 @@ def init (mkrKey):
     # map marker keys to their marker type
     cmd = ''' select _Marker_Type_key, _Marker_key
 		from MRK_Marker
-		where _Marker_Status_key = 1
+		where _Marker_Status_key in (1,3)
 		and _Organism_key = 1'''
     if mkrKey != 0:
         cmd = cmd + ' and _Marker_key = %s' % mkrKey
@@ -284,6 +307,25 @@ def init (mkrKey):
 	mkrKey = r['_Marker_key']
 	mkrKeyToMkrTypeKeyDict[mkrKey] = mkrTypeKey
 
+    # map mcvTerms to their IDs
+    cmd = '''select a.accid, t.term
+		from VOC_Term t, ACC_Accession a
+		where t._Vocab_key = 79
+		and t._Term_key = a._Object_key
+		and a._MGIType_key = 13
+		and a._LogicalDB_key = 146
+		and preferred = 1'''
+    results = db.sql(cmd, 'auto')
+    for r in results:
+ 	mcvId = r['accid']
+	term = r['term']
+	mcvTermToIdDict[term] = mcvId
+
+    # init the grouping term id list
+    tokens = string.split(groupingTermIds, ',')
+    for t in tokens:
+	groupingIdList.append(string.strip(t))
+
 def writeRecord (mkrKey, mcvKey, directTerms, qualifier):
     global mcvFp
 
@@ -293,15 +335,15 @@ def writeRecord (mkrKey, mcvKey, directTerms, qualifier):
 	print 'term does not exist for mcvKey %s' % mcvKey
 	sys.exit(1)
 
-    mcvFp.write(mgi_utils.prvalue(mkrKey) + COLDL + \
-                mgi_utils.prvalue(mcvKey) + COLDL + \
-                mgi_utils.prvalue(term) + COLDL + \
-		mgi_utils.prvalue(qualifier) + COLDL + \
-		mgi_utils.prvalue(directTerms) + COLDL + \
-                createdBy + COLDL + \
-                createdBy + COLDL + \
-                date + COLDL + \
-                date + LINEDL)
+    mcvFp.write(mgi_utils.prvalue(mkrKey) + COLDELIM + \
+                mgi_utils.prvalue(mcvKey) + COLDELIM + \
+                mgi_utils.prvalue(term) + COLDELIM + \
+		mgi_utils.prvalue(qualifier) + COLDELIM + \
+		mgi_utils.prvalue(directTerms) + COLDELIM + \
+                createdBy + COLDELIM + \
+                createdBy + COLDELIM + \
+                date + COLDELIM + \
+                date + CRT)
 
 def insertCache (mkrKey, mcvKey, directTerms, qualifier):
     #print "%s %s %s %s" % (mkrKey, mcvKey, directTerms, qualifier)
@@ -315,55 +357,70 @@ def insertCache (mkrKey, mcvKey, directTerms, qualifier):
 	mgi_utils.prvalue(mkrKey), \
 	mgi_utils.prvalue(mcvKey), \
 	mgi_utils.prvalue(term), \
-        mgi_utils.prvalue(directTerms), \
 	mgi_utils.prvalue(qualifier), \
+        mgi_utils.prvalue(directTerms), \
 	createdBy, \
 	createdBy, \
 	date, \
 	date), None)
 	
 def processDirectAnnot(annotList, mTypeKey, mkrKey):
-    global mismatchList, markerTypeMismatch
+    global mismatchList, hasMkrTypeMismatch, groupingAnnotList, hasGroupingAnnot
     # See wiki for algorithm:
-    # http://prodwww.informatics.jax.org/wiki/index.php/sw:Marker_Type_and_Sequence_Ontology_Implementation
+    # http://prodwww.informatics.jax.org/wiki/index.php/sw:
+    # Marker_Type_and_Sequence_Ontology_Implementation
     mcvMkrTypeKey = '' # default  if there isn't one
     annotateToList = []
-    
+    #print 'annotList: %s, mTypeKey: %s, mkrKey: %s' % (annotList, mTypeKey, mkrKey)
     if len(annotList) > 0: # there are annotations
-	curatedAnnot = 0   # curated annotations where the term matches the marker type
+	curatedAnnot = 0   # curated annots where the term matches the mkr type
 	for mcvKey in annotList:
 	    annotateKey = mcvKey # default; we may not annot to this term
-	    # get the marker type of this mcv
-	    if mcvKeyToParentMkrTypeTermKeyDict.has_key(mcvKey):
-		# get the the mcv term key representing the mkr type for the 
-		# mcv term, note that it could be the same mcv term
-		mkrTypeMcvKey = mcvKeyToParentMkrTypeTermKeyDict[mcvKey]
-		# now get the marker type value for the MCV term
-		mcvMkrTypeKey = mcvTermKeyToMkrTypeKeyDict[mkrTypeMcvKey]
-		#print 'mcvMkrTypeKey %s' % mcvMkrTypeKey
-		#print 'MGI mTypeKey  %s' % mTypeKey
-	    # if the marker's type and the mcv marker type don't match then
-	    # annotate to the term representing the marker's type so all 
-	    # markers have an mcv annotation
-	    if mcvMkrTypeKey != '' and mcvMkrTypeKey != mTypeKey:
-		# report error; marker types don't match
-		# We've already checked that all marker types have mcv terms, 
-		# so don't need to test that the key is in the dictionary
-		annotateKey = mkrTypeKeyToAssocMCVTermKeyDict[mTypeKey]
-		markerTypeMismatch = 1
-		mismatchList.append('%s%s%s%s%s%s%s%s%s%s' % (mkrKey, TAB, mTypeKey, TAB, mcvKey, TAB, mkrTypeMcvKey, TAB, annotateKey, CRT) )
+
+	    # if the term is a grouping term, report it and annotate
+	    # to term representing the marker's type
+	    term = string.strip(mcvKeyToTermDict[mcvKey])
+	    id = mcvTermToIdDict[term]
+	    if id == "MCV:0000029":
+		#print 'term %s ID %s groupingIdList %s' % (term, id, groupingIdList)
+	    if id in groupingIdList:
+		#print 'id in groupingIdList'
+		annotateKey = mkrTypeKeyToAssocMCVTermKeyDict[mTypeKey]	
+                hasGroupingAnnot = 1
+                groupingAnnotList.append('%s%s%s%s%s%s' % (mkrKey, TAB, id, TAB, term, CRT))
+		# since we are mapping this annotation to the marker type mcv term
+		# we may already have this annotation in the list
+		    
+	    # if no parent mkr type for mcv term annotate to incoming term
 	    else:
-	        annotateToList.append(annotateKey)
-		curatedAnnot = 1
-        if curatedAnnot == 0: # no curated annotations, annot to mcv term for the mkr type
-	    annotateToList.append(mkrTypeKeyToAssocMCVTermKeyDict[mTypeKey])
+		if mcvKeyToParentMkrTypeTermKeyDict.has_key(mcvKey):
+		    # get the the mcv term key representing the mkr type for the
+		    # mcv term, note that it could be the same mcv term
+		    mkrTypeMcvKey = mcvKeyToParentMkrTypeTermKeyDict[mcvKey]
+		    # now get the marker type value for the MCV term
+		    mcvMkrTypeKey = mcvTermKeyToMkrTypeKeyDict[mkrTypeMcvKey]
+		    #print 'mcvMkrTypeKey %s' % mcvMkrTypeKey
+		    #print 'MGI mTypeKey  %s' % mTypeKey
+		# if the marker's type and the mcv marker type don't match then
+		# annotate to the term representing the marker's type so all 
+		# markers have an mcv annotation
+		if mcvMkrTypeKey != '' and mcvMkrTypeKey != mTypeKey:
+		    # report error; marker types don't match
+		    # We've already checked that all mkr types have mcv terms, 
+		    # so don't need to test that the key is in the dictionary
+		    annotateKey = mkrTypeKeyToAssocMCVTermKeyDict[mTypeKey]
+		    hasMkrTypeMismatch = 1
+		    mismatchList.append('%s%s%s%s%s%s%s%s%s%s' % (mkrKey, TAB, mTypeKey, TAB, mcvKey, TAB, mkrTypeMcvKey, TAB, annotateKey, CRT) )
+	    if annotateKey not in annotateToList:
+		annotateToList.append(annotateKey)
     else: # no annotations; find mcv term for the marker's type
-	  # and annotate to that
-	annotateToList.append(mkrTypeKeyToAssocMCVTermKeyDict[mTypeKey])
+          # and annotate to that
+        annotateToList.append(mkrTypeKeyToAssocMCVTermKeyDict[mTypeKey])
+    #print 'annotateToList: %s' % annotateToList
     return annotateToList
 
 def createBCPfile():
-    global mcvFp, rptFp, mismatchList
+    global mcvFp, rptFp, mismatchList, groupingAnnotList
     global mkrKeyToIdDict, mkrTypeKeyToTypeDict
     '''
     #
@@ -374,13 +431,15 @@ def createBCPfile():
     # full path to th bcp file
     mcvBCP = '%s/%s.bcp' % (outDir, table)
 
-    print 'Creating %s ...' % mcvBCP
+    #print 'Creating %s and %s ...' % (mcvBCP, curatorLog)
     mcvFp = open(mcvBCP, 'w')
-    # get all official mouse markers
+    rptFp = open(curatorLog, 'w')
+
+    # get all official and interim mouse markers
     results = db.sql('''select _Marker_key, _Marker_Type_key
 	    from MRK_Marker
 	    where _Organism_key = 1
-	    and _Marker_Status_key = 1''', 'auto')
+	    and _Marker_Status_key in (1, 3)''', 'auto')
     for r in results:
 	mkrKey = r['_Marker_key']
         mTypeKey = r['_Marker_Type_key']
@@ -390,11 +449,14 @@ def createBCPfile():
 	# list of VOC_Annot terms for current marker
 	if mkrKeyToMCVAnnotDict.has_key(mkrKey):
 	    annotList = mkrKeyToMCVAnnotDict[mkrKey]
-	    #print 'DIRECT annotations %s mkrKey %s mTypeKey %s' % (annotList, mkrKey, mTypeKey)
+	    if mkrKey in (23123, 24792, 51332):
+                #print 'mkrKey %s annotList %s' % (mkrKey, annotList)
+	    #print 'DIRECT annotations %s mkrKey %s mTypeKey %s' % \
+		#(annotList, mkrKey, mTypeKey)
 	annotateToList = processDirectAnnot(annotList, mTypeKey, mkrKey)
 
-	# get the terms  for the direct annotations, every annotation in the cache
-	# will have a list of direct terms
+	# get the terms for the direct annotations, every annotation in the
+	# cache will have a list of direct terms
 	directTermList = []
 	for mcvKey in annotateToList:
 	    if mcvKeyToTermDict.has_key(mcvKey):
@@ -422,13 +484,17 @@ def createBCPfile():
 		    writeRecord(mkrKey, ancKey, directTerms, INDIRECT)
     mcvFp.close()
 
-    # create the curator log if there are mismatches
-    if markerTypeMismatch == 1:
+    # create the curator log if there are mismatches and/or there are 
+    # annotations to grouping terms
+    if hasMkrTypeMismatch == 1 or hasGroupingAnnot == 1:
 	createReportLookups()
-	rptFp = open(curatorLog, 'w')
-	rptFp.write(rptHeader1)
-	rptFp.write(rptHeader2)
-	rptFp.write(100*'-' + CRT)
+    rptFp.write(rptHeader1)
+    rptFp.write(rptHeader2)
+    rptFp.write(100*'-' + CRT)
+    if hasMkrTypeMismatch == 1:
+	#rptFp.write(rptHeader1)
+	#rptFp.write(rptHeader2)
+	#rptFp.write(100*'-' + CRT)
 	for m in mismatchList:
 	    l = string.split(m)
 	    mkrKey = int(l[0])
@@ -442,8 +508,24 @@ def createBCPfile():
 	    mcvMkrTypeTerm = mcvKeyToTermDict[mcvMkrTypeTermKey]
 	    loadAssignedTerm = mcvKeyToTermDict[loadAssignedTermKey]
 	    rptFp.write('%s%s%s%s%s%s%s%s%s%s' % (mgiID, TAB, mkrType, TAB, mcvTerm, TAB, mcvMkrTypeTerm, TAB, loadAssignedTerm, CRT))
-	rptFp.write('%sTotal: %s' % (CRT, len(mismatchList) ))
-	rptFp.close()
+    rptFp.write('%sTotal: %s%s%s%s' % (CRT, len(mismatchList), CRT, CRT, CRT ))
+
+    rptFp.write(rptHeader3)
+    rptFp.write(rptHeader4)
+    rptFp.write(100*'-' + CRT)
+    if hasGroupingAnnot == 1:
+	#rptFp.write(rptHeader3)
+        #rptFp.write(rptHeader4)
+        #rptFp.write(100*'-' + CRT)
+	for g in groupingAnnotList:
+	    l = string.split(g)
+	    mkrKey = int(l[0])
+	    gID =  l[1]
+	    gTerm = l[2]
+	    mgiID =  mkrKeyToIdDict[mkrKey]
+	    rptFp.write('%s%s%s%s%s%s' % (mgiID, TAB, gID, TAB, gTerm, CRT))
+    rptFp.write('%sTotal: %s%s' % (CRT, len(groupingAnnotList), CRT ))
+    rptFp.close()
 
 def createReportLookups():
     global mkrKeyToIdDict, mkrTypeKeyToTypeDict
@@ -451,6 +533,7 @@ def createReportLookups():
     results = db.sql('''select a.accid, a._Object_key
 	from MRK_Marker m, ACC_Accession a
 	where m._Marker_Status_key in (1,3)
+	and m._Organism_key = 1
 	and m._Marker_key = a._Object_key
 	and a._MGIType_key = 2
 	and a._LogicalDB_key = 1
@@ -526,6 +609,7 @@ def processByMarker(mkrKey):
 	    if ancKey not in annotMadeList:
 		#print 'insertCache(mkrKey: %s, ancKey:%s, INDIRECT) ancKey is type: %s' % (mkrKey, ancKey, type(ancKey))
 	 	annotMadeList.append(ancKey)
+		#print 'insertCache(mkrKey: %s, ancKey: %s, directTerms: %s, INDIRECT)' % (mkrKey, ancKey, directTerms)
 		insertCache(mkrKey, ancKey, directTerms, INDIRECT)
 #
 # Main Routine

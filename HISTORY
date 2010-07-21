@@ -1,3 +1,10 @@
+TAG: mrkcacheload-4-4-0-2
+DATE: 07/21/2010
+STAFF: sc
+CHANGES: TR6839
+1) mrkmcv.py -  report for annotations to grouping terms
+2) Configuration - added grouping terms
+
 TAG: mrkcacheload-4-4-0-1
 TAG: mrkcacheload-4-3-4-5
 DATE: 07/12/2010
