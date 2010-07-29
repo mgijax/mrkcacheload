@@ -15,14 +15,11 @@ setenv COUNT_TABLE MRK_MCV_Count_Cache
 setenv MARKERKEY 0	# used only when called from EI by marker key
 
 setenv CURATORLOG ${MRKCACHELOGDIR}/`basename $0 .csh`.curator.log
-echo "CURATORLOG: ${CURATORLOG}"
 setenv TIMESTAMP `date '+%Y%m%d.%H%M'`
 
 # archive old curator log file
 if ( -f ${CURATORLOG} ) then
     setenv ARC_FILE "${CURATORLOG}.${TIMESTAMP}"
-    echo "CURATORLOG ${CURATORLOG}"
-    echo "ARC_FILE ${ARC_FILE}"
     mv ${CURATORLOG} ${ARC_FILE}
 endif
 

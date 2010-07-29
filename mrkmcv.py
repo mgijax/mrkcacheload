@@ -205,10 +205,18 @@ def init (mkrKey):
     # parse the marker type from the note
     for mcvKey in notes.keys():
 	note = string.join(notes[mcvKey], '')
+	if not note[0:11] == 'Marker_Type':
+            continue
 	# parse the note
-	tokens = string.split(note, '=')
+	# marker type part of the note is first and delimited
+	# from any remaining note by ';' e.g. Marker_Type=1; remaining note
+	tokens = string.split(note, ';')
+	#print tokens
+	mType = tokens[0]
+	tokens = string.split(mType, '=')
 	# 2nd token is the marker type key
 	markerTypeKey = int(string.strip(tokens[1]))
+	#print markerTypeKey
 	# There is only 1  MCV term per MGI Mkr type?
 	mkrTypeKeyToAssocMCVTermKeyDict[markerTypeKey]= mcvKey
 	mcvTermKeyToMkrTypeKeyDict[mcvKey] = markerTypeKey
