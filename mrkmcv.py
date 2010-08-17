@@ -37,7 +37,7 @@ except:
     COLDELIM = '\t'
     outDir = './'
     curatorLog = './mrkmcv.log'
-    groupingTermIds = None
+    groupingTermIds = "MCV:0000029, MCV:0000001"
     table = 'MRK_MCV_Cache'
 
 # qualifier column values
@@ -338,7 +338,7 @@ def init (mkrKey):
 	tokens = string.split(groupingTermIds, ',')
 	for t in tokens:
 	    groupingIdList.append(string.strip(t))
-
+	    
 def writeRecord (mkrKey, mcvKey, directTerms, qualifier):
     global mcvFp
 
@@ -365,7 +365,6 @@ def insertCache (mkrKey, mcvKey, directTerms, qualifier):
     else:
         print 'term does not exist for mcvKey %s' % mcvKey
 	sys.exit(1)
-# insert into MRK_MCV_Cache values(%s,%s,"%s","%s",%s,%s,%s,%s)
     db.sql(insertSQL % ( 
 	mgi_utils.prvalue(mkrKey), \
 	mgi_utils.prvalue(mcvKey), \
@@ -394,6 +393,7 @@ def processDirectAnnot(annotList, mTypeKey, mkrKey):
 	    # to term representing the marker's type
 	    term = string.strip(mcvKeyToTermDict[mcvKey])
 	    id = mcvTermToIdDict[term]
+	    #print 'processDirect id: %s groupingIdList: %s' % (id, groupingIdList)
 	    if id in groupingIdList:
 		#print 'id in groupingIdList'
 		annotateKey = mkrTypeKeyToAssocMCVTermKeyDict[mTypeKey]	
@@ -592,8 +592,8 @@ def processByMarker(mkrKey):
     for r in results:
 	annotList.append(r['_Term_key'])
 
-    # get the set of direct annotations which includes inferred from marker type where
-    # applicable
+    # get the set of direct annotations which includes inferred from marker 
+    # type where applicable
     annotateToList = processDirectAnnot(annotList, mTypeKey, mkrKey)
     #print 'annotateToList: %s' % annotateToList
 
@@ -607,14 +607,18 @@ def processByMarker(mkrKey):
 	else:
 	    sys.exit(1)
 	    print 'term does not exist for mcvKey %s' % mcvKey
-
+    #print 'directTermList: %s' % directTermList
     # annotations already made so we don't create dups
     annotMadeList = []
 
     directTerms = string.join(directTermList, ',')
     for a in annotateToList:
+        #print 'insertCache(mkrKey: %s, annotTo:%s, directTerms: %s DIRECT)' % (mkrKey, a, directTerms)
 	insertCache(mkrKey, a, directTerms, DIRECT)
+	annotMadeList.append(a)
 	# Now add indirect associations from the closure
+	if not descKeyToAncKeyDict.has_key(a):
+	    continue
 	ancList = descKeyToAncKeyDict[a]
 	for ancKey in ancList:
 	    if ancKey not in annotMadeList:

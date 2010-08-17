@@ -1,3 +1,10 @@
+TAG: mrkcacheload-4-4-0-5
+DATE: 08/17/2010
+STAFF: sc
+CHANGES: mrkmcv.py - bug fix when calling from EI
+1) need to hard code grouping term ids in this case
+2) need to not create duplicate annotations
+
 TAG: mrkcacheload-4-4-0-4
 DATE: 07/29/2010
 STAFF: sc
