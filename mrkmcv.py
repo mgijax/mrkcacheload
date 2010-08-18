@@ -31,13 +31,11 @@ try:
     COLDELIM = os.environ['COLDELIM']
     outDir = os.environ['MRKCACHEBCPDIR']
     curatorLog = os.environ['CURATORLOG']
-    groupingTermIds = os.environ['GROUPING_TERMIDS']
     table = os.environ['TABLE']
 except:
     COLDELIM = '\t'
     outDir = './'
     curatorLog = './mrkmcv.log'
-    groupingTermIds = "MCV:0000029, MCV:0000001"
     table = 'MRK_MCV_Cache'
 
 # qualifier column values
@@ -51,6 +49,10 @@ CRT='\n'
 # date and created by column values
 date = mgi_utils.date("%m/%d/%Y")
 createdBy = '1000'
+
+# report annotations to grouping term ids then
+# annotate to the marker type feature instead
+groupingTermIds = "MCV:0000029, MCV:0000001"
 
 # file descriptor for the bcp file
 mcvFp = None
