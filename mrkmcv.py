@@ -60,7 +60,7 @@ mcvFp = None
 # file descriptor for marker conflict curator log
 rptFp = None
 
-# Mismatch header for rptFp
+# Marker type mismatch header for rptFp
 rptHeader1 = 'Markers  with conflict between the Marker Type and the MCV Marker Type%s%s' % (CRT, CRT)
 rptHeader2 = 'MGI ID%sMarker Type%sMCV Term%sMCV Marker Type Term %s Web Display MCV Term%s' % \
     (TAB, TAB, TAB, TAB, CRT)
@@ -83,8 +83,19 @@ hasGroupingAnnot = 0
 # list of grouping annotations to report
 groupingAnnotList = []
 
-# list of grouping Ids
+# list of grouping Ids from configuration
 groupingIdList = []
+
+# Markers w/multi MCV annotations header for rptFp
+rptHeader5 = 'Markers with Multiple MCV Annotations%s%s' % (CRT, CRT)
+rptHeader6 = 'MGI ID%s MCV IDs%s MCV Term%s' % (TAB, TAB, CRT) 
+
+# true if there is at least one marker annotated
+# to  multiple MCV terms
+hasMultiMCVAnnot = 0
+
+# list of markers with multiple MCV annotations to report
+multiMCVList = []
 
 # delete and insert statements
 deleteSQL='delete from MRK_MCV_Cache where _Marker_key = %s'
@@ -380,6 +391,8 @@ def insertCache (mkrKey, mcvKey, directTerms, qualifier):
 	
 def processDirectAnnot(annotList, mTypeKey, mkrKey):
     global mismatchList, hasMkrTypeMismatch, groupingAnnotList, hasGroupingAnnot
+    global multiMCVList, hasMultiMCVAnnot
+
     # See wiki for algorithm:
     # http://prodwww.informatics.jax.org/wiki/index.php/sw:
     # Marker_Type_and_Sequence_Ontology_Implementation
@@ -390,19 +403,22 @@ def processDirectAnnot(annotList, mTypeKey, mkrKey):
 	curatedAnnot = 0   # curated annots where the term matches the mkr type
 	for mcvKey in annotList:
 	    annotateKey = mcvKey # default; we may not annot to this term
-
 	    # if the term is a grouping term, report it and annotate
 	    # to term representing the marker's type
 	    term = string.strip(mcvKeyToTermDict[mcvKey])
 	    id = mcvTermToIdDict[term]
 	    #print 'processDirect id: %s groupingIdList: %s' % (id, groupingIdList)
+	    # if the marker has multiple mcv annotations, report it
+            if len(annotList) > 1:
+		hasMultiMCVAnnot = 1
+                multiMCVList.append('%s%s%s%s%s%s' % (mkrKey, TAB, id, TAB, term, CRT))
 	    if id in groupingIdList:
 		#print 'id in groupingIdList'
 		annotateKey = mkrTypeKeyToAssocMCVTermKeyDict[mTypeKey]	
                 hasGroupingAnnot = 1
                 groupingAnnotList.append('%s%s%s%s%s%s' % (mkrKey, TAB, id, TAB, term, CRT))
-		# since we are mapping this annotation to the marker type mcv term
-		# we may already have this annotation in the list
+		# since we are mapping this annotation to the marker type mcv 
+		# term we may already have this annotation in the list
 		    
 	    # if no parent mkr type for mcv term annotate to incoming term
 	    else:
@@ -462,10 +478,6 @@ def createBCPfile():
 	# list of VOC_Annot terms for current marker
 	if mkrKeyToMCVAnnotDict.has_key(mkrKey):
 	    annotList = mkrKeyToMCVAnnotDict[mkrKey]
-	    #if mkrKey in (23123, 24792, 51332):
-                #print 'mkrKey %s annotList %s' % (mkrKey, annotList)
-	    #print 'DIRECT annotations %s mkrKey %s mTypeKey %s' % \
-		#(annotList, mkrKey, mTypeKey)
 	annotateToList = processDirectAnnot(annotList, mTypeKey, mkrKey)
 
 	# get the terms for the direct annotations, every annotation in the
@@ -505,11 +517,8 @@ def createBCPfile():
     rptFp.write(rptHeader2)
     rptFp.write(100*'-' + CRT)
     if hasMkrTypeMismatch == 1:
-	#rptFp.write(rptHeader1)
-	#rptFp.write(rptHeader2)
-	#rptFp.write(100*'-' + CRT)
 	for m in mismatchList:
-	    l = string.split(m)
+	    l = string.split(m, TAB)
 	    mkrKey = int(l[0])
 	    mkrTypeKey = int(l[1])
 	    mcvTermKey = int(l[2])
@@ -527,17 +536,30 @@ def createBCPfile():
     rptFp.write(rptHeader4)
     rptFp.write(100*'-' + CRT)
     if hasGroupingAnnot == 1:
-	#rptFp.write(rptHeader3)
-        #rptFp.write(rptHeader4)
-        #rptFp.write(100*'-' + CRT)
 	for g in groupingAnnotList:
-	    l = string.split(g)
+	    l = string.split(g, TAB)
 	    mkrKey = int(l[0])
 	    gID =  l[1]
 	    gTerm = l[2]
 	    mgiID =  mkrKeyToIdDict[mkrKey]
 	    rptFp.write('%s%s%s%s%s%s' % (mgiID, TAB, gID, TAB, gTerm, CRT))
-    rptFp.write('%sTotal: %s%s' % (CRT, len(groupingAnnotList), CRT ))
+    
+    rptFp.write('%sTotal: %s%s%s%s' % \
+	(CRT, len(groupingAnnotList), CRT, CRT, CRT ))
+
+    rptFp.write(rptHeader5)
+    rptFp.write(rptHeader6)
+    rptFp.write(100*'-' + CRT)
+    if hasMultiMCVAnnot == 1:
+	for m in multiMCVList:
+	    l = string.split(m, TAB)
+	    mkrKey = int(l[0])
+            mID =  l[1]
+            mTerm = l[2]
+            mgiID =  mkrKeyToIdDict[mkrKey]
+            rptFp.write('%s%s%s%s%s%s' % (mgiID, TAB, mID, TAB, mTerm, CRT))
+    rptFp.write('%sTotal: %s%s' % \
+        (CRT, len(multiMCVList), CRT ))
     rptFp.close()
 
 def createReportLookups():
