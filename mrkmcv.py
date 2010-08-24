@@ -172,17 +172,8 @@ def init (mkrKey):
     global mcvTermToIdDict
 
     #
-    # parse the MCV Note and load 
-    # mcvMkrTypeDict and mcvKeyToParentMkrTypeTermKeyDict
+    # Purpose: load various lookups 
     #
-    # we store the association of a marker type to a MCV
-    # term in the term Note. Only MCV terms which correspond to 
-    # marker types have these notes
-    # note looks like:
-    # Marker_Type=N
-    #
-    # _Vocab_key = 79 = Marker Category Vocab
-    # _NoteType_key = 1001 = Private Vocab Term Comment'
    
     # Get the MCV vocab terms and their notes from the database
     # Notes tell us the term's MGI marker type if term maps directly to a 
@@ -303,6 +294,7 @@ def init (mkrKey):
 	    #print 'adding aKey %s as parent rep marker type for dkey %s' \
 		#% (aKey, dKey)
 	    mcvKeyToParentMkrTypeTermKeyDict[dKey] = aKey
+
     # map descendent keys from the MCV Closure to their ancestor keys
     # we'll use these to add the 'Indirect' annotations to the Cache
     results = db.sql('''select distinct _AncestorObject_key, _DescendentObject_key
@@ -353,8 +345,14 @@ def init (mkrKey):
 	    groupingIdList.append(string.strip(t))
 	    
 def writeRecord (mkrKey, mcvKey, directTerms, qualifier):
+    # Purpose: write a record the the bcp file
+    # Returns: nothing
+    # Assumes: nothing
+    # Effects: writes to a file in the file system 
+    # Throws: nothing
     global mcvFp
 
+    # get the term corresponding the mcvKey
     if  mcvKeyToTermDict.has_key(mcvKey):
 	term = mcvKeyToTermDict[mcvKey]
     else:
@@ -372,7 +370,14 @@ def writeRecord (mkrKey, mcvKey, directTerms, qualifier):
                 date + CRT)
 
 def insertCache (mkrKey, mcvKey, directTerms, qualifier):
+    # Purpose: insert a record in the cache
+    # Returns: nothing
+    # Assumes: nothing
+    # Effects: creates a record in the database
+    # Throws: nothing
+
     #print "%s %s %s %s" % (mkrKey, mcvKey, directTerms, qualifier)
+    # get the term corresponding the mcvKey
     if  mcvKeyToTermDict.has_key(mcvKey):
         term = mcvKeyToTermDict[mcvKey]
     else:
@@ -393,9 +398,15 @@ def processDirectAnnot(annotList, mTypeKey, mkrKey):
     global mismatchList, hasMkrTypeMismatch, groupingAnnotList, hasGroupingAnnot
     global multiMCVList, hasMultiMCVAnnot
 
+    # Purpose: determine the set of direct annotations for this marker
     # See wiki for algorithm:
     # http://prodwww.informatics.jax.org/wiki/index.php/sw:
     # Marker_Type_and_Sequence_Ontology_Implementation
+    # Returns: The set of annotations for this marker
+    # Assumes: nothing
+    # Effects: nothing
+    # Throws: nothing
+
     mcvMkrTypeKey = '' # default  if there isn't one
     annotateToList = []
     #print 'annotList: %s, mTypeKey: %s, mkrKey: %s' % (annotList, mTypeKey, mkrKey)
@@ -452,10 +463,13 @@ def createBCPfile():
     global mcvFp, rptFp, mismatchList, groupingAnnotList
     global mkrKeyToIdDict, mkrTypeKeyToTypeDict
     '''
-    #
-    # MRK_MCV_Cache is a cache table of marker category terms
-    # annotated to markers via marker type or sequence ontology terms
-    #
+    # Purpose: create bcp file for MRK_MCV_Cache which
+    # is a cache table of marker category terms
+    # annotated to markers 
+    # Returns: nothing
+    # Assumes: nothing
+    # Effects: writes to a bcp file
+    # Throws: nothing
     '''
     # full path to th bcp file
     mcvBCP = '%s/%s.bcp' % (outDir, table)
@@ -563,6 +577,13 @@ def createBCPfile():
     rptFp.close()
 
 def createReportLookups():
+    # Purpose: Create lookups for generating reports, only called when creating bcp
+    #    not called when updating cache by marker
+    # Returns: nothing
+    # Assumes: nothing
+    # Effects: queries a database
+    # Throws: nothing
+
     global mkrKeyToIdDict, mkrTypeKeyToTypeDict
 
     results = db.sql('''select a.accid, a._Object_key
@@ -587,6 +608,12 @@ def createReportLookups():
 	mkrTypeKeyToTypeDict[mkrTypeKey] = mkrType
 
 def processByMarker(mkrKey):
+    # Purpose: Update MCV annotations for a given markeR
+    # Returns: nothing
+    # Assumes: nothing
+    # Effects: queries a database, inserts into a database
+    # Throws: nothing
+
     # get the marker type; needed to determine the MCV annotation
     mTypeKey = mkrKeyToMkrTypeKeyDict[mkrKey]
 
