@@ -734,7 +734,7 @@ def processMouse(processType):
 		    printQualifier = '"' + r['qualifier'] + '"'
 
 		db.sql(insertSQL % (
-	            str(nextMaxKey) + COLDL +  \
+	            str(nextMaxKey), \
 	            mgi_utils.prvalue(mouseOrganismKey), \
 	            mgi_utils.prvalue(r['_Marker_key']), \
 	            mgi_utils.prvalue(r['_Marker_Type_key']), \

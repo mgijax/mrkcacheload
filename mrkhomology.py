@@ -37,7 +37,7 @@ try:
 except:
     table = 'MRK_Homology_Cache'
 
-insertSQL = 'insert into MRK_Homology_Cache values (%s,%s,%s,%s,%s)'
+insertSQL = 'insert into MRK_Homology_Cache values (%s,%s,%s,%s,%s,%s)'
 
 def showUsage():
 	'''
