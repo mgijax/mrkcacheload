@@ -116,6 +116,17 @@ def createBCPfile(markerKey):
             #else:
 	#	print key, value
 
+        #
+        # next available primary key
+        #
+    
+        results = db.sql('select cacheKey = max(_Cache_key) from %s' % (table), 'auto')
+        for r in results:
+	    nextMaxKey = r['cacheKey']
+
+        if nextMaxKey == None:
+            nextMaxKey = 1
+
 	results = db.sql('select * from #markers order by _Marker_key', 'auto')
 	for r in results:
 
@@ -130,7 +141,8 @@ def createBCPfile(markerKey):
 
 	    if coord.has_key(key):
 		for c in coord[key]:
-	            locBCP.write(mgi_utils.prvalue(r['_Marker_key']) + COLDL + \
+	            locBCP.write(str(nextMaxKey) + COLDL +
+				mgi_utils.prvalue(r['_Marker_key']) + COLDL + \
 			        mgi_utils.prvalue(r['_Marker_Type_key']) + COLDL + \
 			        chr + COLDL + \
 			        mgi_utils.prvalue(r['sequenceNum']) + COLDL + \
@@ -147,7 +159,8 @@ def createBCPfile(markerKey):
 			        cdate + COLDL + \
 			        cdate + LINEDL)
 	    else:
-	        locBCP.write(mgi_utils.prvalue(r['_Marker_key']) + COLDL + \
+	        locBCP.write(str(nextMaxKey) + COLDL + \
+			     mgi_utils.prvalue(r['_Marker_key']) + COLDL + \
 			     mgi_utils.prvalue(r['_Marker_Type_key']) + COLDL + \
 			     chr + COLDL + \
 			     mgi_utils.prvalue(r['sequenceNum']) + COLDL + \
@@ -164,6 +177,7 @@ def createBCPfile(markerKey):
 			     cdate + COLDL + \
 			     cdate + LINEDL)
 	    locBCP.flush()
+	    nextMaxKey = nextMaxKey + 1
 
 	locBCP.close()
 
