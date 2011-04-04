@@ -39,8 +39,6 @@ except:
 
 insertSQL = 'insert into MRK_Homology_Cache values (%s,%s,%s,%s,%s)'
 
-nextMaxKey = 0		# max(_Cache_key)
-
 def showUsage():
 	'''
 	#
@@ -67,11 +65,10 @@ def processDeleteReload():
 	# Throws:
 	#
 
-	global nextMaxKey
-
 	print '%s' % mgi_utils.date()
 
 	cacheBCP = open(outDir + '/%s.bcp' % (table), 'w')
+	nextMaxKey = 0
 
 	results = db.sql('select h._Class_key, h._Homology_key, h._Refs_key, hm._Marker_key, m._Organism_key ' + \
 		'from HMD_Homology h, HMD_Homology_Marker hm, MRK_Marker m ' + \
@@ -104,13 +101,22 @@ def processByClass(classKey):
 	# Throws:
 	#
 
-	global nextMaxKey
-
 	#
 	# delete existing cache records for this Class
 	#
 
 	db.sql('delete from %s where _Class_key = %s' % (table, classKey), None)
+
+        #
+        # next available primary key
+        #
+    
+        results = db.sql('select cacheKey = max(_Cache_key) from %s' % (table), 'auto')
+        for r in results:
+            nextMaxKey = r['cacheKey']
+
+        if nextMaxKey == None:
+            nextMaxKey = 0
 
 	#
 	# select all records of specified Class
@@ -177,18 +183,6 @@ db.useOneConnection(1)
 db.set_sqlLogFunction(db.sqlLogAll)
 
 scriptName = os.path.basename(sys.argv[0])
-
-#
-# next available primary key
-#
-    
-results = db.sql('select cacheKey = max(_Cache_key) from %s' % (table), 'auto')
-for r in results:
-    nextMaxKey = r['cacheKey']
-
-if nextMaxKey == None:
-    nextMaxKey = 0
-
 
 # call functions based on the way the program is invoked
 

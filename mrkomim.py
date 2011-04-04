@@ -1198,6 +1198,7 @@ if nextMaxKey == None:
 # call functions based on the way the program is invoked
 
 if scriptName == 'mrkomim.py':
+    nextMaxKey = 0
     processDeleteReload()
 
 # all of these invocations will only affect a certain subset of data

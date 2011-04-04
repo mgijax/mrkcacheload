@@ -119,16 +119,7 @@ def createBCPfile(markerKey):
             #else:
 	#	print key, value
 
-        #
-        # next available primary key
-        #
-    
-        results = db.sql('select cacheKey = max(_Cache_key) from %s' % (table), 'auto')
-        for r in results:
-	    nextMaxKey = r['cacheKey']
-
-        if nextMaxKey == None:
-            nextMaxKey = 0
+	nextMaxKey = 0
 
 	results = db.sql('select * from #markers order by _Marker_key', 'auto')
 	for r in results:
