@@ -17,6 +17,9 @@
 #
 # History
 #
+# 04/04/2011	lec
+#	- TR10658;add _Cache_key
+#
 # 07/01/2010	lec
 #	- TR10207/multiple coordinates for microRNA markers
 #
@@ -125,7 +128,7 @@ def createBCPfile(markerKey):
 	    nextMaxKey = r['cacheKey']
 
         if nextMaxKey == None:
-            nextMaxKey = 1
+            nextMaxKey = 0
 
 	results = db.sql('select * from #markers order by _Marker_key', 'auto')
 	for r in results:
@@ -138,6 +141,8 @@ def createBCPfile(markerKey):
 		print 'Marker has UN chromosome and a coordinate:  ' + symbol
 
 	    # print one record out per coordinate
+
+	    nextMaxKey = nextMaxKey + 1
 
 	    if coord.has_key(key):
 		for c in coord[key]:
@@ -177,7 +182,6 @@ def createBCPfile(markerKey):
 			     cdate + COLDL + \
 			     cdate + LINEDL)
 	    locBCP.flush()
-	    nextMaxKey = nextMaxKey + 1
 
 	locBCP.close()
 

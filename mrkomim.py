@@ -39,6 +39,9 @@
 #
 # History
 #
+# 04/04/2011	lec
+#	- TR10658;add _Cache_key
+#
 # 06/30/2006	lec
 #	- TR 7728; add filter for Cre alleles to Disease/Mouse Models/Transgene section
 #
@@ -93,6 +96,8 @@ genotypeAlleleMouseModels = {}	# mouse genotype key + termID: display category 3
 gene = 1
 notQualifier = []
 
+nextMaxKey = 0		# max(_Cache_key)
+
 crepattern = re.compile(".*\(.*[Cc]re.*\).*")
 
 #
@@ -120,7 +125,7 @@ genotypeFootnote1 = '%s is associated with this disease in humans.'
 genotypeFootnote2 = '%s are associated with this disease in humans.'
 
 deleteSQL = 'delete from MRK_OMIM_Cache where _Genotype_key = %s'
-insertSQL = 'insert into MRK_OMIM_Cache values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,"%s","%s","%s","%s","%s","%s","%s","%s",%s,"%s",%s,%s,"%s","%s")'
+insertSQL = 'insert into MRK_OMIM_Cache values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,"%s","%s","%s","%s","%s","%s","%s","%s",%s,"%s",%s,%s,"%s","%s")'
 
 def showUsage():
 	'''
@@ -588,6 +593,8 @@ def processMouse(processType):
 	# Throws:
 	#
 
+	global nextMaxKey
+
 	#
 	# process each individual marker/genotype record
 	#
@@ -603,6 +610,8 @@ def processMouse(processType):
 
 	    alleleDetailMouseModels, header, headerFootnote, genotypeFootnote = deriveAlleleDetailMouseModels(r)
 	    diseaseAssociatedGenes = deriveDiseaseAssociatedGenes(r)
+
+	    nextMaxKey = nextMaxKey + 1
 
 	    # If non-gene (transgenes, other mutations)...
 	    # then Cre alleles should not appear in the Mouse Model/Transgene section on the Disease page
@@ -649,6 +658,7 @@ def processMouse(processType):
 	    if processType == 'bcp':
 
                 omimBCP.write(
+	            str(nextMaxKey) + COLDL +  \
 	            mgi_utils.prvalue(mouseOrganismKey) + COLDL +  \
 	            mgi_utils.prvalue(r['_Marker_key']) + COLDL +  \
 	            mgi_utils.prvalue(r['_Marker_Type_key']) + COLDL +  \
@@ -724,6 +734,7 @@ def processMouse(processType):
 		    printQualifier = '"' + r['qualifier'] + '"'
 
 		db.sql(insertSQL % (
+	            str(nextMaxKey) + COLDL +  \
 	            mgi_utils.prvalue(mouseOrganismKey), \
 	            mgi_utils.prvalue(r['_Marker_key']), \
 	            mgi_utils.prvalue(r['_Marker_Type_key']), \
@@ -885,6 +896,8 @@ def processHuman():
 	# Throws:
 	#
 
+	global nextMaxKey
+
 	results = db.sql('select * from #omimhuman3 order by markerSymbol, term', 'auto')
 
 	for r in results:
@@ -893,6 +906,8 @@ def processHuman():
 	    alleleDetailMouseModels = -1
 	    diseaseAssociatedGenes = deriveDiseaseAssociatedGenes(r)
 	    diseaseMouseModels = -1
+
+	    nextMaxKey = nextMaxKey + 1
 
 	    if mouseOrtholog.has_key(marker):
 		h = mouseOrtholog[marker]
@@ -910,6 +925,7 @@ def processHuman():
 #		continue
 
 	    omimBCP.write(
+		str(nextMaxKey) + COLDL +  \
 		mgi_utils.prvalue(humanOrganismKey) + COLDL +  \
 		mgi_utils.prvalue(marker) + COLDL +  \
 	        mgi_utils.prvalue(r['_Marker_Type_key']) + COLDL +  \
@@ -1160,9 +1176,24 @@ db.set_sqlLogFunction(db.sqlLogAll)
 
 scriptName = os.path.basename(sys.argv[0])
 
+#
+# term key for 'not' qualifier
+#
+
 results = db.sql('select _Term_key from VOC_Term where _Vocab_key = 53 and term like "NOT%"', 'auto')
 for r in results:
     notQualifier.append(r['_Term_key'])
+
+#
+# next available primary key: max(_Cache_key)
+#
+    
+results = db.sql('select cacheKey = max(_Cache_key) from %s' % (table), 'auto')
+for r in results:
+    nextMaxKey = r['cacheKey']
+
+if nextMaxKey == None:
+    nextMaxKey = 0
 
 # call functions based on the way the program is invoked
 

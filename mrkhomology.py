@@ -17,6 +17,9 @@
 #
 # History
 #
+# 04/04/2011	lec
+#	- TR10658/add _Cache_key
+#
 '''
 
 import sys
@@ -35,6 +38,8 @@ except:
     table = 'MRK_Homology_Cache'
 
 insertSQL = 'insert into MRK_Homology_Cache values (%s,%s,%s,%s,%s)'
+
+nextMaxKey = 0		# max(_Cache_key)
 
 def showUsage():
 	'''
@@ -62,6 +67,8 @@ def processDeleteReload():
 	# Throws:
 	#
 
+	global nextMaxKey
+
 	print '%s' % mgi_utils.date()
 
 	cacheBCP = open(outDir + '/%s.bcp' % (table), 'w')
@@ -73,7 +80,10 @@ def processDeleteReload():
 
 	for r in results:
 
+	    nextMaxKey = nextMaxKey + 1
+
 	    cacheBCP.write(
+		     str(nextMaxKey) + COLDL + \
 		     mgi_utils.prvalue(r['_Class_key']) + COLDL + \
 		     mgi_utils.prvalue(r['_Homology_key']) + COLDL + \
 		     mgi_utils.prvalue(r['_Refs_key']) + COLDL + \
@@ -94,6 +104,8 @@ def processByClass(classKey):
 	# Throws:
 	#
 
+	global nextMaxKey
+
 	#
 	# delete existing cache records for this Class
 	#
@@ -111,7 +123,11 @@ def processByClass(classKey):
 		'and hm._Marker_key = m._Marker_key ', 'auto')
 
 	for r in results:
+
+	    nextMaxKey = nextMaxKey + 1
+
 	    db.sql(insertSQL % (
+		str(nextMaxKey), \
                 mgi_utils.prvalue(r['_Class_key']), \
                 mgi_utils.prvalue(r['_Homology_key']), \
                 mgi_utils.prvalue(r['_Refs_key']), \
@@ -161,6 +177,18 @@ db.useOneConnection(1)
 db.set_sqlLogFunction(db.sqlLogAll)
 
 scriptName = os.path.basename(sys.argv[0])
+
+#
+# next available primary key
+#
+    
+results = db.sql('select cacheKey = max(_Cache_key) from %s' % (table), 'auto')
+for r in results:
+    nextMaxKey = r['cacheKey']
+
+if nextMaxKey == None:
+    nextMaxKey = 0
+
 
 # call functions based on the way the program is invoked
 
