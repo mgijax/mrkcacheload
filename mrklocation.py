@@ -17,6 +17,10 @@
 #
 # History
 #
+# 09/01/2011	lec
+#	- TR10805;added _Organism_key in (1,2)
+#	- human data added to the cache
+#
 # 04/04/2011	lec
 #	- TR10658;add _Cache_key
 #
@@ -51,19 +55,22 @@ def createBCPfile(markerKey):
 	# MRK_Location_Cache is a cache table of marker location data
 	#
 	'''
+#		where m._Organism_key = 1
+#		and m._Marker_key = o._Marker_key
 
 	print 'Creating %s.bcp...' % (table)
 
 	locBCP = open(outDir + '/%s.bcp' % (table), 'w')
 
-	db.sql('select m._Marker_key, m._Marker_Type_key, m.symbol, m.chromosome, m.cytogeneticOffset, o.offset, c.sequenceNum ' + \
-		'into #markers ' + \
-		'from MRK_Marker m, MRK_Offset o, MRK_Chromosome c ' + \
-		'where m._Organism_key = 1 ' + \
-		'and m._Marker_key = o._Marker_key ' + \
-		'and o.source = 0 ' + \
-		'and m._Organism_key = c._Organism_key ' + \
-		'and m.chromosome = c.chromosome ', None)
+	db.sql('''select m._Marker_key, m._Marker_Type_key, m._Organism_key, m.symbol, 
+		  m.chromosome, m.cytogeneticOffset, o.offset, c.sequenceNum
+		into #markers
+		from MRK_Marker m, MRK_Offset o, MRK_Chromosome c
+		where m._Organism_key in (1,2)
+		and m._Marker_key *= o._Marker_key
+		and o.source = 0
+		and m._Organism_key = c._Organism_key
+		and m.chromosome = c.chromosome ''', None)
 
 	db.sql('create index idx1 on #markers(_Marker_key)', None)
 
@@ -140,6 +147,7 @@ def createBCPfile(markerKey):
 	            locBCP.write(str(nextMaxKey) + COLDL +
 				mgi_utils.prvalue(r['_Marker_key']) + COLDL + \
 			        mgi_utils.prvalue(r['_Marker_Type_key']) + COLDL + \
+			        mgi_utils.prvalue(r['_Organism_key']) + COLDL + \
 			        chr + COLDL + \
 			        mgi_utils.prvalue(r['sequenceNum']) + COLDL + \
 			        mgi_utils.prvalue(r['cytogeneticOffset']) + COLDL + \
@@ -158,6 +166,7 @@ def createBCPfile(markerKey):
 	        locBCP.write(str(nextMaxKey) + COLDL + \
 			     mgi_utils.prvalue(r['_Marker_key']) + COLDL + \
 			     mgi_utils.prvalue(r['_Marker_Type_key']) + COLDL + \
+			     mgi_utils.prvalue(r['_Organism_key']) + COLDL + \
 			     chr + COLDL + \
 			     mgi_utils.prvalue(r['sequenceNum']) + COLDL + \
 			     mgi_utils.prvalue(r['cytogeneticOffset']) + COLDL + \
