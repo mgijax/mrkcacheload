@@ -91,7 +91,7 @@ def createBCPfile(markerKey):
 	#
 
 	results = db.sql('select m._Marker_key, f.startCoordinate, f.endCoordinate, f.strand, ' + \
-		'mapUnits = u.term, provider = c.name, cc.version ' + \
+		'mapUnits = u.term, provider = c.abbreviation, cc.version ' + \
 		'from #markers m, MAP_Coord_Collection c, MAP_Coordinate cc, MAP_Coord_Feature f, VOC_Term u ' + \
 		'where m._Marker_key = f._Object_key ' + \
 		'and f._MGIType_key = 2 ' + \
