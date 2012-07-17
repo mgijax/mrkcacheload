@@ -73,7 +73,6 @@ def createBCPfile(markerKey):
 		and m.chromosome = c.chromosome ''', None)
 
 	db.sql('create index idx1 on #markers(_Marker_key)', None)
-
 	#
 	# the coordinate lookup should contain only one marker coordinate.
 	#
@@ -91,7 +90,7 @@ def createBCPfile(markerKey):
 	#
 
 	results = db.sql('select m._Marker_key, f.startCoordinate, f.endCoordinate, f.strand, ' + \
-		'mapUnits = u.term, provider = c.abbreviation, cc.version ' + \
+		'u.term as mapUnits, c.abbreviation as provider, cc.version ' + \
 		'from #markers m, MAP_Coord_Collection c, MAP_Coordinate cc, MAP_Coord_Feature f, VOC_Term u ' + \
 		'where m._Marker_key = f._Object_key ' + \
 		'and f._MGIType_key = 2 ' + \
@@ -110,11 +109,19 @@ def createBCPfile(markerKey):
 	# coordinates for Markers w/ Sequence coordinates
 	#
 
-	results = db.sql('select m._Marker_key, c.startCoordinate, c.endCoordinate, c.strand, c.mapUnits, c.provider, c.version ' + \
-		'from #markers m, SEQ_Marker_Cache mc, SEQ_Coord_Cache c ' + \
-		'where m._Marker_key = mc._Marker_key ' + \
-		'and mc._Qualifier_key = 615419 ' + \
-		'and mc._Sequence_key = c._Sequence_key', 'auto')
+	results = db.sql('''select m.symbol, m._Marker_key, c.startCoordinate, 
+			c.endCoordinate, c.strand, c.mapUnits, mcc.abbreviation as provider, c.version
+                from #markers m, SEQ_Marker_Cache mc, SEQ_Coord_Cache c, 
+		    MAP_Coord_Feature mcf, MAP_Coordinate map, MAP_Coord_Collection mcc, 
+		    MRK_Marker mm
+                where m._Marker_key = mc._Marker_key
+                and mc._Qualifier_key = 615419
+                and mc._Sequence_key = c._Sequence_key
+                and c._Sequence_key = mcf._Object_key
+                and mcf._MGIType_key = 19
+                and mcf._Map_key = map._Map_key
+                and map._Collection_key = mcc._Collection_key
+                and m._Marker_key = mm._Marker_key''', 'auto')
 	for r in results:
 	    key = r['_Marker_key']
 	    value = r
