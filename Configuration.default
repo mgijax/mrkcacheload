@@ -14,7 +14,7 @@ endif
 source ${MGICONFIG}/master.config.csh
 
 # directory
-setenv MRKCACHEDIR		/data/loads/mgi/mrkcacheload
+setenv MRKCACHEDIR		${DATALOADSOUTPUT}/mgi/mrkcacheload
 
 # input directory
 setenv MRKCACHEINDIR		${MRKCACHEDIR}/input
