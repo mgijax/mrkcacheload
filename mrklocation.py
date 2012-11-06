@@ -17,6 +17,9 @@
 #
 # History
 #
+# 08/03/2012	jsb
+#	- updated to populate new genomicChromosome field
+#
 # 09/01/2011	lec
 #	- TR10805;added _Organism_key in (1,2)
 #	- human data added to the cache
@@ -62,6 +65,10 @@ def createBCPfile(markerKey):
 
 	locBCP = open(outDir + '/%s.bcp' % (table), 'w')
 
+	# the chromosome retrieved from the marker table is the genetic
+	# chromosome, and goes in the traditional 'chromosome' field in the
+	# cache table
+
 	db.sql('''select m._Marker_key, m._Marker_Type_key, m._Organism_key, m.symbol, 
 		  m.chromosome, m.cytogeneticOffset, o.offset, c.sequenceNum
 		into #markers
@@ -73,7 +80,6 @@ def createBCPfile(markerKey):
 		and m.chromosome = c.chromosome ''', None)
 
 	db.sql('create index idx1 on #markers(_Marker_key)', None)
-
 	#
 	# the coordinate lookup should contain only one marker coordinate.
 	#
@@ -83,6 +89,9 @@ def createBCPfile(markerKey):
 	# 2) add to the lookup all coordinates that do contain a sequence,
 	#    but are not already in the lookup
 	#
+	# The chromosome retrieved with coordinates is the genomic chromosome,
+	# and goes in the 'genomicChromosome' field in the cache table.  Most
+	# often, it agrees with the genetic chromosome, but not always.
 
 	coord = {}
 
@@ -91,12 +100,13 @@ def createBCPfile(markerKey):
 	#
 
 	results = db.sql('select m._Marker_key, f.startCoordinate, f.endCoordinate, f.strand, ' + \
-		'mapUnits = u.term, provider = c.name, cc.version ' + \
-		'from #markers m, MAP_Coord_Collection c, MAP_Coordinate cc, MAP_Coord_Feature f, VOC_Term u ' + \
+		'u.term as mapUnits, c.abbreviation as provider, cc.version, chrom.chromosome as genomicChromosome ' + \
+		'from #markers m, MAP_Coord_Collection c, MAP_Coordinate cc, MAP_Coord_Feature f, VOC_Term u, MRK_Chromosome chrom ' + \
 		'where m._Marker_key = f._Object_key ' + \
 		'and f._MGIType_key = 2 ' + \
 		'and f._Map_key = cc._Map_key ' + \
 		'and cc._Collection_key = c._Collection_key ' + \
+		'and cc._Object_key = chrom._Chromosome_key ' + \
 		'and cc._Units_key = u._Term_key', 'auto')
 	for r in results:
 	    key = r['_Marker_key']
@@ -110,11 +120,19 @@ def createBCPfile(markerKey):
 	# coordinates for Markers w/ Sequence coordinates
 	#
 
-	results = db.sql('select m._Marker_key, c.startCoordinate, c.endCoordinate, c.strand, c.mapUnits, c.provider, c.version ' + \
-		'from #markers m, SEQ_Marker_Cache mc, SEQ_Coord_Cache c ' + \
-		'where m._Marker_key = mc._Marker_key ' + \
-		'and mc._Qualifier_key = 615419 ' + \
-		'and mc._Sequence_key = c._Sequence_key', 'auto')
+	results = db.sql('''select m.symbol, m._Marker_key, c.startCoordinate, 
+			c.endCoordinate, c.strand, c.mapUnits, mcc.abbreviation as provider, c.version, c.chromosome as genomicChromosome
+                from #markers m, SEQ_Marker_Cache mc, SEQ_Coord_Cache c, 
+		    MAP_Coord_Feature mcf, MAP_Coordinate map, MAP_Coord_Collection mcc, 
+		    MRK_Marker mm
+                where m._Marker_key = mc._Marker_key
+                and mc._Qualifier_key = 615419
+                and mc._Sequence_key = c._Sequence_key
+                and c._Sequence_key = mcf._Object_key
+                and mcf._MGIType_key = 19
+                and mcf._Map_key = map._Map_key
+                and map._Collection_key = mcc._Collection_key
+                and m._Marker_key = mm._Marker_key''', 'auto')
 	for r in results:
 	    key = r['_Marker_key']
 	    value = r
@@ -152,6 +170,7 @@ def createBCPfile(markerKey):
 			        mgi_utils.prvalue(r['sequenceNum']) + COLDL + \
 			        mgi_utils.prvalue(r['cytogeneticOffset']) + COLDL + \
 			        mgi_utils.prvalue(r['offset']) + COLDL + \
+			        mgi_utils.prvalue(c['genomicChromosome']) + COLDL + \
 			        mgi_utils.prvalue(c['startCoordinate']) + COLDL + \
 			        mgi_utils.prvalue(c['endCoordinate']) + COLDL + \
 			        mgi_utils.prvalue(c['strand']) + COLDL + \
@@ -171,6 +190,7 @@ def createBCPfile(markerKey):
 			     mgi_utils.prvalue(r['sequenceNum']) + COLDL + \
 			     mgi_utils.prvalue(r['cytogeneticOffset']) + COLDL + \
 			     mgi_utils.prvalue(r['offset']) + COLDL + \
+			     COLDL + \
 			     COLDL + \
 			     COLDL + \
 			     COLDL + \

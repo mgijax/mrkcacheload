@@ -1,3 +1,18 @@
+TAG: mrkcacheload-tr7106-2
+DATE: 07/17/2012
+STAFF: sc
+CHANGES: TR7106
+1) US#16 - mrklocation.py - use MAP_Coord_Collection.abbrev
+    as provider in Sequence based coordinate query - used to
+    be sequence provider
+
+TAG: mrkcacheload-tr7106-1
+DATE: 07/11/2012
+STAFF: sc
+CHANGES: TR7106
+1) mrklocation cache for marker based coordinates, use 
+   MAP_Coord_Collection.abbreviation for MRK_Location_Cache.provider
+
 TAG: mrkcacheload-tr7106-BP
 DATE: 07/11/2012
 STAFF: sc
