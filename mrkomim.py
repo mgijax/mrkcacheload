@@ -335,6 +335,10 @@ def deriveDiseaseAssociatedGenes(r):
 	termID = r['termID']
 	hasOrtholog = 0
 
+	# AS OF 2012-12-05 kstone - We are suppressing the marker "Gt(ROSA)26Sor" from the associated genes section of every disease detail per Janan
+	if marker==37270:
+		return -1
+
 	#
 	# process mouse reocrd
 	#
