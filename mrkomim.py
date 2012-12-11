@@ -39,6 +39,12 @@
 #
 # History
 #
+# 12/11/2012	lec/kstone
+#	- TR10273
+#	deriveDiseaseAssociatedGenes()
+#	AS OF 2012-12-05 kstone - We are suppressing the marker "Gt(ROSA)26Sor" from the 
+# 	associated genes section of every disease detail per Janan
+#
 # 04/04/2011	lec
 #	- TR10658;add _Cache_key
 #
@@ -335,7 +341,8 @@ def deriveDiseaseAssociatedGenes(r):
 	termID = r['termID']
 	hasOrtholog = 0
 
-	# AS OF 2012-12-05 kstone - We are suppressing the marker "Gt(ROSA)26Sor" from the associated genes section of every disease detail per Janan
+	# AS OF 2012-12-05 kstone - We are suppressing the marker "Gt(ROSA)26Sor" from the 
+	# associated genes section of every disease detail per Janan
 	if marker==37270:
 		return -1
 
