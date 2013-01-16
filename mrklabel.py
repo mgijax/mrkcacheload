@@ -15,6 +15,9 @@
 #
 # History
 #
+# 01/15/2013 - jsb - updated to use HomoloGene classes as the source for
+#	homology data, rather than the old 1-1 homology tables
+#
 # 11/16/2004	lec
 #	- TR 5686; reorganized; added new synonym support
 #
@@ -259,21 +262,38 @@ def priority8():
 
         print 'processing priority 8...%s' % mgi_utils.date()
 
-	cmd = 'select distinct m._Marker_key, m2 = m2._Marker_key, m._Organism_key, _OrthologOrganism_key = m2._Organism_key ' + \
-		'into #orthology1 ' + \
-		'from MRK_Marker m, MRK_Marker m2, HMD_Homology h1, HMD_Homology h2, ' + \
-		'HMD_Homology_Marker hm1, HMD_Homology_Marker hm2, MGI_Organism s ' + \
-		'where m._Organism_key = 1 ' + \
-		'and m._Marker_key = hm1._Marker_key ' + \
-		'and hm1._Homology_key = h1._Homology_key ' + \
-		'and h1._Class_key = h2._Class_key ' + \
-		'and h2._Homology_key = hm2._Homology_key ' + \
-		'and hm2._Marker_key = m2._Marker_key ' + \
-		'and m2._Organism_key = 2 ' + \
-		'and m2._Organism_key = s._Organism_key '
+	# build a temp table (#orthology1) with four columns:
+	#	_Marker_key           : mouse marker key
+	#	m2                    : human marker key
+	#	_Organism_key         : mouse organism key (1)
+	#	_OrthologOrganism_key : human organism key (2)
+	#
+	# and populate it with mouse/human homologies from the HomoloGene
+	# classes
+
+	cmd = '''select distinct mouse._Marker_key,
+			human._Marker_key as m2,
+			mm._Organism_key,
+			hm._Organism_key as _OrthologOrganism_key
+		into #orthology1
+		from VOC_Term vt,
+			MRK_Cluster mc,
+			MRK_ClusterMember mouse,
+			MRK_Marker mm,
+			MRK_ClusterMember human,
+			MRK_Marker hm
+		where vt.term = 'HomoloGene'
+			and vt._Term_key = mc._ClusterSource_key
+			and mc._Cluster_key = mouse._Cluster_key
+			and mouse._Marker_key = mm._Marker_key
+			and mm._Organism_key = 1
+			and mc._Cluster_key = human._Cluster_key
+			and human._Marker_key = hm._Marker_key
+			and hm._Organism_key = 2
+		'''
 
 	if markerKey is not None:
-		cmd = cmd + 'and m._Marker_key = %s\n' % markerKey
+		cmd = cmd + 'and mm._Marker_key = %s\n' % markerKey
 
 	db.sql(cmd, None)
 	db.sql('create index idx1 on #orthology1(m2)', None)
@@ -299,21 +319,38 @@ def priority9():
 
         print 'processing priority 9...%s' % mgi_utils.date()
 
-	cmd = 'select distinct m._Marker_key, m2 = m2._Marker_key, m._Organism_key, _OrthologOrganism_key = m2._Organism_key ' + \
-		'into #orthology2 ' + \
-		'from MRK_Marker m, MRK_Marker m2, HMD_Homology h1, HMD_Homology h2, ' + \
-		'HMD_Homology_Marker hm1, HMD_Homology_Marker hm2, MGI_Organism s ' + \
-		'where m._Organism_key = 1 ' + \
-		'and m._Marker_key = hm1._Marker_key ' + \
-		'and hm1._Homology_key = h1._Homology_key ' + \
-		'and h1._Class_key = h2._Class_key ' + \
-		'and h2._Homology_key = hm2._Homology_key ' + \
-		'and hm2._Marker_key = m2._Marker_key ' + \
-		'and m2._Organism_key = 40 ' + \
-		'and m2._Organism_key = s._Organism_key '
+	# build a temp table (#orthology2) with four columns:
+	#	_Marker_key           : mouse marker key
+	#	m2                    : rat marker key
+	#	_Organism_key         : mouse organism key (1)
+	#	_OrthologOrganism_key : rat organism key (40)
+	#
+	# and populate it with mouse/rat homologies from the HomoloGene
+	# classes
+
+	cmd = '''select distinct mouse._Marker_key,
+			human._Marker_key as m2,
+			mm._Organism_key,
+			hm._Organism_key as _OrthologOrganism_key
+		into #orthology2
+		from VOC_Term vt,
+			MRK_Cluster mc,
+			MRK_ClusterMember mouse,
+			MRK_Marker mm,
+			MRK_ClusterMember human,
+			MRK_Marker hm
+		where vt.term = 'HomoloGene'
+			and vt._Term_key = mc._ClusterSource_key
+			and mc._Cluster_key = mouse._Cluster_key
+			and mouse._Marker_key = mm._Marker_key
+			and mm._Organism_key = 1
+			and mc._Cluster_key = human._Cluster_key
+			and human._Marker_key = hm._Marker_key
+			and hm._Organism_key = 40
+		'''
 
 	if markerKey is not None:
-		cmd = cmd + 'and m._Marker_key = %s\n' % markerKey
+		cmd = cmd + 'and mm._Marker_key = %s\n' % markerKey
 
 	db.sql(cmd, None)
 	db.sql('create index idx1 on #orthology2(m2)', None)
@@ -428,21 +465,38 @@ def priority14():
 
         print 'processing priority 14...%s' % mgi_utils.date()
 
-	cmd = 'select distinct m._Marker_key, m2 = m2._Marker_key, m._Organism_key, _OrthologOrganism_key = m2._Organism_key ' + \
-		'into #orthology3 ' + \
-		'from MRK_Marker m, MRK_Marker m2, HMD_Homology h1, HMD_Homology h2, ' + \
-		'HMD_Homology_Marker hm1, HMD_Homology_Marker hm2, MGI_Organism s ' + \
-		'where m._Organism_key = 1 ' + \
-		'and m._Marker_key = hm1._Marker_key ' + \
-		'and hm1._Homology_key = h1._Homology_key ' + \
-		'and h1._Class_key = h2._Class_key ' + \
-		'and h2._Homology_key = hm2._Homology_key ' + \
-		'and hm2._Marker_key = m2._Marker_key ' + \
-		'and m2._Organism_key not in (1, 2, 40)  ' + \
-		'and m2._Organism_key = s._Organism_key '
+	# build a temp table (#orthology3) with four columns:
+	#	_Marker_key           : mouse marker key
+	#	m2                    : non-human/rat/mouse marker key
+	#	_Organism_key         : mouse organism key (1)
+	#	_OrthologOrganism_key : non-human/rat/mouse organism key
+	#
+	# and populate it with mouse/other (non-rat, non-human, non-mouse)
+	# homologies from the HomoloGene classes
+
+	cmd = '''select distinct mouse._Marker_key,
+			human._Marker_key as m2,
+			mm._Organism_key,
+			hm._Organism_key as _OrthologOrganism_key
+		into #orthology3
+		from VOC_Term vt,
+			MRK_Cluster mc,
+			MRK_ClusterMember mouse,
+			MRK_Marker mm,
+			MRK_ClusterMember human,
+			MRK_Marker hm
+		where vt.term = 'HomoloGene'
+			and vt._Term_key = mc._ClusterSource_key
+			and mc._Cluster_key = mouse._Cluster_key
+			and mouse._Marker_key = mm._Marker_key
+			and mm._Organism_key = 1
+			and mc._Cluster_key = human._Cluster_key
+			and human._Marker_key = hm._Marker_key
+			and hm._Organism_key not in (1, 2, 40)
+		'''
 
 	if markerKey is not None:
-		cmd = cmd + 'and m._Marker_key = %s\n' % markerKey
+		cmd = cmd + 'and mm._Marker_key = %s\n' % markerKey
 
 	db.sql(cmd, None)
 	db.sql('create index idx1 on #orthology3(m2)', None)
