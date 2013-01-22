@@ -394,7 +394,7 @@ def priority11():
 
         print 'processing priority 11...%s' % mgi_utils.date()
 
-	cmd = 'select o.*, label = m.symbol, labelTypeName = s.commonName + " ortholog symbol" ' + \
+	cmd = 'select o.*, label = m.symbol, labelTypeName = s.commonName + " symbol" ' + \
 		'from #orthology1 o, MRK_Marker m, MGI_Organism s ' + \
 		'where o.m2 = m._Marker_key ' + \
 		'and o._OrthologOrganism_key = s._Organism_key '
@@ -415,7 +415,7 @@ def priority12():
 
         print 'processing priority 12...%s' % mgi_utils.date()
 
-	cmd = 'select o.*, label = m.name, labelTypeName = s.commonName + " ortholog name" ' + \
+	cmd = 'select o.*, label = m.name, labelTypeName = s.commonName + " name" ' + \
 		'from #orthology1 o, MRK_Marker m, MGI_Organism s ' + \
 		'where o.m2 = m._Marker_key ' + \
 		'and o._OrthologOrganism_key = s._Organism_key '
@@ -436,7 +436,7 @@ def priority13():
 
         print 'processing priority 13...%s' % mgi_utils.date()
 
-	cmd = 'select o.*, label = m.symbol, labelTypeName = s.commonName + " ortholog symbol" ' + \
+	cmd = 'select o.*, label = m.symbol, labelTypeName = s.commonName + " symbol" ' + \
 		'from #orthology2 o, MRK_Marker m, MGI_Organism s ' + \
 		'where o.m2 = m._Marker_key ' + \
 		'and o._OrthologOrganism_key = s._Organism_key '
@@ -502,12 +502,20 @@ def priority14():
 	db.sql('create index idx1 on #orthology3(m2)', None)
 	db.sql('create index idx2 on #orthology3(_OrthologOrganism_key)', None)
 
-	cmd = 'select o.*, label = m.symbol, labelTypeName = s.commonName + " ortholog symbol" ' + \
+	cmd = 'select o.*, label = m.symbol, labelTypeName = s.commonName + " symbol" ' + \
 		'from #orthology3 o, MRK_Marker m, MGI_Organism s ' + \
 		'where o.m2 = m._Marker_key ' + \
 		'and o._OrthologOrganism_key = s._Organism_key '
 
-	writeRecord(db.sql(cmd, 'auto'), 1, 14, 'OS', None)
+	homologs = db.sql(cmd, 'auto')
+
+	# tweak organism names as needed
+
+	for row in homologs:
+		row['labelTypeName'] = row['labelTypeName'].replace (
+			', domestic', '')
+
+	writeRecord(homologs, 1, 14, 'OS', None)
 
 	# other symbol
 
