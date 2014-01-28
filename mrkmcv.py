@@ -399,8 +399,6 @@ def processDirectAnnot(annotList, mTypeKey, mkrKey):
     global multiMCVList, hasMultiMCVAnnot
 
     # Purpose: determine the set of direct annotations for this marker
-    # See wiki for algorithm:
-    # http://prodwww.informatics.jax.org/wiki/index.php/sw:
     # Marker_Type_and_Sequence_Ontology_Implementation
     # Returns: The set of annotations for this marker
     # Assumes: nothing
