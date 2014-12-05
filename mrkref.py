@@ -82,7 +82,6 @@
 
 import sys
 import os
-import db
 import mgi_utils
 
 try:
@@ -90,7 +89,19 @@ try:
     LINEDL = '\n'
     table = os.environ['TABLE']
     outDir = os.environ['MRKCACHEBCPDIR']
+    if os.environ['DB_TYPE'] == 'postgres':
+        import pg_db
+        db = pg_db
+        db.setTrace()
+        db.setAutoTranslateBE()
+    else:
+        import db
+        db.set_sqlLogFunction(db.sqlLogAll)
 except:
+    import db
+    db.set_sqlLogFunction(db.sqlLogAll)
+    COLDL = os.environ['COLDELIM']
+    LINEDL = '\n'
     table = 'MRK_Reference'
 
 cdate = mgi_utils.date("%m/%d/%Y")
@@ -153,8 +164,8 @@ def createBCPfile(markerKey):
 		cmd = cmd + 'and hm._Marker_key = %s' % markerKey
 
 	db.sql(cmd, None)
-	db.sql('create index idx1 on #temp3(_Marker_key)', None)
-	db.sql('create index idx2 on #temp3(_Refs_key)', None)
+	db.sql('create index idx3 on #temp3(_Marker_key)', None)
+	db.sql('create index idx4 on #temp3(_Refs_key)', None)
 
 	#
 	# Marker History
@@ -168,8 +179,8 @@ def createBCPfile(markerKey):
 		cmd = cmd + 'and h._Marker_key = %s' % markerKey
 
 	db.sql(cmd, None)
-	db.sql('create index idx1 on #temp4(_Marker_key)', None)
-	db.sql('create index idx2 on #temp4(_Refs_key)', None)
+	db.sql('create index idx5 on #temp4(_Marker_key)', None)
+	db.sql('create index idx6 on #temp4(_Refs_key)', None)
 
 	#
 	# Mapping
@@ -184,8 +195,8 @@ def createBCPfile(markerKey):
 		cmd = cmd + 'and _Marker_key = %s' % markerKey
 
 	db.sql(cmd, None)
-	db.sql('create index idx1 on #temp5(_Marker_key)', None)
-	db.sql('create index idx2 on #temp5(_Refs_key)', None)
+	db.sql('create index idx_temp5_1 on #temp5(_Marker_key)', None)
+	db.sql('create index idx_temp5_2 on #temp5(_Refs_key)', None)
 
 	#
 	# GXD Index
@@ -199,8 +210,8 @@ def createBCPfile(markerKey):
 		cmd = cmd + 'where _Marker_key = %s' % markerKey
 
 	db.sql(cmd, None)
-	db.sql('create index idx1 on #temp6(_Marker_key)', None)
-	db.sql('create index idx2 on #temp6(_Refs_key)', None)
+	db.sql('create index idx7 on #temp6(_Marker_key)', None)
+	db.sql('create index idx8 on #temp6(_Refs_key)', None)
 
 	#
 	# GXD Assay (actually, this should be redundant with GXD_Index)
@@ -214,8 +225,8 @@ def createBCPfile(markerKey):
 		cmd = cmd + 'where _Marker_key = %s' % markerKey
 
 	db.sql(cmd, None)
-	db.sql('create index idx1 on #temp7(_Marker_key)', None)
-	db.sql('create index idx2 on #temp7(_Refs_key)', None)
+	db.sql('create index idx9 on #temp7(_Marker_key)', None)
+	db.sql('create index idx10 on #temp7(_Refs_key)', None)
 
 	#
 	# Marker Synonyms
@@ -233,8 +244,8 @@ def createBCPfile(markerKey):
 		cmd = cmd + 'and s._Object_key = %s' % markerKey
 
 	db.sql(cmd, None)
-	db.sql('create index idx1 on #temp8(_Marker_key)', None)
-	db.sql('create index idx2 on #temp8(_Refs_key)', None)
+	db.sql('create index idx11 on #temp8(_Marker_key)', None)
+	db.sql('create index idx12 on #temp8(_Refs_key)', None)
 
 	#
 	#  Note that this also handles Sequence/Reference associations, indirectly.
@@ -253,8 +264,8 @@ def createBCPfile(markerKey):
 		cmd = cmd + 'and _Object_key = %s' % markerKey
 
 	db.sql(cmd, None)
-	db.sql('create index idx1 on #temp9(_Marker_key)', None)
-	db.sql('create index idx2 on #temp9(_Refs_key)', None)
+	db.sql('create index idx13 on #temp9(_Marker_key)', None)
+	db.sql('create index idx14 on #temp9(_Refs_key)', None)
 
 	#
 	# Alleles
@@ -271,8 +282,8 @@ def createBCPfile(markerKey):
 		cmd = cmd + 'and _Object_key = %s' % markerKey
 
 	db.sql(cmd, None)
-	db.sql('create index idx1 on #temp10(_Marker_key)', None)
-	db.sql('create index idx2 on #temp10(_Refs_key)', None)
+	db.sql('create index idx15 on #temp10(_Marker_key)', None)
+	db.sql('create index idx16 on #temp10(_Refs_key)', None)
 
 	#
 	# GO Annotations
@@ -288,8 +299,8 @@ def createBCPfile(markerKey):
 		cmd = cmd + 'and _Object_key = %s' % markerKey
 
 	db.sql(cmd, None)
-	db.sql('create index idx1 on #temp11(_Marker_key)', None)
-	db.sql('create index idx2 on #temp11(_Refs_key)', None)
+	db.sql('create index idx17 on #temp11(_Marker_key)', None)
+	db.sql('create index idx18 on #temp11(_Refs_key)', None)
 
 	#
 	# Curated References
@@ -304,8 +315,8 @@ def createBCPfile(markerKey):
 		cmd = cmd + 'and m._Object_key = %s' % markerKey
 
 	db.sql(cmd, None)
-	db.sql('create index idx1 on #temp12(_Marker_key)', None)
-	db.sql('create index idx2 on #temp12(_Refs_key)', None)
+	db.sql('create index idx19 on #temp12(_Marker_key)', None)
+	db.sql('create index idx20 on #temp12(_Refs_key)', None)
 
 	#
 	# union them all together
@@ -322,7 +333,7 @@ def createBCPfile(markerKey):
 		'union select _Marker_key, _Refs_key from #temp10 ' + \
 		'union select _Marker_key, _Refs_key from #temp11 ' + \
 		'union select _Marker_key, _Refs_key from #temp12', None)
-        db.sql('create index idx1 on #refs(_Refs_key)', None)
+        db.sql('create index idx_refs_refs_key on #refs(_Refs_key)', None)
 
 	mgiID = {}
 	jnumID = {}
@@ -381,7 +392,6 @@ else:
 	markerKey = None
 
 db.useOneConnection(1)
-db.set_sqlLogFunction(db.sqlLogAll)
 createBCPfile(markerKey)
 db.useOneConnection(0)
 

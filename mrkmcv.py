@@ -24,19 +24,28 @@ import sys
 import os
 import getopt
 import string
-import db
 import mgi_utils
 
 try:
     COLDELIM = os.environ['COLDELIM']
+    table = os.environ['TABLE']
     outDir = os.environ['MRKCACHEBCPDIR']
     curatorLog = os.environ['CURATORLOG']
-    table = os.environ['TABLE']
+    if os.environ['DB_TYPE'] == 'postgres':
+        import pg_db
+        db = pg_db
+        db.setTrace()
+        db.setAutoTranslateBE()
+    else:
+        import db
+        db.set_sqlLogFunction(db.sqlLogAll)
 except:
+    import db
+    db.set_sqlLogFunction(db.sqlLogAll)
     COLDELIM = '\t'
+    table = 'MRK_MCV_Cache'
     outDir = './'
     curatorLog = './mrkmcv.log'
-    table = 'MRK_MCV_Cache'
 
 # qualifier column values
 DIRECT='D'
@@ -188,9 +197,9 @@ def init (mkrKey):
     db.sql('''create index idx1 on #notes(_Object_key)''', None)
 
     results = db.sql('''select t._Term_key, t.term, n.chunk
-	    from VOC_Term t, #notes n
-	    where t._Vocab_key = 79 
-	    and t._Term_key *= n._Object_key
+	    from VOC_Term t left outer join
+	    #notes n on (n._object_key = t._term_key)
+	    where t._vocab_key = 79
 	    order by t._Term_key, n.sequenceNum''', 'auto')
 
     notes = {} # map the terms to their note chunks
@@ -714,7 +723,6 @@ if server is None or \
 
 db.set_sqlLogin(user, password, server, database)
 db.useOneConnection(1)
-db.set_sqlLogFunction(db.sqlLogAll)
 
 init(mkrKey)
 if mkrKey == 0:

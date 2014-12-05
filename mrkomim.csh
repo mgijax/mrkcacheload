@@ -20,8 +20,12 @@ touch $LOG
 date | tee -a ${LOG}
 
 # Create the bcp file
-
+setenv COLDELIM '\t'
+if ( ${DB_TYPE} == "postgres" ) then
+./mrkomim.py -S${PG_DBSERVER} -D${PG_DBNAME} -U${PG_DBUSER} -P${PG_1LINE_PASSFILE} -K${OBJECTKEY} | tee -a ${LOG}
+else
 ./mrkomim.py -S${MGD_DBSERVER} -D${MGD_DBNAME} -U${MGD_DBUSER} -P${MGD_DBPASSWORDFILE} -K${OBJECTKEY} | tee -a ${LOG}
+endif
 
 if ( -z ${MRKCACHEBCPDIR}/${TABLE}.bcp ) then
 echo 'BCP File is empty' | tee -a ${LOG}
@@ -30,15 +34,15 @@ endif
 
 # truncate table
 
-${MGD_DBSCHEMADIR}/table/${TABLE}_truncate.object | tee -a ${LOG}
+${SCHEMADIR}/table/${TABLE}_truncate.object | tee -a ${LOG}
 
 # Drop indexes
-${MGD_DBSCHEMADIR}/index/${TABLE}_drop.object | tee -a ${LOG}
+${SCHEMADIR}/index/${TABLE}_drop.object | tee -a ${LOG}
 
 # BCP new data into tables
-${MGI_DBUTILS}/bin/bcpin.csh ${MGD_DBSERVER} ${MGD_DBNAME} ${TABLE} ${MRKCACHEBCPDIR} ${TABLE}.bcp ${COLDELIM} ${LINEDELIM} | tee -a ${LOG}
+${BCP_CMD} ${TABLE} ${MRKCACHEBCPDIR} ${TABLE}.bcp ${COLDELIM} ${LINEDELIM} ${PG_DB_SCHEMA} | tee -a ${LOG}
 
 # Create indexes
-${MGD_DBSCHEMADIR}/index/${TABLE}_create.object | tee -a ${LOG}
+${SCHEMADIR}/index/${TABLE}_create.object | tee -a ${LOG}
 
 date | tee -a ${LOG}

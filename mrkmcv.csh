@@ -31,7 +31,11 @@ touch ${CACHELOG}
 date | tee -a ${CACHELOG}
 
 # Create  bcp file
+if ( ${DB_TYPE} == "postgres" ) then
+./mrkmcv.py -S${PG_DBSERVER} -D${PG_DBNAME} -U${PG_DBUSER} -P${PG_1LINE_PASSFILE} -K${MARKERKEY} | tee -a ${CACHELOG}
+else
 ./mrkmcv.py -S${MGD_DBSERVER} -D${MGD_DBNAME} -U${MGD_DBUSER} -P${MGD_DBPASSWORDFILE} -K${MARKERKEY} | tee -a ${CACHELOG}
+endif
 
 # Exit if bcp file is empty
 
@@ -42,16 +46,16 @@ endif
 
 # truncate table
 
-${MGD_DBSCHEMADIR}/table/${TABLE}_truncate.object | tee -a ${CACHELOG}
+${SCHEMADIR}/table/${TABLE}_truncate.object | tee -a ${CACHELOG}
 
 # Drop indexes
-${MGD_DBSCHEMADIR}/index/${TABLE}_drop.object | tee -a ${CACHELOG}
+${SCHEMADIR}/index/${TABLE}_drop.object | tee -a ${CACHELOG}
 
 # BCP new data into tables
-${MGI_DBUTILS}/bin/bcpin.csh ${MGD_DBSERVER} ${MGD_DBNAME} ${TABLE} ${MRKCACHEBCPDIR} ${TABLE}.bcp ${COLDELIM} ${LINEDELIM} | tee -a ${CACHELOG}
+${BCP_CMD} ${TABLE} ${MRKCACHEBCPDIR} ${TABLE}.bcp ${COLDELIM} ${LINEDELIM} ${PG_DB_SCHEMA} | tee -a ${CACHELOG}
 
 # Create indexes
-${MGD_DBSCHEMADIR}/index/${TABLE}_create.object | tee -a ${CACHELOG}
+${SCHEMADIR}/index/${TABLE}_create.object | tee -a ${CACHELOG}
 
 # Create the MCV Count bcp file
 ./mrkmcvcount.py | tee -a ${CACHELOG}
@@ -65,15 +69,15 @@ endif
 
 # truncate table
 
-${MGD_DBSCHEMADIR}/table/${COUNT_TABLE}_truncate.object | tee -a ${CACHELOG}
+${SCHEMADIR}/table/${COUNT_TABLE}_truncate.object | tee -a ${CACHELOG}
 
 # Drop indexes
-${MGD_DBSCHEMADIR}/index/${COUNT_TABLE}_drop.object | tee -a ${CACHELOG}
+${SCHEMADIR}/index/${COUNT_TABLE}_drop.object | tee -a ${CACHELOG}
 
 # BCP new data into tables
-${MGI_DBUTILS}/bin/bcpin.csh ${MGD_DBSERVER} ${MGD_DBNAME} ${COUNT_TABLE} ${MRKCACHEBCPDIR} ${COUNT_TABLE}.bcp ${COLDELIM} ${LINEDELIM} | tee -a ${CACHELOG}
+${BCP_CMD} ${COUNT_TABLE} ${MRKCACHEBCPDIR} ${COUNT_TABLE}.bcp ${COLDELIM} ${LINEDELIM} ${PG_DB_SCHEMA} | tee -a ${CACHELOG}
 
 # Create indexes
-${MGD_DBSCHEMADIR}/index/${COUNT_TABLE}_create.object | tee -a ${CACHELOG}
+${SCHEMADIR}/index/${COUNT_TABLE}_create.object | tee -a ${CACHELOG}
 
 date | tee -a ${CACHELOG}

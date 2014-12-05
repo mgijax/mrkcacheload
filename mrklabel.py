@@ -64,14 +64,23 @@
 
 import sys
 import os
-import db
 import mgi_utils
 
 try:
     BCPDL = os.environ['COLDELIM']
     table = os.environ['TABLE']
     outDir = os.environ['MRKCACHEBCPDIR']
+    if os.environ['DB_TYPE'] == 'postgres':
+        import pg_db
+        db = pg_db
+        db.setTrace()
+        db.setAutoTranslateBE()
+    else:
+        import db
+        db.set_sqlLogFunction(db.sqlLogAll)
 except:
+    import db
+    db.set_sqlLogFunction(db.sqlLogAll)
     table = 'MRK_Label'
 
 NL = '\n'
@@ -141,7 +150,7 @@ def priority1():
 
         print 'processing priority 1...%s' % mgi_utils.date()
 
-	cmd = 'select distinct _Marker_key, _Organism_key, _OrthologOrganism_key = NULL, label = symbol ' + \
+	cmd = 'select distinct _Marker_key, _Organism_key, null as _OrthologOrganism_key, symbol as label ' + \
 		'from MRK_Marker ' + \
 		'where _Marker_Status_key in (1,3) ' + \
 		'and _Organism_key = 1 '
@@ -157,7 +166,7 @@ def priority2():
 
         print 'processing priority 2...%s' % mgi_utils.date()
 
-	cmd = 'select distinct _Marker_key, _Organism_key, _OrthologOrganism_key = NULL, label = name ' + \
+	cmd = 'select distinct _Marker_key, _Organism_key, null as _OrthologOrganism_key , name as label ' + \
 		'from MRK_Marker ' + \
 		'where _Marker_Status_key in (1,3) ' + \
 		'and _Organism_key = 1 '
@@ -173,7 +182,7 @@ def priority3():
 
         print 'processing priority 3...%s' % mgi_utils.date()
 
-	cmd = 'select distinct a._Marker_key, m._Organism_key, _OrthologOrganism_key = NULL, label = a.symbol ' + \
+	cmd = 'select distinct a._Marker_key, m._Organism_key, null as _OrthologOrganism_key , a.symbol as label ' + \
 		'from ALL_Allele a, MRK_Marker m ' + \
 		'where a._Marker_key = m._Marker_key ' + \
 		'and a.isWildType = 0 ' + \
@@ -190,7 +199,7 @@ def priority4():
 
         print 'processing priority 4...%s' % mgi_utils.date()
 
-	cmd = 'select distinct a._Marker_key, m._Organism_key, _OrthologOrganism_key = NULL, label = a.name ' + \
+	cmd = 'select distinct a._Marker_key, m._Organism_key, null as _OrthologOrganism_key , a.name as label ' + \
 		'from ALL_Allele a, MRK_Marker m ' + \
 		'where a._Marker_key = m._Marker_key ' + \
 		'and a.name != "wild type" ' + \
@@ -207,7 +216,7 @@ def priority5():
 
         print 'processing priority 5...%s' % mgi_utils.date()
 
-	cmd = 'select distinct m._Marker_key, m._Organism_key, _OrthologOrganism_key = NULL, label = m2.symbol ' + \
+	cmd = 'select distinct m._Marker_key, m._Organism_key, null as _OrthologOrganism_key , m2.symbol as label  ' + \
 		'from MRK_History h, MRK_Marker m, MRK_Marker m2 ' + \
 		'where h._Marker_key = m._Marker_key ' + \
 		'and m._Organism_key = 1 ' + \
@@ -225,7 +234,7 @@ def priority6():
 
         print 'processing priority 6...%s' % mgi_utils.date()
 
-	cmd = 'select distinct h._Marker_key, m._Organism_key, _OrthologOrganism_key = NULL, label = h.name ' + \
+	cmd = 'select distinct h._Marker_key, m._Organism_key, null as _OrthologOrganism_key, h.name as label  ' + \
 		'from MRK_History h, MRK_Marker m, MRK_Marker m2 ' + \
 		'where h.name is not null ' + \
 		'and h._Marker_key = m._Marker_key ' + \
@@ -244,7 +253,7 @@ def priority7():
 
         print 'processing priority 7...%s' % mgi_utils.date()
 
-	cmd = 'select distinct _Marker_key = s._Object_key, st._Organism_key, _OrthologOrganism_key = NULL, label = s.synonym ' + \
+	cmd = 'select distinct _Marker_key = s._Object_key, st._Organism_key, null as _OrthologOrganism_key , s.synonym as label ' + \
 		'from MGI_SynonymType st, MGI_Synonym s ' + \
 		'where st._MGIType_key = 2 ' + \
 		'and st._Organism_key = 1 ' + \
@@ -296,8 +305,8 @@ def priority8():
 		cmd = cmd + 'and mm._Marker_key = %s\n' % markerKey
 
 	db.sql(cmd, None)
-	db.sql('create index idx1 on #orthology1(m2)', None)
-	db.sql('create index idx2 on #orthology1(_OrthologOrganism_key)', None)
+	db.sql('create index idx3 on #orthology1(m2)', None)
+	db.sql('create index idx4 on #orthology1(_OrthologOrganism_key)', None)
 
 	# human synonym
 
@@ -353,8 +362,8 @@ def priority9():
 		cmd = cmd + 'and mm._Marker_key = %s\n' % markerKey
 
 	db.sql(cmd, None)
-	db.sql('create index idx1 on #orthology2(m2)', None)
-	db.sql('create index idx2 on #orthology2(_OrthologOrganism_key)', None)
+	db.sql('create index idx5 on #orthology2(m2)', None)
+	db.sql('create index idx6 on #orthology2(_OrthologOrganism_key)', None)
 
 	# rat synonym
 
@@ -376,7 +385,7 @@ def priority10():
 
         print 'processing priority 10...%s' % mgi_utils.date()
 
-	cmd = 'select distinct _Marker_key = s._Object_key, st._Organism_key, _OrthologOrganism_key = NULL, label = s.synonym ' + \
+	cmd = 'select distinct _Marker_key = s._Object_key, st._Organism_key, null as  _OrthologOrganism_key, s.synonym as label ' + \
 		'from MGI_SynonymType st, MGI_Synonym s ' + \
 		'where st._MGIType_key = 2 ' + \
 		'and st._Organism_key = 1 ' + \
@@ -394,7 +403,7 @@ def priority11():
 
         print 'processing priority 11...%s' % mgi_utils.date()
 
-	cmd = 'select o.*, label = m.symbol, labelTypeName = s.commonName + " symbol" ' + \
+	cmd = 'select o.*, label = m.symbol, s.commonName + " symbol" as labelTypeName ' + \
 		'from #orthology1 o, MRK_Marker m, MGI_Organism s ' + \
 		'where o.m2 = m._Marker_key ' + \
 		'and o._OrthologOrganism_key = s._Organism_key '
@@ -403,7 +412,7 @@ def priority11():
 
 	# human symbol
 
-	cmd = 'select _Marker_key, _Organism_key, _OrthologOrganism_key = NULL, label = symbol ' + \
+	cmd = 'select _Marker_key, _Organism_key, null as _OrthologOrganism_key , symbol as label ' + \
 		'from MRK_Marker ' + \
 		'where _Organism_key = 2 '
 
@@ -415,7 +424,7 @@ def priority12():
 
         print 'processing priority 12...%s' % mgi_utils.date()
 
-	cmd = 'select o.*, label = m.name, labelTypeName = s.commonName + " name" ' + \
+	cmd = 'select o.*, label = m.name, s.commonName + " name" as labelTypeName ' + \
 		'from #orthology1 o, MRK_Marker m, MGI_Organism s ' + \
 		'where o.m2 = m._Marker_key ' + \
 		'and o._OrthologOrganism_key = s._Organism_key '
@@ -424,7 +433,7 @@ def priority12():
 
 	# human name
 
-	cmd = 'select _Marker_key, _Organism_key, _OrthologOrganism_key = NULL, label = name ' + \
+	cmd = 'select _Marker_key, _Organism_key, null as _OrthologOrganism_key , name as label ' + \
 		'from MRK_Marker ' + \
 		'where _Organism_key = 2 '
 
@@ -436,7 +445,7 @@ def priority13():
 
         print 'processing priority 13...%s' % mgi_utils.date()
 
-	cmd = 'select o.*, label = m.symbol, labelTypeName = s.commonName + " symbol" ' + \
+	cmd = 'select o.*, label = m.symbol, s.commonName + " symbol" as labelTypeName ' + \
 		'from #orthology2 o, MRK_Marker m, MGI_Organism s ' + \
 		'where o.m2 = m._Marker_key ' + \
 		'and o._OrthologOrganism_key = s._Organism_key '
@@ -445,7 +454,7 @@ def priority13():
 
 	writeRecord(db.sql(cmd, 'auto'), 1, 13, 'OS', None)
 
-	cmd = 'select _Marker_key, _Organism_key, _OrthologOrganism_key = NULL, label = symbol ' + \
+	cmd = 'select _Marker_key, _Organism_key, null as _OrthologOrganism_key, symbol as label ' + \
 		'from MRK_Marker ' + \
 		'where _Organism_key = 40 '
 
@@ -453,7 +462,7 @@ def priority13():
 
 	writeRecord(db.sql(cmd, 'auto'), 1, 13, 'MS', 'current symbol')
 
-	cmd = 'select _Marker_key, _Organism_key, _OrthologOrganism_key = NULL, label = name ' + \
+	cmd = 'select _Marker_key, _Organism_key, null as _OrthologOrganism_key , name as label ' + \
 		'from MRK_Marker ' + \
 		'where _Organism_key = 40 '
 
@@ -502,7 +511,7 @@ def priority14():
 	db.sql('create index idx1 on #orthology3(m2)', None)
 	db.sql('create index idx2 on #orthology3(_OrthologOrganism_key)', None)
 
-	cmd = 'select o.*, label = m.symbol, labelTypeName = s.commonName + " symbol" ' + \
+	cmd = 'select o.*, label = m.symbol, s.commonName + " symbol" as labelTypeName ' + \
 		'from #orthology3 o, MRK_Marker m, MGI_Organism s ' + \
 		'where o.m2 = m._Marker_key ' + \
 		'and o._OrthologOrganism_key = s._Organism_key '
@@ -519,7 +528,7 @@ def priority14():
 
 	# other symbol
 
-	cmd = 'select _Marker_key, _Organism_key, _OrthologOrganism_key = NULL, label = symbol ' + \
+	cmd = 'select _Marker_key, _Organism_key, null as _OrthologOrganism_key, symbol as label ' + \
 		'from MRK_Marker ' + \
 		'where _Organism_key not in (1,2,40) '
 
@@ -530,7 +539,7 @@ def priority14():
 
 	# other name
 
-	cmd = 'select _Marker_key, _Organism_key, _OrthologOrganism_key = NULL, label = name ' + \
+	cmd = 'select _Marker_key, _Organism_key, null as _OrthologOrganism_key , name as label ' + \
 		'from MRK_Marker ' + \
 		'where _Organism_key not in (1,2,40) '
 
@@ -546,7 +555,7 @@ def priority14():
 print '%s' % mgi_utils.date()
 
 db.useOneConnection(1)
-db.set_sqlLogFunction(db.sqlLogAll)
+#db.set_sqlLogFunction(db.sqlLogAll)
 
 if len(sys.argv) == 2:
 	markerKey = sys.argv[1]

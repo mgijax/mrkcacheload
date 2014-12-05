@@ -64,16 +64,29 @@ import os
 import getopt
 import string
 import re
-import db
 import mgi_utils
 
 try:
     COLDL = os.environ['COLDELIM']
-    LINEDL = '\n'
+    COLDL = COLDL.decode("string_escape")
     table = os.environ['TABLE']
     outDir = os.environ['MRKCACHEBCPDIR']
+    if os.environ['DB_TYPE'] == 'postgres':
+        import pg_db
+        db = pg_db
+        db.setTrace()
+        db.setAutoTranslateBE()
+    else:
+        import db
+        db.set_sqlLogFunction(db.sqlLogAll)
 except:
+    import db
+    db.set_sqlLogFunction(db.sqlLogAll)
+    COLDL = '\t'
     table = 'MRK_OMIM_Cache'
+    outDir = './'
+
+LINEDL = '\n'
 
 RDL = '\t'
 
@@ -442,7 +455,7 @@ def selectMouse():
 		'from #omimmouse1 o, MRK_Marker m, ALL_Allele a ' + \
 		'where o._Marker_key = m._Marker_key ' + \
 		'and o._Allele_key = a._Allele_key', None)
-	db.sql('create index idx1 on #omimmouse2(_Marker_key)', None)
+	db.sql('create index idx3 on #omimmouse2(_Marker_key)', None)
 
 	#
 	# resolve OMIM term and ID
@@ -454,7 +467,7 @@ def selectMouse():
 		'and o._Term_key = a._Object_key ' + \
 		'and a._MGIType_key = 13 ' + \
 		'and a.preferred = 1', None)
-	db.sql('create index idx1 on #omimmouse3(_Refs_key)', None)
+	db.sql('create index idx4 on #omimmouse3(_Refs_key)', None)
 
 	#
 	# cache all terms annotated to mouse markers
@@ -501,7 +514,7 @@ def selectMouse():
 		'and a._LogicalDB_key = 1 ' + \
 		'and a.prefixPart = "J:" ' + \
 		'and a.preferred = 1', None)
-	db.sql('create index idx1 on #omimmouse4(_Genotype_key)', None)
+	db.sql('create index idx5 on #omimmouse4(_Genotype_key)', None)
 
 	#
 	# resolve genotype Strain
@@ -511,12 +524,12 @@ def selectMouse():
 		'from #omimmouse4 o, GXD_Genotype g, PRB_Strain s ' + \
 		'where o._Genotype_key = g._Genotype_key ' + \
 		'and g._Strain_key = s._Strain_key', None)
-	db.sql('create index idx1 on #omimmouse5(_Allele_key)', None)
+	db.sql('create index idx6 on #omimmouse5(_Allele_key)', None)
 
 	#
 	# resolve genotype display
 	#
-	results = db.sql('select distinct o._Genotype_key, note = rtrim(nc.note) from #omimmouse1 o, MGI_Note n, MGI_NoteChunk nc ' + \
+	results = db.sql('select distinct o._Genotype_key, rtrim(nc.note) as note, nc.sequencenum from #omimmouse1 o, MGI_Note n, MGI_NoteChunk nc ' + \
 		'where o._Genotype_key = n._Object_key ' + \
 		'and n._NoteType_key = 1018 ' + \
 		'and n._Note_key = nc._Note_key ' + \
@@ -542,7 +555,7 @@ def selectMouse():
         	'and r2._Homology_key = h2._Homology_key ' + \
         	'and h2._Marker_key = m2._Marker_key ' + \
         	'and m2._Organism_key = %s' % (humanOrganismKey), None)
-	db.sql('create index idx1 on #ortholog(_Marker_key)', None)
+	db.sql('create index idx7 on #ortholog(_Marker_key)', None)
 
 	results = db.sql('select * from #ortholog', 'auto')
 	for r in results:
@@ -667,6 +680,9 @@ def processMouse(processType):
 		genotypeDisplay2 = ''
 
 	    if processType == 'bcp':
+		if os.environ['DB_TYPE'] == 'postgres':
+		    genotypeDisplay1 = genotypeDisplay1.replace('\n','\\n')
+		    genotypeDisplay2 = genotypeDisplay2.replace('\n','\\n')
 
                 omimBCP.write(
 	            str(nextMaxKey) + COLDL +  \
@@ -818,7 +834,7 @@ def selectHuman(byOrtholog = 0):
 		    'and a._Term_key = ac._Object_key ' + \
 		    'and ac._MGIType_key = 13 ' + \
 		    'and ac.preferred = 1', None)
-	    db.sql('create index idx1 on #omimhuman1(_Marker_key)', None)
+	    db.sql('create index idx8 on #omimhuman1(_Marker_key)', None)
 
 	else:
 	
@@ -837,7 +853,7 @@ def selectHuman(byOrtholog = 0):
 		    'and a._Term_key = ac._Object_key ' + \
 		    'and ac._MGIType_key = 13 ' + \
 		    'and ac.preferred = 1', None)
-	    db.sql('create index idx1 on #omimhuman1(_Marker_key)', None)
+	    db.sql('create index idx9 on #omimhuman1(_Marker_key)', None)
 
 	#
 	# resolve marker symbol
@@ -846,7 +862,7 @@ def selectHuman(byOrtholog = 0):
 		'into #omimhuman2 ' + \
 		'from #omimhuman1 o, MRK_Marker m ' + \
 		'where o._Marker_key = m._Marker_key ', None)
-	db.sql('create index idx1 on #omimhuman2(_Marker_key)', None)
+	db.sql('create index idx10 on #omimhuman2(_Marker_key)', None)
 
 	#
 	# cache all terms annotated to human markers
@@ -878,7 +894,7 @@ def selectHuman(byOrtholog = 0):
 		'and a.prefixPart = "J:" ' + \
 		'and a.preferred = 1 ' + \
 		'union ' + \
-		'select o.*, jnumID = null from #omimhuman2 o where _Refs_key = -1', None)
+		'select o.*, null as jnumID from #omimhuman2 o where _Refs_key = -1', None)
 
 	#
 	# resolve mouse ortholog
@@ -1038,7 +1054,7 @@ def processByAllele(alleleKey):
 		'from GXD_AlleleGenotype g ' + \
 		'where g._Allele_key = ' + alleleKey, None)
 
-	db.sql('create index idx1 on #toprocess(_Genotype_key)', None)
+	db.sql('create index idx11 on #toprocess(_Genotype_key)', None)
 
 	#
 	# delete existing cache records for this allele
@@ -1116,7 +1132,7 @@ def processByMarker(markerKey):
 		'from GXD_AlleleGenotype g ' + \
 		'where g._Marker_key = ' + markerKey, None)
 
-	db.sql('create index idx1 on #toprocess(_Genotype_key)', None)
+	db.sql('create index idx12 on #toprocess(_Genotype_key)', None)
 
 	#
 	# delete existing cache records for this marker
@@ -1183,7 +1199,6 @@ if server is None or \
 
 db.set_sqlLogin(user, password, server, database)
 db.useOneConnection(1)
-db.set_sqlLogFunction(db.sqlLogAll)
 
 scriptName = os.path.basename(sys.argv[0])
 
@@ -1199,7 +1214,7 @@ for r in results:
 # next available primary key: max(_Cache_key)
 #
     
-results = db.sql('select cacheKey = max(_Cache_key) from %s' % (table), 'auto')
+results = db.sql('select max(_Cache_key) as cacheKey from %s' % (table), 'auto')
 for r in results:
     nextMaxKey = r['cacheKey']
 

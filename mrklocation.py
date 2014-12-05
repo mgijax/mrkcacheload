@@ -38,7 +38,6 @@
 
 import sys
 import os
-import db
 import mgi_utils
 
 try:
@@ -46,7 +45,19 @@ try:
     LINEDL = '\n'
     table = os.environ['TABLE']
     outDir = os.environ['MRKCACHEBCPDIR']
+
+    if os.environ['DB_TYPE'] == 'postgres':
+        import pg_db
+        db = pg_db
+        db.setTrace()
+        db.setAutoTranslateBE()
+    else:
+        import db
+	db.set_sqlLogFunction(db.sqlLogAll)
+
 except:
+    import db
+    db.set_sqlLogFunction(db.sqlLogAll)
     table = 'MRK_Location_Cache'
 
 cdate = mgi_utils.date("%m/%d/%Y")
@@ -72,12 +83,15 @@ def createBCPfile(markerKey):
 	db.sql('''select m._Marker_key, m._Marker_Type_key, m._Organism_key, m.symbol, 
 		  m.chromosome, m.cytogeneticOffset, o.offset, c.sequenceNum
 		into #markers
-		from MRK_Marker m, MRK_Offset o, MRK_Chromosome c
+		from MRK_Marker m 
+			INNER JOIN MRK_Chromosome c on (
+				m._Organism_key = c._Organism_key
+				and m.chromosome = c.chromosome)
+			LEFT OUTER JOIN MRK_Offset o on (
+				m._Marker_key = o._Marker_key
+				and o.source = 0)
 		where m._Organism_key in (1,2)
-		and m._Marker_key *= o._Marker_key
-		and o.source = 0
-		and m._Organism_key = c._Organism_key
-		and m.chromosome = c.chromosome ''', None)
+		''', None)
 
 	db.sql('create index idx1 on #markers(_Marker_key)', None)
 	#
@@ -160,6 +174,11 @@ def createBCPfile(markerKey):
 
 	    nextMaxKey = nextMaxKey + 1
 
+	    try:
+	    	cytogeneticOffset = r['cytogeneticOffset'].replace('|', ',')
+	    except:
+		cytogeneticOffset = ''
+
 	    if coord.has_key(key):
 		for c in coord[key]:
 	            locBCP.write(str(nextMaxKey) + COLDL +
@@ -168,7 +187,7 @@ def createBCPfile(markerKey):
 			        mgi_utils.prvalue(r['_Organism_key']) + COLDL + \
 			        chr + COLDL + \
 			        mgi_utils.prvalue(r['sequenceNum']) + COLDL + \
-			        mgi_utils.prvalue(r['cytogeneticOffset']) + COLDL + \
+			        mgi_utils.prvalue(cytogeneticOffset) + COLDL + \
 			        mgi_utils.prvalue(r['offset']) + COLDL + \
 			        mgi_utils.prvalue(c['genomicChromosome']) + COLDL + \
 			        mgi_utils.prvalue(c['startCoordinate']) + COLDL + \
@@ -188,7 +207,7 @@ def createBCPfile(markerKey):
 			     mgi_utils.prvalue(r['_Organism_key']) + COLDL + \
 			     chr + COLDL + \
 			     mgi_utils.prvalue(r['sequenceNum']) + COLDL + \
-			     mgi_utils.prvalue(r['cytogeneticOffset']) + COLDL + \
+			     mgi_utils.prvalue(cytogeneticOffset) + COLDL + \
 			     mgi_utils.prvalue(r['offset']) + COLDL + \
 			     COLDL + \
 			     COLDL + \
@@ -217,7 +236,6 @@ else:
 	markerKey = None
 
 db.useOneConnection(1)
-db.set_sqlLogFunction(db.sqlLogAll)
 createBCPfile(markerKey)
 db.useOneConnection(0)
 

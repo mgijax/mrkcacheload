@@ -20,7 +20,6 @@
 import sys
 import os
 import string
-import db
 import mgi_utils
 
 try:
@@ -28,7 +27,19 @@ try:
     LINEDL = '\n'
     table = os.environ['TABLE']
     outDir = os.environ['MRKCACHEBCPDIR']
+    if os.environ['DB_TYPE'] == 'postgres':
+        import pg_db
+        db = pg_db
+        db.setTrace()
+        db.setAutoTranslateBE()
+    else:
+        import db
+        db.set_sqlLogFunction(db.sqlLogAll)
 except:
+    import db
+    db.set_sqlLogFunction(db.sqlLogAll)
+    COLDL = os.environ['COLDELIM']
+    LINEDL = '\n'
     table = 'PRB_Marker'
 
 cdate = mgi_utils.date("%m/%d/%Y")
@@ -61,7 +72,7 @@ def createBCPfile():
 		'where c._Sequence_key = s._Sequence_key ' + \
 		'and s._SequenceQuality_key = %s' % (lowQualityKey), None)
 
-	db.sql('create nonclustered index idx_key on #excluded(_Probe_key)', None)
+	db.sql('create index idx_key on #excluded(_Probe_key)', None)
 
 	# select all mouse probes (exclude primers, 63473)
 
@@ -73,7 +84,7 @@ def createBCPfile():
 		'and p._Source_key = s._Source_key ' + \
 		'and s._Organism_key = 1', None)
 	
-	db.sql('create nonclustered index idx_key on #mouseprobes(_Probe_key)', None)
+	db.sql('create index idx_key2 on #mouseprobes(_Probe_key)', None)
 
 	# select all mouse Probes and Markers which are annotated to the same nucleotide Sequence
 
@@ -88,22 +99,22 @@ def createBCPfile():
 		'and exists (select 1 from #mouseprobes mp ' + \
 		'where p._Probe_key = mp._Probe_key)', None)
 
-	db.sql('create nonclustered index idx_pkey on #annotations(_Probe_key)', None)
-	db.sql('create nonclustered index idx_mkey on #annotations(_Marker_key)', None)
+	db.sql('create index idx_pkey on #annotations(_Probe_key)', None)
+	db.sql('create index idx_mkey on #annotations(_Marker_key)', None)
 
 	# select all Probes and Markers with Putative annotation
 	
 	db.sql('select _Probe_key, _Marker_key into #putatives from %s where relationship = "P"' % (table), None)
 
-	db.sql('create nonclustered index idx_pkey on #putatives(_Probe_key)', None)
-	db.sql('create nonclustered index idx_mkey on #putatives(_Marker_key)', None)
+	db.sql('create index idx_pkey2 on #putatives(_Probe_key)', None)
+	db.sql('create index idx_mkey2 on #putatives(_Marker_key)', None)
 
 	# select all Probes and Markers with a non-Putative (E, H), or null Annotation
 
 	db.sql('select _Probe_key, _Marker_key into #nonputatives from %s where relationship != "P" or relationship is null' % (table), None)
 
-	db.sql('create nonclustered index idx_pkey on #nonputatives(_Probe_key)', None)
-	db.sql('create nonclustered index idx_mkey on #nonputatives(_Marker_key)', None)
+	db.sql('create index idx_pkey3 on #nonputatives(_Probe_key)', None)
+	db.sql('create index idx_mkey3 on #nonputatives(_Marker_key)', None)
 
 	# select all Molecular Segments which share a Sequence object with a Marker
 	# and which already have a "P" association with that Marker
@@ -132,13 +143,13 @@ def createBCPfile():
 
 	# delete any putatives which can be trumped by an auto-E relationship
 
-	db.sql('delete %s ' % (table) + \
-		'from #haveputative p, #createautoe e, %s pm ' % (table) + \
+	db.sql('delete from %s ' % (table) + \
+		'from #haveputative p, #createautoe e '  + \
 		'where p._Probe_key = e._Probe_key ' + \
 		'and p._Marker_key = e._Marker_key ' + \
-		'and e._Probe_key = pm._Probe_key ' + \
-		'and e._Marker_key = pm._Marker_key ' + \
-		'and pm.relationship = "P"', None)
+		'and e._Probe_key = prb_marker._Probe_key ' + \
+		'and e._Marker_key = prb_marker._Marker_key ' + \
+		'and prb_marker.relationship = "P"', None)
 
 	# for each molecular segment/marker, create an auto-E relationship
 
@@ -155,6 +166,9 @@ def createBCPfile():
 
 	bcpFile.close()
 
+	if hasattr(db, 'commit'):
+		db.commit()
+
 #
 # Main Routine
 #
@@ -164,12 +178,13 @@ print '%s' % mgi_utils.date()
 # need to delete data, so we need a user with delete permission
 user = os.environ['MGD_DBUSER']
 passwordFile = os.environ['MGD_DBPASSWORDFILE']
+if os.environ['DB_TYPE'] == 'postgres':
+	passwordFile = os.environ['PG_1LINE_PASSFILE']
 password = string.strip(open(passwordFile, 'r').readline())
 db.set_sqlUser(user)
 db.set_sqlPassword(password)
 
 db.useOneConnection(1)
-db.set_sqlLogFunction(db.sqlLogAll)
 createBCPfile()
 db.useOneConnection(0)
 

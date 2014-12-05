@@ -13,6 +13,9 @@ endif
 
 source ${MGICONFIG}/master.config.csh
 
+# database schema
+setenv PG_DB_SCHEMA mgd
+
 # directory
 setenv MRKCACHEDIR		${DATALOADSOUTPUT}/mgi/mrkcacheload
 
@@ -28,3 +31,6 @@ setenv MRKCACHELOGDIR		${MRKCACHEDIR}/logs
 setenv COLDELIM		"&#&"
 setenv LINEDELIM	"\n"
 setenv CREATEDBY        1000
+
+setenv SCHEMADIR ${MGD_DBSCHEMADIR}
+setenv BCP_CMD "${MGI_DBUTILS}/bin/bcpin.csh ${MGD_DBSERVER} ${MGD_DBNAME}"
