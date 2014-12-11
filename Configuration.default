@@ -28,9 +28,31 @@ setenv MRKCACHEBCPDIR		${MRKCACHEDIR}/output
 # log directory
 setenv MRKCACHELOGDIR		${MRKCACHEDIR}/logs
 
-setenv COLDELIM		"&#&"
+#setenv COLDELIM                "&#&"
+setenv COLDELIM         "|"
 setenv LINEDELIM	"\n"
 setenv CREATEDBY        1000
 
 setenv SCHEMADIR ${MGD_DBSCHEMADIR}
 setenv BCP_CMD "${MGI_DBUTILS}/bin/bcpin.csh ${MGD_DBSERVER} ${MGD_DBNAME}"
+
+
+# Postgres specific config goes here
+if ( ${DB_TYPE} == "postgres" ) then
+
+    setenv SCHEMADIR ${PG_MGD_DBSCHEMADIR}
+    setenv BCP_CMD "${PG_DBUTILS}/bin/bcpin.csh ${PG_DBSERVER} ${PG_DBNAME}"
+
+    # directory
+    setenv MRKCACHEDIR          ${DATALOADSOUTPUT}/mgi/mrkcacheload/postgres
+
+    # input directory
+    setenv MRKCACHEINDIR                ${MRKCACHEDIR}/input
+
+    # bcp output directory
+    setenv MRKCACHEBCPDIR               ${MRKCACHEDIR}/output
+
+    # log directory
+    setenv MRKCACHELOGDIR               ${MRKCACHEDIR}/logs
+
+endif
