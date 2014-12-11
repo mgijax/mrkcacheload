@@ -166,8 +166,7 @@ def createBCPfile():
 
 	bcpFile.close()
 
-	if hasattr(db, 'commit'):
-		db.commit()
+	db.commit()
 
 #
 # Main Routine
