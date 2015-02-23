@@ -33,7 +33,7 @@ try:
        		db.setTrace()
        		db.setAutoTranslateBE()
 	else:
-       		import db
+     		import db
        		db.set_sqlLogFunction(db.sqlLogAll)
 
 except:
@@ -689,6 +689,9 @@ def processByMarker(mkrKey):
 	 	annotMadeList.append(ancKey)
 		#print 'insertCache(mkrKey: %s, ancKey: %s, directTerms: %s, INDIRECT)' % (mkrKey, ancKey, directTerms)
 		insertCache(mkrKey, ancKey, directTerms, INDIRECT)
+
+	db.commit()
+
 #
 # Main Routine
 #

@@ -28,7 +28,6 @@ setenv MRKCACHEBCPDIR		${MRKCACHEDIR}/output
 # log directory
 setenv MRKCACHELOGDIR		${MRKCACHEDIR}/logs
 
-#setenv COLDELIM                "&#&"
 setenv COLDELIM         "|"
 setenv LINEDELIM	"\n"
 setenv CREATEDBY        1000
