@@ -22,18 +22,33 @@ import sys
 import os
 import string
 import sets
-import db
 import mgi_utils
 
-COLDL = os.environ['COLDELIM']
+try:
+	if os.environ['DB_TYPE'] == 'postgres':
+		import pg_db
+       		db = pg_db
+       		db.setTrace()
+       		db.setAutoTranslateBE()
+	else:
+     		import db
+       		db.set_sqlLogFunction(db.sqlLogAll)
+
+except:
+    import db
+    db.set_sqlLogFunction(db.sqlLogAll)
+
+try:
+	table = os.environ['COUNT_TABLE']
+	outDir = os.environ['MRKCACHEBCPDIR']
+except:
+	table = 'MRK_MCV_Count_Cache'
+	outDir = './'
+
+COLDL = '|'
 LINEDL = '\n'
-table = os.environ['COUNT_TABLE']
-
 createdBy = os.environ['CREATEDBY']
-outDir = os.environ['MRKCACHEBCPDIR']
-
 countBCP = '%s/%s.bcp' % (outDir, table)
-
 date = mgi_utils.date("%m/%d/%Y")
 
 def createBCPfile():
