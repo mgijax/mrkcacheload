@@ -51,8 +51,6 @@ except:
 	outDir = './'
 	curatorLog = './mrkmcv.log'
 
-print COLDELIM, table, outDir, curatorLog
-
 # qualifier column values
 DIRECT='D'
 INDIRECT='I'
@@ -728,7 +726,7 @@ if server is None or \
     mkrKey is None:
 	showUsage()
 
-#db.set_sqlLogin(user, password, server, database)
+db.set_sqlLogin(user, password, server, database)
 db.useOneConnection(1)
 
 init(mkrKey)
