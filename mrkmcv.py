@@ -733,10 +733,12 @@ db.set_sqlLogin(user, password, server, database)
 db.useOneConnection(1)
 
 init(mkrKey)
+
 if mkrKey == 0:
     createBCPfile()
 else:
     processByMarker(mkrKey)
+
 db.useOneConnection(0)
 
 print '%s' % mgi_utils.date()
