@@ -27,25 +27,31 @@ import string
 import mgi_utils
 
 try:
-    COLDELIM = os.environ['COLDELIM']
-    table = os.environ['TABLE']
-    outDir = os.environ['MRKCACHEBCPDIR']
-    curatorLog = os.environ['CURATORLOG']
-    if os.environ['DB_TYPE'] == 'postgres':
-        import pg_db
-        db = pg_db
-        db.setTrace()
-        db.setAutoTranslateBE()
-    else:
-        import db
-        db.set_sqlLogFunction(db.sqlLogAll)
+	if os.environ['DB_TYPE'] == 'postgres':
+		import pg_db
+       		db = pg_db
+       		db.setTrace()
+       		db.setAutoTranslateBE()
+	else:
+       		import db
+       		db.set_sqlLogFunction(db.sqlLogAll)
+
 except:
     import db
     db.set_sqlLogFunction(db.sqlLogAll)
-    COLDELIM = '\t'
-    table = 'MRK_MCV_Cache'
-    outDir = './'
-    curatorLog = './mrkmcv.log'
+
+try:
+	COLDELIM = os.environ['COLDELIM']
+	table = os.environ['TABLE']
+	outDir = os.environ['MRKCACHEBCPDIR']
+	curatorLog = os.environ['CURATORLOG']
+except:
+	COLDELIM = '|'
+	table = 'MRK_MCV_Cache'
+	outDir = './'
+	curatorLog = './mrkmcv.log'
+
+print COLDELIM, table, outDir, curatorLog
 
 # qualifier column values
 DIRECT='D'
@@ -194,7 +200,7 @@ def init (mkrKey):
             and n._NoteType_key = 1001
             and n._Note_key = nc._Note_key''', None)
 
-    db.sql('''create index idx1 on #notes(_Object_key)''', None)
+    db.sql('''create index notes_idx1 on #notes(_Object_key)''', None)
 
     results = db.sql('''select t._Term_key, t.term, n.chunk
 	    from VOC_Term t left outer join
@@ -629,7 +635,8 @@ def processByMarker(mkrKey):
 	into #toprocess
 	from MRK_MCV_Cache
 	where _Marker_key = %s''' % mkrKey, 'auto')
-    db.sql('''create index idx1 on #toprocess(_Marker_key)''', None)
+
+    db.sql('''create index toprocess_idx1 on #toprocess(_Marker_key)''', None)
 
     #
     # delete existing cache records for this marker
@@ -721,7 +728,7 @@ if server is None or \
     mkrKey is None:
 	showUsage()
 
-db.set_sqlLogin(user, password, server, database)
+#db.set_sqlLogin(user, password, server, database)
 db.useOneConnection(1)
 
 init(mkrKey)
