@@ -32,17 +32,14 @@ setenv COLDELIM         "|"
 setenv LINEDELIM	"\n"
 setenv CREATEDBY        1000
 
-if ( ! $?DB_TYPE ) then
-    setenv DB_TYPE sybase
-endif
+if ( ${DB_TYPE} == "postgres" ) then
+
+setenv SCHEMADIR ${PG_MGD_DBSCHEMADIR}
+setenv BCP_CMD "${PG_DBUTILS}/bin/bcpin.csh ${PG_DBSERVER} ${PG_DBNAME}"
+
+else
 
 setenv SCHEMADIR ${MGD_DBSCHEMADIR}
 setenv BCP_CMD "${MGI_DBUTILS}/bin/bcpin.csh ${MGD_DBSERVER} ${MGD_DBNAME}"
-
-# Postgres specific config goes here
-if ( ${DB_TYPE} == "postgres" ) then
-
-    setenv SCHEMADIR ${PG_MGD_DBSCHEMADIR}
-    setenv BCP_CMD "${PG_DBUTILS}/bin/bcpin.csh ${PG_DBSERVER} ${PG_DBNAME}"
 
 endif
