@@ -291,7 +291,7 @@ def priority8():
 			MRK_Marker mm,
 			MRK_ClusterMember human,
 			MRK_Marker hm
-		where vt.term = 'HomoloGene'
+		where (vt.term = 'HomoloGene' or vt.term = 'HGNC')
 			and vt._Term_key = mc._ClusterSource_key
 			and mc._Cluster_key = mouse._Cluster_key
 			and mouse._Marker_key = mm._Marker_key
