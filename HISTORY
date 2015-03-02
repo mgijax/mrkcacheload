@@ -1,5 +1,11 @@
+TAG: mrkcacheload-5-2-1-3
+DATE: 03/02/2015
+STAFF: dbm
+CHANGES:
+1) Configuration.default: Don't set DB_TYPE -- done in mgiconfig
+
 TAG: mrkcacheload-5-2-1-2
-DATE: 02/23/2014
+DATE: 02/23/2015
 STAFF: lec
 CHANGES: TR11750
 a) mrkmcv.py : changes for PG; try/except blocks
