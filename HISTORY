@@ -1,3 +1,9 @@
+TAG: mrkcacheload-tr11886-BP
+DATE: 04/10/2015
+STAFF: sc
+CHANGES: MandM US116 - Update marker omim cache to use hybrid homology
+    rather than obsolete HMD tables
+
 TAG: mrkcacheload-5-2-1-3
 DATE: 03/02/2015
 STAFF: dbm
