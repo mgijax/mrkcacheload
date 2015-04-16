@@ -17,8 +17,9 @@
 #
 # Processing:
 #
-#	1. Select all unique Marker/Reference pairs from the other parts of the database.
-#	   These are references that are inferred from mapping, expression, etc. curation.
+#	1. Select all unique Marker/Reference pairs from the other parts of 
+#	   the database. These are references that are inferred from mapping, 
+#	   expression, etc. curation.
 #
 #	2. Select all records from MGI_Reference_Assoc.  These are refereneces
 #	   that have been explicitly curated by MGI staff.
@@ -27,6 +28,10 @@
 #
 # History
 #
+# 04/15/2015 	sc
+#	- removed orthology refs - used old HMD_* tables (#temp3)
+#	- HMD had already been removed from MRK_reloadReference SP
+#	
 # 12/08/2005	lec
 #	- added jnumID, pubmedID, mgiID and jnum to MRK_Reference
 #
@@ -150,24 +155,6 @@ def createBCPfile(markerKey):
 	db.sql('create index idx2 on #temp1(_Refs_key)', None)
 
 	#
-	# Orthology
-	#
-
-	cmd = 'select distinct m._Marker_key, h._Refs_key ' + \
-		'into #temp3 ' + \
-		'from MRK_Marker m, HMD_Homology_Marker hm, HMD_Homology h ' + \
-		'where m._Organism_key = 1 and ' + \
-		'm._Marker_key = hm._Marker_key and ' + \
-		'hm._Homology_key = h._Homology_key '
-
-	if markerKey is not None:
-		cmd = cmd + 'and hm._Marker_key = %s' % markerKey
-
-	db.sql(cmd, None)
-	db.sql('create index idx3 on #temp3(_Marker_key)', None)
-	db.sql('create index idx4 on #temp3(_Refs_key)', None)
-
-	#
 	# Marker History
 
 	cmd = 'select distinct h._Marker_key, h._Refs_key ' + \
@@ -248,7 +235,8 @@ def createBCPfile(markerKey):
 	db.sql('create index idx12 on #temp8(_Refs_key)', None)
 
 	#
-	#  Note that this also handles Sequence/Reference associations, indirectly.
+	#  Note that this also handles Sequence/Reference associations
+	#  indirectly.
 	#
 
 	cmd = 'select distinct _Marker_key = a._Object_key, ar._Refs_key ' + \
@@ -323,7 +311,6 @@ def createBCPfile(markerKey):
 	#
 
 	db.sql('select _Marker_key, _Refs_key into #refs from #temp1 ' + \
-		'union select _Marker_key, _Refs_key from #temp3 ' + \
 		'union select _Marker_key, _Refs_key from #temp4 ' + \
 		'union select _Marker_key, _Refs_key from #temp5 ' + \
 		'union select _Marker_key, _Refs_key from #temp6 ' + \

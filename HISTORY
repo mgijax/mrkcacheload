@@ -1,3 +1,9 @@
+TAG: mrkcacheload-tr11886-3
+DATE: 04/16/2015
+STAFF: sc
+CHANGES: TR11886 HMD table epic
+1) mrkref.py - removed homology query to the HMD_* tables
+
 TAG: mrkcacheload-tr11886-2
 DATE: 04/10/2015
 STAFF: sc
