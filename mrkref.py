@@ -28,8 +28,10 @@
 #
 # History
 #
-# removed orthology query (temp3)
-#
+# 04/15/2015 	sc
+#	- removed orthology refs - used old HMD_* tables (#temp3)
+#	- HMD had already been removed from MRK_reloadReference SP
+#	
 # 12/08/2005	lec
 #	- added jnumID, pubmedID, mgiID and jnum to MRK_Reference
 #
@@ -233,7 +235,8 @@ def createBCPfile(markerKey):
 	db.sql('create index idx12 on #temp8(_Refs_key)', None)
 
 	#
-	#  Note that this also handles Sequence/Reference associations, indirectly.
+	#  Note that this also handles Sequence/Reference associations
+	#  indirectly.
 	#
 
 	cmd = 'select distinct _Marker_key = a._Object_key, ar._Refs_key ' + \

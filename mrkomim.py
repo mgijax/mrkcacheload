@@ -39,6 +39,10 @@
 #
 # History
 #
+# 04/10/2015	sc
+#	TR11886 - MandM project update to Use Hybrid Homology (MRK_Cluster* tables) rather than obsolete
+#	HMD_* tables
+#
 # 12/11/2012	lec/kstone
 #	- TR10273
 #	deriveDiseaseAssociatedGenes()
@@ -544,20 +548,22 @@ def selectMouse():
 	#
 	# resolve human ortholog
 	#
-	db.sql('select distinct o._Marker_key, orthologKey = h2._Marker_key, orthologSymbol = m2.symbol ' + \
-		'into #ortholog ' + \
-        	'from #omimmouse1 o, HMD_Homology r1, HMD_Homology_Marker h1, ' + \
-        	'HMD_Homology r2, HMD_Homology_Marker h2, ' + \
-        	'MRK_Marker m2 ' + \
-        	'where o._Marker_key = h1._Marker_key ' + \
-        	'and h1._Homology_key = r1._Homology_key ' + \
-        	'and r1._Class_key = r2._Class_key ' + \
-        	'and r2._Homology_key = h2._Homology_key ' + \
-        	'and h2._Marker_key = m2._Marker_key ' + \
-        	'and m2._Organism_key = %s' % (humanOrganismKey), None)
-	db.sql('create index idx7 on #ortholog(_Marker_key)', None)
+	db.sql('''select distinct o._Marker_key, cm2._Marker_key as orthologKey,  
+		    m2.symbol as orthologSymbol
+                into #orthologHuman
+                from #omimmouse1 o, MRK_Cluster c1, MRK_ClusterMember cm1, MRK_Cluster c2, 
+		    MRK_ClusterMember cm2, MRK_Marker m2 
+                where o._Marker_key = cm1._Marker_key
+                and cm1._Cluster_key = c1._Cluster_key
+                and c1._ClusterType_key = 9272150
+                and c1._ClusterSource_key = 13764519
+                and c1._Cluster_key = c2._Cluster_key
+                and c2._Cluster_key = cm2._Cluster_key
+                and cm2._Marker_key = m2._Marker_key 
+                and m2._Organism_key = %s''' % (humanOrganismKey), None)
+	db.sql('create index idx7 on #orthologHuman(_Marker_key)', None)
 
-	results = db.sql('select * from #ortholog', 'auto')
+	results = db.sql('select * from #orthologHuman', 'auto')
 	for r in results:
 	    key = r['_Marker_key']
 	    value = r
@@ -567,7 +573,7 @@ def selectMouse():
 	# resolve genotype-to-orthologs
 	#
         results = db.sql('select distinct g._Genotype_key, o.orthologKey, o.orthologSymbol ' + \
-		'from #omimmouse1 g, #ortholog o ' + \
+		'from #omimmouse1 g, #orthologHuman o ' + \
 		'where g._Marker_key = o._Marker_key', 'auto')
 	for r in results:
 	    key = r['_Genotype_key']
@@ -813,7 +819,7 @@ def selectHuman(byOrtholog = 0):
 	    db.sql('select _Marker_key = a._Object_key, termID = ac.accID, ' + \
 		    'a._Term_key, t.term, qualifier = q.term, a._Qualifier_key, e._Refs_key ' + \
 		    'into #omimhuman1 ' + \
-		    'from #ortholog o, VOC_Annot a, VOC_Evidence e, VOC_Term t, ACC_Accession ac, VOC_Term q ' + \
+		    'from #orthologHuman o, VOC_Annot a, VOC_Evidence e, VOC_Term t, ACC_Accession ac, VOC_Term q ' + \
 		    'where a._AnnotType_key = %s ' % (humanOMIMannotationKey) + \
 		    'and a._Qualifier_key = q._Term_key ' + \
 		    'and a._Object_key = o.orthologKey ' + \
@@ -899,16 +905,19 @@ def selectHuman(byOrtholog = 0):
 	#
 	# resolve mouse ortholog
 	#
-	results = db.sql('select distinct o._Marker_key, orthologKey = h2._Marker_key, orthologSymbol = m2.symbol ' + \
-        	'from #omimhuman1 o, HMD_Homology r1, HMD_Homology_Marker h1, ' + \
-        	'HMD_Homology r2, HMD_Homology_Marker h2, ' + \
-        	'MRK_Marker m2 ' + \
-        	'where o._Marker_key = h1._Marker_key ' + \
-        	'and h1._Homology_key = r1._Homology_key ' + \
-        	'and r1._Class_key = r2._Class_key ' + \
-        	'and r2._Homology_key = h2._Homology_key ' + \
-        	'and h2._Marker_key = m2._Marker_key ' + \
-        	'and m2._Organism_key = %s' % (mouseOrganismKey), 'auto')
+        results = db.sql('''select distinct o._Marker_key, cm2._Marker_key as orthologKey,
+                    m2.symbol as orthologSymbol
+                from #omimmouse1 o, MRK_Cluster c1, MRK_ClusterMember cm1, MRK_Cluster c2,
+                    MRK_ClusterMember cm2, MRK_Marker m2
+                where o._Marker_key = cm1._Marker_key
+                and cm1._Cluster_key = c1._Cluster_key
+                and c1._ClusterType_key = 9272150
+                and c1._ClusterSource_key = 13764519
+                and c1._Cluster_key = c2._Cluster_key
+                and c2._Cluster_key = cm2._Cluster_key
+                and cm2._Marker_key = m2._Marker_key
+                and m2._Organism_key = %s''' % (mouseOrganismKey), 'auto')
+
 	for r in results:
 	    key = r['_Marker_key']
 	    value = r
