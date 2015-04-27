@@ -1,8 +1,9 @@
+TAG: mrkcacheload-5-2-2-3
 TAG: mrkcacheload-5-2-2-2
 DATE: 04/27/2015
 STAFF: lec
 CHANGES: 
-1) TR11999/mrklabel.csh : change column delimiter because some MRK_Marker.symbol non-mouse symbols contain pipe ("|")
+1) TR11999/mrklabel.py; change MRK_Marker.symbol pipe("|") to 
 
 TAG: mrkcacheload-5-2-2-1
 DATE: 04/24/2015

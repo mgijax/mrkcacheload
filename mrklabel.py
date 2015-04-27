@@ -15,6 +15,9 @@
 #
 # History
 #
+# 04/27/2015	lec
+#	- TR11999/newLabel = r['label'].replace('|', '#')
+#
 # 01/15/2013 - jsb - updated to use HomoloGene classes as the source for
 #	homology data, rather than the old 1-1 homology tables
 #
@@ -128,13 +131,16 @@ def writeRecord(results, labelStatusKey, priority, labelType, labelTypeName):
 
 	if originalLTN is None:
 	    labelTypeName = r['labelTypeName']
+
+	newLabel = r['label'].replace('|', '#')
+
         outBCP.write(mgi_utils.prvalue(labelKey) + BCPDL + \
                 mgi_utils.prvalue(r['_Marker_key']) + BCPDL + \
         	mgi_utils.prvalue(labelStatusKey) + BCPDL + \
         	mgi_utils.prvalue(r['_Organism_key']) + BCPDL + \
         	mgi_utils.prvalue(r['_OrthologOrganism_key']) + BCPDL + \
         	mgi_utils.prvalue(priority) + BCPDL + \
-        	mgi_utils.prvalue(r['label']) + BCPDL + \
+        	mgi_utils.prvalue(newLabel) + BCPDL + \
         	mgi_utils.prvalue(labelType) + BCPDL + \
         	mgi_utils.prvalue(labelTypeName) + BCPDL + \
         	cdate + BCPDL + \
