@@ -12,6 +12,9 @@ cd `dirname $0` && source ./Configuration
 
 setenv TABLE MRK_Label
 
+# change this because some MRK_Marker.symbol non-mouse symbols contain pipe ("|")
+setenv COLDELIM         "^"
+
 setenv LOG	${MRKCACHELOGDIR}/`basename $0 .csh`.log
 rm -rf $LOG
 touch $LOG
