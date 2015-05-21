@@ -10,6 +10,6 @@ end
 
 echo "Performing test"
 # mrk_label has more records in postgres due to distinct on case (this is ok)
-python ${MGD_DBUTILS}/bin/comparePostgresTable.py -c mrk_location_cache mrk_mcv_cache mrk_mcv_count_cache mrk_reference prb_marker 
+python ${MGI_DBUTILS}/bin/comparePostgresTable.py -c mrk_location_cache mrk_mcv_cache mrk_mcv_count_cache mrk_reference prb_marker 
 
 echo "Tests successful"
