@@ -38,5 +38,3 @@ ln -s mrkomim.py mrkomimByAllele.py
 ln -s mrkomim.py mrkomimByMarker.py
 ln -s mrkomim.py mrkomimByGenotype.py
 
-ln -s mrkhomology.py mrkhomologyByClass.py
-
