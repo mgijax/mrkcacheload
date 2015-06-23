@@ -31,11 +31,7 @@ touch ${CACHELOG}
 date | tee -a ${CACHELOG}
 
 # Create  bcp file
-if ( ${DB_TYPE} == "postgres" ) then
-./mrkmcv.py -S${PG_DBSERVER} -D${PG_DBNAME} -U${PG_DBUSER} -P${PG_1LINE_PASSFILE} -K${MARKERKEY} | tee -a ${CACHELOG}
-else
 ./mrkmcv.py -S${MGD_DBSERVER} -D${MGD_DBNAME} -U${MGD_DBUSER} -P${MGD_DBPASSWORDFILE} -K${MARKERKEY} | tee -a ${CACHELOG}
-endif
 
 # Exit if bcp file is empty
 

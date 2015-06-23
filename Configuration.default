@@ -32,14 +32,14 @@ setenv COLDELIM         "|"
 setenv LINEDELIM	"\n"
 setenv CREATEDBY        1000
 
+setenv SCHEMADIR ${MGD_DBSCHEMADIR}
+
 if ( ${DB_TYPE} == "postgres" ) then
 
-setenv SCHEMADIR ${PG_MGD_DBSCHEMADIR}
-setenv BCP_CMD "${PG_DBUTILS}/bin/bcpin.csh ${PG_DBSERVER} ${PG_DBNAME}"
+setenv BCP_CMD "${PG_DBUTILS}/bin/bcpin.csh ${MGD_DBSERVER} ${MGD_DBNAME}"
 
 else
 
-setenv SCHEMADIR ${MGD_DBSCHEMADIR}
 setenv BCP_CMD "${MGI_DBUTILS}/bin/bcpin.csh ${MGD_DBSERVER} ${MGD_DBNAME}"
 
 endif

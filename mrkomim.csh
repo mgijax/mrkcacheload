@@ -21,11 +21,7 @@ date | tee -a ${LOG}
 
 # Create the bcp file
 setenv COLDELIM '\t'
-if ( ${DB_TYPE} == "postgres" ) then
-./mrkomim.py -S${PG_DBSERVER} -D${PG_DBNAME} -U${PG_DBUSER} -P${PG_1LINE_PASSFILE} -K${OBJECTKEY} | tee -a ${LOG}
-else
 ./mrkomim.py -S${MGD_DBSERVER} -D${MGD_DBNAME} -U${MGD_DBUSER} -P${MGD_DBPASSWORDFILE} -K${OBJECTKEY} | tee -a ${LOG}
-endif
 
 if ( -z ${MRKCACHEBCPDIR}/${TABLE}.bcp ) then
 echo 'BCP File is empty' | tee -a ${LOG}
