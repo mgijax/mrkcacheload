@@ -23,20 +23,11 @@ import os
 import string
 import sets
 import mgi_utils
+import db
 
-try:
-	if os.environ['DB_TYPE'] == 'postgres':
-		import pg_db
-       		db = pg_db
-       		db.setTrace()
-       		db.setAutoTranslateBE()
-	else:
-     		import db
-       		db.set_sqlLogFunction(db.sqlLogAll)
-
-except:
-    import db
-    db.set_sqlLogFunction(db.sqlLogAll)
+db.setTrace()
+db.setAutoTranslate(False)
+db.setAutoTranslateBE(False)
 
 try:
 	table = os.environ['COUNT_TABLE']
@@ -61,13 +52,13 @@ def createBCPfile():
     print 'Creating %s ...' % countBCP
     countFp = open(countBCP, 'w')
     db.sql('''select distinct _MCVTerm_key, count(_MCVTerm_key) as mkrCt
-	into #mkrCt
+	INTO TEMPORARY TABLE mkrCt
 	from MRK_MCV_Cache
 	group by _MCVTerm_key''', None)
     # must be distinct or dups will be returned where there are both
     # SO and MCV ids associated with a term
     results = db.sql('''select distinct v.term, m.*
-	from VOC_Term v, ACC_Accession a, #mkrCt m
+	from VOC_Term v, ACC_Accession a, mkrCt m
 	where m._MCVTerm_key = v._Term_key
 	and v._Term_key = a._Object_key
 	and a._MGIType_key = 13

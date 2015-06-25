@@ -39,26 +39,19 @@
 import sys
 import os
 import mgi_utils
+import db
 
 try:
     COLDL = os.environ['COLDELIM']
     LINEDL = '\n'
     table = os.environ['TABLE']
     outDir = os.environ['MRKCACHEBCPDIR']
-
-    if os.environ['DB_TYPE'] == 'postgres':
-        import pg_db
-        db = pg_db
-        db.setTrace()
-        db.setAutoTranslateBE()
-    else:
-        import db
-	db.set_sqlLogFunction(db.sqlLogAll)
-
 except:
-    import db
-    db.set_sqlLogFunction(db.sqlLogAll)
     table = 'MRK_Location_Cache'
+
+db.setTrace()
+db.setAutoTranslate(False)
+db.setAutoTranslateBE(False)
 
 cdate = mgi_utils.date("%m/%d/%Y")
 createdBy = '1000'
@@ -82,7 +75,7 @@ def createBCPfile(markerKey):
 
 	db.sql('''select m._Marker_key, m._Marker_Type_key, m._Organism_key, m.symbol, 
 		  m.chromosome, m.cytogeneticOffset, o.offset, c.sequenceNum
-		into #markers
+		INTO TEMPORARY TABLE markers
 		from MRK_Marker m 
 			INNER JOIN MRK_Chromosome c on (
 				m._Organism_key = c._Organism_key
@@ -93,7 +86,7 @@ def createBCPfile(markerKey):
 		where m._Organism_key in (1,2)
 		''', None)
 
-	db.sql('create index idx1 on #markers(_Marker_key)', None)
+	db.sql('create index idx1 on markers(_Marker_key)', None)
 	#
 	# the coordinate lookup should contain only one marker coordinate.
 	#
@@ -115,7 +108,7 @@ def createBCPfile(markerKey):
 
 	results = db.sql('select m._Marker_key, f.startCoordinate, f.endCoordinate, f.strand, ' + \
 		'u.term as mapUnits, c.abbreviation as provider, cc.version, chrom.chromosome as genomicChromosome ' + \
-		'from #markers m, MAP_Coord_Collection c, MAP_Coordinate cc, MAP_Coord_Feature f, VOC_Term u, MRK_Chromosome chrom ' + \
+		'from markers m, MAP_Coord_Collection c, MAP_Coordinate cc, MAP_Coord_Feature f, VOC_Term u, MRK_Chromosome chrom ' + \
 		'where m._Marker_key = f._Object_key ' + \
 		'and f._MGIType_key = 2 ' + \
 		'and f._Map_key = cc._Map_key ' + \
@@ -136,7 +129,7 @@ def createBCPfile(markerKey):
 
 	results = db.sql('''select m.symbol, m._Marker_key, c.startCoordinate, 
 			c.endCoordinate, c.strand, c.mapUnits, mcc.abbreviation as provider, c.version, c.chromosome as genomicChromosome
-                from #markers m, SEQ_Marker_Cache mc, SEQ_Coord_Cache c, 
+                from markers m, SEQ_Marker_Cache mc, SEQ_Coord_Cache c, 
 		    MAP_Coord_Feature mcf, MAP_Coordinate map, MAP_Coord_Collection mcc, 
 		    MRK_Marker mm
                 where m._Marker_key = mc._Marker_key
@@ -160,7 +153,7 @@ def createBCPfile(markerKey):
 
 	nextMaxKey = 0
 
-	results = db.sql('select * from #markers order by _Marker_key', 'auto')
+	results = db.sql('select * from markers order by _Marker_key', 'auto')
 	for r in results:
 
 	    key = r['_Marker_key']

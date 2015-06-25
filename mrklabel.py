@@ -68,23 +68,18 @@
 import sys
 import os
 import mgi_utils
+import db
 
 try:
     BCPDL = os.environ['COLDELIM']
     table = os.environ['TABLE']
     outDir = os.environ['MRKCACHEBCPDIR']
-    if os.environ['DB_TYPE'] == 'postgres':
-        import pg_db
-        db = pg_db
-        db.setTrace()
-        db.setAutoTranslateBE()
-    else:
-        import db
-        db.set_sqlLogFunction(db.sqlLogAll)
 except:
-    import db
-    db.set_sqlLogFunction(db.sqlLogAll)
     table = 'MRK_Label'
+
+db.setTrace()
+db.setAutoTranslate(False)
+db.setAutoTranslateBE(False)
 
 NL = '\n'
 labelKey = 1
@@ -208,7 +203,7 @@ def priority4():
 	cmd = 'select distinct a._Marker_key, m._Organism_key, null as _OrthologOrganism_key , a.name as label ' + \
 		'from ALL_Allele a, MRK_Marker m ' + \
 		'where a._Marker_key = m._Marker_key ' + \
-		'and a.name != "wild type" ' + \
+		'and a.name != \'wild type\' ' + \
 		'and m._Organism_key = 1 '
 
 	if markerKey is not None:
@@ -259,11 +254,11 @@ def priority7():
 
         print 'processing priority 7...%s' % mgi_utils.date()
 
-	cmd = 'select distinct _Marker_key = s._Object_key, st._Organism_key, null as _OrthologOrganism_key , s.synonym as label ' + \
+	cmd = 'select distinct s._Object_key as _Marker_key, st._Organism_key, null as _OrthologOrganism_key , s.synonym as label ' + \
 		'from MGI_SynonymType st, MGI_Synonym s ' + \
 		'where st._MGIType_key = 2 ' + \
 		'and st._Organism_key = 1 ' + \
-		'and st.synonymType = "exact" ' + \
+		'and st.synonymType = \'exact\' ' + \
 		'and st._SynonymType_key = s._SynonymType_key '
 
 	if markerKey is not None:
@@ -290,7 +285,7 @@ def priority8():
 			human._Marker_key as m2,
 			mm._Organism_key,
 			hm._Organism_key as _OrthologOrganism_key
-		into #orthology1
+		INTO TEMPORARY TABLE orthology1
 		from VOC_Term vt,
 			MRK_Cluster mc,
 			MRK_ClusterMember mouse,
@@ -311,13 +306,13 @@ def priority8():
 		cmd = cmd + 'and mm._Marker_key = %s\n' % markerKey
 
 	db.sql(cmd, None)
-	db.sql('create index idx3 on #orthology1(m2)', None)
-	db.sql('create index idx4 on #orthology1(_OrthologOrganism_key)', None)
+	db.sql('create index idx3 on orthology1(m2)', None)
+	db.sql('create index idx4 on orthology1(_OrthologOrganism_key)', None)
 
 	# human synonym
 
-	cmd = 'select distinct o._Marker_key, o._Organism_key, o._OrthologOrganism_key, label = s.synonym ' + \
-		'from #orthology1 o, MGI_SynonymType st, MGI_Synonym s ' + \
+	cmd = 'select distinct o._Marker_key, o._Organism_key, o._OrthologOrganism_key, s.synonym as label ' + \
+		'from orthology1 o, MGI_SynonymType st, MGI_Synonym s ' + \
 		'where st._MGIType_key = 2 ' + \
 		'and st._Organism_key = o._OrthologOrganism_key ' + \
 		'and st._SynonymType_key = s._SynonymType_key ' + \
@@ -347,7 +342,7 @@ def priority9():
 			human._Marker_key as m2,
 			mm._Organism_key,
 			hm._Organism_key as _OrthologOrganism_key
-		into #orthology2
+		INTO TEMPORARY TABLE orthology2
 		from VOC_Term vt,
 			MRK_Cluster mc,
 			MRK_ClusterMember mouse,
@@ -368,13 +363,13 @@ def priority9():
 		cmd = cmd + 'and mm._Marker_key = %s\n' % markerKey
 
 	db.sql(cmd, None)
-	db.sql('create index idx5 on #orthology2(m2)', None)
-	db.sql('create index idx6 on #orthology2(_OrthologOrganism_key)', None)
+	db.sql('create index idx5 on orthology2(m2)', None)
+	db.sql('create index idx6 on orthology2(_OrthologOrganism_key)', None)
 
 	# rat synonym
 
-	cmd = 'select distinct o._Marker_key, o._Organism_key, o._OrthologOrganism_key, label = s.synonym ' + \
-		'from #orthology2 o, MGI_SynonymType st, MGI_Synonym s ' + \
+	cmd = 'select distinct o._Marker_key, o._Organism_key, o._OrthologOrganism_key, s.synonym as label ' + \
+		'from orthology2 o, MGI_SynonymType st, MGI_Synonym s ' + \
 		'where st._MGIType_key = 2 ' + \
 		'and st._Organism_key = o._OrthologOrganism_key ' + \
 		'and st._SynonymType_key = s._SynonymType_key ' + \
@@ -391,11 +386,11 @@ def priority10():
 
         print 'processing priority 10...%s' % mgi_utils.date()
 
-	cmd = 'select distinct _Marker_key = s._Object_key, st._Organism_key, null as  _OrthologOrganism_key, s.synonym as label ' + \
+	cmd = 'select distinct s._Object_key as _Marker_key, st._Organism_key, null as  _OrthologOrganism_key, s.synonym as label ' + \
 		'from MGI_SynonymType st, MGI_Synonym s ' + \
 		'where st._MGIType_key = 2 ' + \
 		'and st._Organism_key = 1 ' + \
-		'and st.synonymType in ("similar", "broad", "narrow") ' + \
+		'and st.synonymType in (\'similar\', \'broad\', \'narrow\') ' + \
 		'and st._SynonymType_key = s._SynonymType_key '
 
 	if markerKey is not None:
@@ -409,8 +404,8 @@ def priority11():
 
         print 'processing priority 11...%s' % mgi_utils.date()
 
-	cmd = 'select o.*, label = m.symbol, s.commonName + " symbol" as labelTypeName ' + \
-		'from #orthology1 o, MRK_Marker m, MGI_Organism s ' + \
+	cmd = 'select o.*, m.symbol as label, s.commonName || \' symbol\' as labelTypeName ' + \
+		'from orthology1 o, MRK_Marker m, MGI_Organism s ' + \
 		'where o.m2 = m._Marker_key ' + \
 		'and o._OrthologOrganism_key = s._Organism_key '
 
@@ -430,8 +425,8 @@ def priority12():
 
         print 'processing priority 12...%s' % mgi_utils.date()
 
-	cmd = 'select o.*, label = m.name, s.commonName + " name" as labelTypeName ' + \
-		'from #orthology1 o, MRK_Marker m, MGI_Organism s ' + \
+	cmd = 'select o.*, m.name as label, s.commonName || \' name\' as labelTypeName ' + \
+		'from orthology1 o, MRK_Marker m, MGI_Organism s ' + \
 		'where o.m2 = m._Marker_key ' + \
 		'and o._OrthologOrganism_key = s._Organism_key '
 
@@ -451,8 +446,8 @@ def priority13():
 
         print 'processing priority 13...%s' % mgi_utils.date()
 
-	cmd = 'select o.*, label = m.symbol, s.commonName + " symbol" as labelTypeName ' + \
-		'from #orthology2 o, MRK_Marker m, MGI_Organism s ' + \
+	cmd = 'select o.*, m.symbol as label, s.commonName || \' symbol\' as labelTypeName ' + \
+		'from orthology2 o, MRK_Marker m, MGI_Organism s ' + \
 		'where o.m2 = m._Marker_key ' + \
 		'and o._OrthologOrganism_key = s._Organism_key '
 
@@ -493,7 +488,7 @@ def priority14():
 			human._Marker_key as m2,
 			mm._Organism_key,
 			hm._Organism_key as _OrthologOrganism_key
-		into #orthology3
+		INTO TEMPORARY TABLE orthology3
 		from VOC_Term vt,
 			MRK_Cluster mc,
 			MRK_ClusterMember mouse,
@@ -514,11 +509,11 @@ def priority14():
 		cmd = cmd + 'and mm._Marker_key = %s\n' % markerKey
 
 	db.sql(cmd, None)
-	db.sql('create index idx1 on #orthology3(m2)', None)
-	db.sql('create index idx2 on #orthology3(_OrthologOrganism_key)', None)
+	db.sql('create index idx1 on orthology3(m2)', None)
+	db.sql('create index idx2 on orthology3(_OrthologOrganism_key)', None)
 
-	cmd = 'select o.*, label = m.symbol, s.commonName + " symbol" as labelTypeName ' + \
-		'from #orthology3 o, MRK_Marker m, MGI_Organism s ' + \
+	cmd = 'select o.*, m.symbol as label, s.commonName || \' symbol\' as labelTypeName ' + \
+		'from orthology3 o, MRK_Marker m, MGI_Organism s ' + \
 		'where o.m2 = m._Marker_key ' + \
 		'and o._OrthologOrganism_key = s._Organism_key '
 

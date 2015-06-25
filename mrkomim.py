@@ -69,26 +69,21 @@ import getopt
 import string
 import re
 import mgi_utils
+import db
 
 try:
     COLDL = os.environ['COLDELIM']
     COLDL = COLDL.decode("string_escape")
     table = os.environ['TABLE']
     outDir = os.environ['MRKCACHEBCPDIR']
-    if os.environ['DB_TYPE'] == 'postgres':
-        import pg_db
-        db = pg_db
-        db.setTrace()
-        db.setAutoTranslateBE()
-    else:
-        import db
-        db.set_sqlLogFunction(db.sqlLogAll)
 except:
-    import db
-    db.set_sqlLogFunction(db.sqlLogAll)
     COLDL = '\t'
     table = 'MRK_OMIM_Cache'
     outDir = './'
+
+db.setTrace()
+db.setAutoTranslate(False)
+db.setAutoTranslateBE(False)
 
 LINEDL = '\n'
 
@@ -448,37 +443,37 @@ def selectMouse():
 
 	global humanOrtholog, mouseToOMIM, genotypeDisplay, genotypeOrtholog, mouseIsNot
 
-	db.sql('create index idx1 on #omimmouse1(_Marker_key)', None)
-	db.sql('create index idx2 on #omimmouse1(_Allele_key)', None)
+	db.sql('create index idx1 on omimmouse1(_Marker_key)', None)
+	db.sql('create index idx2 on omimmouse1(_Allele_key)', None)
 
 	#
 	# resolve marker symbol
 	#
-	db.sql('select o.*, m._Organism_key, markerSymbol = m.symbol, m._Marker_Type_key, alleleSymbol = a.symbol ' + \
-		'into #omimmouse2 ' + \
-		'from #omimmouse1 o, MRK_Marker m, ALL_Allele a ' + \
+	db.sql('select o.*, m._Organism_key, m.symbol as markerSymbol, m._Marker_Type_key, a.symbol as alleleSymbol ' + \
+		'INTO TEMPORARY TABLE omimmouse2 ' + \
+		'from omimmouse1 o, MRK_Marker m, ALL_Allele a ' + \
 		'where o._Marker_key = m._Marker_key ' + \
 		'and o._Allele_key = a._Allele_key', None)
-	db.sql('create index idx3 on #omimmouse2(_Marker_key)', None)
+	db.sql('create index idx3 on omimmouse2(_Marker_key)', None)
 
 	#
 	# resolve OMIM term and ID
 	#
-	db.sql('select o.*, t.term, termID = a.accID ' + \
-		'into #omimmouse3 ' + \
-		'from #omimmouse2 o, VOC_Term t, ACC_Accession a ' + \
+	db.sql('select o.*, t.term, a.accID as termID ' + \
+		'INTO TEMPORARY TABLE omimmouse3 ' + \
+		'from omimmouse2 o, VOC_Term t, ACC_Accession a ' + \
 		'where o._Term_key = t._Term_key ' + \
 		'and o._Term_key = a._Object_key ' + \
 		'and a._MGIType_key = 13 ' + \
 		'and a.preferred = 1', None)
-	db.sql('create index idx4 on #omimmouse3(_Refs_key)', None)
+	db.sql('create index idx4 on omimmouse3(_Refs_key)', None)
 
 	#
 	# cache all terms annotated to mouse markers
 	#
 	mouseIs = {}
 	results = db.sql('select distinct o._Marker_key, o.termID, o.qualifier, o._Qualifier_key ' + \
-	     'from #omimmouse3 o order by o._Marker_key, o.termID, o.qualifier', 'auto')
+	     'from omimmouse3 o order by o._Marker_key, o.termID, o.qualifier', 'auto')
 
 	for r in results:
 
@@ -510,30 +505,30 @@ def selectMouse():
 	#
 	# resolve Jnumber
 	#
-	db.sql('select o.*, jnumID = a.accID ' + \
-		'into #omimmouse4 ' + \
-		'from #omimmouse3 o, ACC_Accession a ' + \
+	db.sql('select o.*, a.accID as jnumID ' + \
+		'INTO TEMPORARY TABLE omimmouse4 ' + \
+		'from omimmouse3 o, ACC_Accession a ' + \
 		'where o._Refs_key = a._Object_key ' + \
 		'and a._MGIType_key = 1 ' + \
 		'and a._LogicalDB_key = 1 ' + \
-		'and a.prefixPart = "J:" ' + \
+		'and a.prefixPart = \'J:\' ' + \
 		'and a.preferred = 1', None)
-	db.sql('create index idx5 on #omimmouse4(_Genotype_key)', None)
+	db.sql('create index idx5 on omimmouse4(_Genotype_key)', None)
 
 	#
 	# resolve genotype Strain
 	#
 	db.sql('select o.*, s.strain ' + \
-		'into #omimmouse5 ' + \
-		'from #omimmouse4 o, GXD_Genotype g, PRB_Strain s ' + \
+		'INTO TEMPORARY TABLE omimmouse5 ' + \
+		'from omimmouse4 o, GXD_Genotype g, PRB_Strain s ' + \
 		'where o._Genotype_key = g._Genotype_key ' + \
 		'and g._Strain_key = s._Strain_key', None)
-	db.sql('create index idx6 on #omimmouse5(_Allele_key)', None)
+	db.sql('create index idx6 on omimmouse5(_Allele_key)', None)
 
 	#
 	# resolve genotype display
 	#
-	results = db.sql('select distinct o._Genotype_key, rtrim(nc.note) as note, nc.sequencenum from #omimmouse1 o, MGI_Note n, MGI_NoteChunk nc ' + \
+	results = db.sql('select distinct o._Genotype_key, rtrim(nc.note) as note, nc.sequencenum from omimmouse1 o, MGI_Note n, MGI_NoteChunk nc ' + \
 		'where o._Genotype_key = n._Object_key ' + \
 		'and n._NoteType_key = 1018 ' + \
 		'and n._Note_key = nc._Note_key ' + \
@@ -550,8 +545,8 @@ def selectMouse():
 	#
 	db.sql('''select distinct o._Marker_key, cm2._Marker_key as orthologKey,  
 		    m2.symbol as orthologSymbol
-                into #orthologHuman
-                from #omimmouse1 o, MRK_Cluster c1, MRK_ClusterMember cm1, MRK_Cluster c2, 
+                INTO TEMPORARY TABLE orthologHuman
+                from omimmouse1 o, MRK_Cluster c1, MRK_ClusterMember cm1, MRK_Cluster c2, 
 		    MRK_ClusterMember cm2, MRK_Marker m2 
                 where o._Marker_key = cm1._Marker_key
                 and cm1._Cluster_key = c1._Cluster_key
@@ -561,9 +556,9 @@ def selectMouse():
                 and c2._Cluster_key = cm2._Cluster_key
                 and cm2._Marker_key = m2._Marker_key 
                 and m2._Organism_key = %s''' % (humanOrganismKey), None)
-	db.sql('create index idx7 on #orthologHuman(_Marker_key)', None)
+	db.sql('create index idx7 on orthologHuman(_Marker_key)', None)
 
-	results = db.sql('select * from #orthologHuman', 'auto')
+	results = db.sql('select * from orthologHuman', 'auto')
 	for r in results:
 	    key = r['_Marker_key']
 	    value = r
@@ -573,7 +568,7 @@ def selectMouse():
 	# resolve genotype-to-orthologs
 	#
         results = db.sql('select distinct g._Genotype_key, o.orthologKey, o.orthologSymbol ' + \
-		'from #omimmouse1 g, #orthologHuman o ' + \
+		'from omimmouse1 g, orthologHuman o ' + \
 		'where g._Marker_key = o._Marker_key', 'auto')
 	for r in results:
 	    key = r['_Genotype_key']
@@ -586,7 +581,7 @@ def cacheGenotypeDisplay3():
 	#
 	# Purpose:  initializes global dictionary of genotype/terms and minimum display category 1 values
 	# Returns:
-	# Assumes:  temp table #omimmouse5 exists
+	# Assumes:  temp table omimmouse5 exists
 	# Effects:  initializes global genotypeAlleleMouseModels dictionary
 	# Throws:
 	#
@@ -598,7 +593,7 @@ def cacheGenotypeDisplay3():
 	# this will be display category 3 (human disease table 2 (Mouse Models))
 	#
 
-	results = db.sql('select * from #omimmouse5 order by _Genotype_key, termID', 'auto')
+	results = db.sql('select * from omimmouse5 order by _Genotype_key, termID', 'auto')
 
 	for r in results:
 
@@ -629,7 +624,7 @@ def processMouse(processType):
 	# process each individual marker/genotype record
 	#
 
-	results = db.sql('select * from #omimmouse5 order by _Genotype_key, alleleSymbol, term', 'auto')
+	results = db.sql('select * from omimmouse5 order by _Genotype_key, alleleSymbol, term', 'auto')
 
 	for r in results:
 
@@ -686,9 +681,8 @@ def processMouse(processType):
 		genotypeDisplay2 = ''
 
 	    if processType == 'bcp':
-		if os.environ['DB_TYPE'] == 'postgres':
-		    genotypeDisplay1 = genotypeDisplay1.replace('\n','\\n')
-		    genotypeDisplay2 = genotypeDisplay2.replace('\n','\\n')
+		genotypeDisplay1 = genotypeDisplay1.replace('\n','\\n')
+		genotypeDisplay2 = genotypeDisplay2.replace('\n','\\n')
 
                 omimBCP.write(
 	            str(nextMaxKey) + COLDL +  \
@@ -817,9 +811,9 @@ def selectHuman(byOrtholog = 0):
 	    #
 
 	    db.sql('select _Marker_key = a._Object_key, termID = ac.accID, ' + \
-		    'a._Term_key, t.term, qualifier = q.term, a._Qualifier_key, e._Refs_key ' + \
-		    'into #omimhuman1 ' + \
-		    'from #orthologHuman o, VOC_Annot a, VOC_Evidence e, VOC_Term t, ACC_Accession ac, VOC_Term q ' + \
+		    'a._Term_key, t.term, q.term as qualifier, a._Qualifier_key, e._Refs_key ' + \
+		    'INTO TEMPORARY TABLE omimhuman1 ' + \
+		    'from orthologHuman o, VOC_Annot a, VOC_Evidence e, VOC_Term t, ACC_Accession ac, VOC_Term q ' + \
 		    'where a._AnnotType_key = %s ' % (humanOMIMannotationKey) + \
 		    'and a._Qualifier_key = q._Term_key ' + \
 		    'and a._Object_key = o.orthologKey ' + \
@@ -829,9 +823,9 @@ def selectHuman(byOrtholog = 0):
 		    'and ac._MGIType_key = 13 ' + \
 		    'and ac.preferred = 1 ' + \
 		    'union ' + \
-	           'select _Marker_key = a._Object_key, termID = ac.accID, ' + \
-		    'a._Term_key, t.term, qualifier = q.term, a._Qualifier_key, e._Refs_key ' + \
-		    'from #omimmouse3 o, VOC_Annot a, VOC_Evidence e, VOC_Term t, ACC_Accession ac, VOC_Term q ' + \
+	           'select a._Object_key as _Marker_key, ac.accID as termID, ' + \
+		    'a._Term_key, t.term, q.term as qualifier, a._Qualifier_key, e._Refs_key ' + \
+		    'from omimmouse3 o, VOC_Annot a, VOC_Evidence e, VOC_Term t, ACC_Accession ac, VOC_Term q ' + \
 		    'where a._AnnotType_key = %s ' % (humanOMIMannotationKey) + \
 		    'and a._Qualifier_key = q._Term_key ' + \
 		    'and a._Term_key = o._Term_key ' + \
@@ -840,7 +834,7 @@ def selectHuman(byOrtholog = 0):
 		    'and a._Term_key = ac._Object_key ' + \
 		    'and ac._MGIType_key = 13 ' + \
 		    'and ac.preferred = 1', None)
-	    db.sql('create index idx8 on #omimhuman1(_Marker_key)', None)
+	    db.sql('create index idx8 on omimhuman1(_Marker_key)', None)
 
 	else:
 	
@@ -848,9 +842,9 @@ def selectHuman(byOrtholog = 0):
 	    # select all human genes annotated to OMIM Gene or Disease Terms
 	    #
 
-	    db.sql('select _Marker_key = a._Object_key, termID = ac.accID, ' + \
-		    'a._Term_key, t.term, qualifier = q.term, a._Qualifier_key, e._Refs_key ' + \
-		    'into #omimhuman1 ' + \
+	    db.sql('select a._Object_key as _Marker_key, ac.accID as termID, ' + \
+		    'a._Term_key, t.term, q.term as qualifier, a._Qualifier_key, e._Refs_key ' + \
+		    'INTO TEMPORARY TABLE omimhuman1 ' + \
 		    'from VOC_Annot a, VOC_Evidence e, VOC_Term t, ACC_Accession ac, VOC_Term q ' + \
 		    'where a._AnnotType_key = %s ' % (humanOMIMannotationKey) + \
 		    'and a._Qualifier_key = q._Term_key ' + \
@@ -859,22 +853,22 @@ def selectHuman(byOrtholog = 0):
 		    'and a._Term_key = ac._Object_key ' + \
 		    'and ac._MGIType_key = 13 ' + \
 		    'and ac.preferred = 1', None)
-	    db.sql('create index idx9 on #omimhuman1(_Marker_key)', None)
+	    db.sql('create index idx9 on omimhuman1(_Marker_key)', None)
 
 	#
 	# resolve marker symbol
 	#
-	db.sql('select o.*, m._Organism_key, markerSymbol = m.symbol, m._Marker_Type_key ' + \
-		'into #omimhuman2 ' + \
-		'from #omimhuman1 o, MRK_Marker m ' + \
+	db.sql('select o.*, m._Organism_key, m.symbol as markerSymbol, m._Marker_Type_key ' + \
+		'INTO TEMPORARY TABLE omimhuman2 ' + \
+		'from omimhuman1 o, MRK_Marker m ' + \
 		'where o._Marker_key = m._Marker_key ', None)
-	db.sql('create index idx10 on #omimhuman2(_Marker_key)', None)
+	db.sql('create index idx10 on omimhuman2(_Marker_key)', None)
 
 	#
 	# cache all terms annotated to human markers
 	# cache all human markers annotated to terms
 	#
-	results = db.sql('select o._Marker_key, o.termID from #omimhuman2 o order by o._Marker_key', 'auto')
+	results = db.sql('select o._Marker_key, o.termID from omimhuman2 o order by o._Marker_key', 'auto')
 	for r in results:
 	    key = r['_Marker_key']
 	    value = r['termID']
@@ -891,23 +885,23 @@ def selectHuman(byOrtholog = 0):
 	#
 	# resolve Jnumber
 	#
-	db.sql('select o.*, jnumID = a.accID ' + \
-		'into #omimhuman3 ' + \
-		'from #omimhuman2 o, ACC_Accession a ' + \
+	db.sql('select o.*, a.accID as jnumID ' + \
+		'INTO TEMPORARY TABLE omimhuman3 ' + \
+		'from omimhuman2 o, ACC_Accession a ' + \
 		'where o._Refs_key = a._Object_key ' + \
 		'and a._MGIType_key = 1 ' + \
 		'and a._LogicalDB_key = 1 ' + \
-		'and a.prefixPart = "J:" ' + \
+		'and a.prefixPart = \'J:\' ' + \
 		'and a.preferred = 1 ' + \
 		'union ' + \
-		'select o.*, null as jnumID from #omimhuman2 o where _Refs_key = -1', None)
+		'select o.*, null as jnumID from omimhuman2 o where _Refs_key = -1', None)
 
 	#
 	# resolve mouse ortholog
 	#
         results = db.sql('''select distinct o._Marker_key, cm2._Marker_key as orthologKey,
                     m2.symbol as orthologSymbol
-                from #omimmouse1 o, MRK_Cluster c1, MRK_ClusterMember cm1, MRK_Cluster c2,
+                from omimmouse1 o, MRK_Cluster c1, MRK_ClusterMember cm1, MRK_Cluster c2,
                     MRK_ClusterMember cm2, MRK_Marker m2
                 where o._Marker_key = cm1._Marker_key
                 and cm1._Cluster_key = c1._Cluster_key
@@ -934,7 +928,7 @@ def processHuman():
 
 	global nextMaxKey
 
-	results = db.sql('select * from #omimhuman3 order by markerSymbol, term', 'auto')
+	results = db.sql('select * from omimhuman3 order by markerSymbol, term', 'auto')
 
 	for r in results:
 
@@ -1028,8 +1022,8 @@ def processDeleteReload():
 	#
 
 	db.sql('select g._Marker_key, g._Allele_key, g._Genotype_key, g.sequenceNum, ' + \
-		'a._Term_key, qualifier = q.term, a._Qualifier_key, e._Refs_key ' + \
-		'into #omimmouse1 ' + \
+		'a._Term_key, q.term as qualifier, a._Qualifier_key, e._Refs_key ' + \
+		'INTO TEMPORARY TABLE omimmouse1 ' + \
 		'from GXD_AlleleGenotype g, VOC_Annot a, VOC_Evidence e, VOC_Term q ' + \
 		'where g._Genotype_key = a._Object_key ' + \
 		'and a._Qualifier_key = q._Term_key ' + \
@@ -1059,26 +1053,26 @@ def processByAllele(alleleKey):
 	# select all Genotypes of specified Allele
 	#
 
-	db.sql('select distinct g._Genotype_key into #toprocess ' + \
+	db.sql('select distinct g._Genotype_key INTO TEMPORARY TABLE toprocess ' + \
 		'from GXD_AlleleGenotype g ' + \
 		'where g._Allele_key = ' + alleleKey, None)
 
-	db.sql('create index idx11 on #toprocess(_Genotype_key)', None)
+	db.sql('create index idx11 on toprocess(_Genotype_key)', None)
 
 	#
 	# delete existing cache records for this allele
 	#
 
-	db.sql('delete %s from #toprocess p, %s g where p._Genotype_key = g._Genotype_key' % (table, table), None)
+	db.sql('delete %s from toprocess p, %s g where p._Genotype_key = g._Genotype_key' % (table, table), None)
 
 	#
 	# select all annotations for Genotypes of specified Allele
 	#
 
 	db.sql('select g._Marker_key, g._Allele_key, g._Genotype_key, g.sequenceNum, ' + \
-		'a._Term_key, qualifier = q.term, a._Qualifier_key, e._Refs_key ' + \
-		'into #omimmouse1 ' + \
-		'from #toprocess p, GXD_AlleleGenotype g, VOC_Annot a, VOC_Evidence e, VOC_Term q ' + \
+		'a._Term_key, q.term as qualifier, a._Qualifier_key, e._Refs_key ' + \
+		'INTO TEMPORARY TABLE omimmouse1 ' + \
+		'from toprocess p, GXD_AlleleGenotype g, VOC_Annot a, VOC_Evidence e, VOC_Term q ' + \
 		'where p._Genotype_key = g._Genotype_key ' + \
 		'and g._Genotype_key = a._Object_key ' + \
 		'and a._Qualifier_key = q._Term_key ' + \
@@ -1110,8 +1104,8 @@ def processByGenotype(genotypeKey):
 	#
 
 	db.sql('select g._Marker_key, g._Allele_key, g._Genotype_key, g.sequenceNum, ' + \
-		'a._Term_key, qualifier = q.term, a._Qualifier_key, e._Refs_key ' + \
-		'into #omimmouse1 ' + \
+		'a._Term_key, q.term as qualifier, a._Qualifier_key, e._Refs_key ' + \
+		'INTO TEMPORARY TABLE omimmouse1 ' + \
 		'from GXD_AlleleGenotype g, VOC_Annot a, VOC_Evidence e, VOC_Term q ' + \
 		'where g._Genotype_key = a._Object_key ' + \
 		'and a._Qualifier_key = q._Term_key ' + \
@@ -1137,26 +1131,26 @@ def processByMarker(markerKey):
 	# select all Genotypes of specified Marker
 	#
 
-	db.sql('select distinct g._Genotype_key into #toprocess ' + \
+	db.sql('select distinct g._Genotype_key INTO TEMPORARY TABLE toprocess ' + \
 		'from GXD_AlleleGenotype g ' + \
 		'where g._Marker_key = ' + markerKey, None)
 
-	db.sql('create index idx12 on #toprocess(_Genotype_key)', None)
+	db.sql('create index idx12 on toprocess(_Genotype_key)', None)
 
 	#
 	# delete existing cache records for this marker
 	#
 
-	db.sql('delete %s from #toprocess p, %s g where p._Genotype_key = g._Genotype_key' % (table, table), None)
+	db.sql('delete %s from toprocess p, %s g where p._Genotype_key = g._Genotype_key' % (table, table), None)
 
 	#
 	# select all annotations for Genotypes of specified Marker
 	#
 
 	db.sql('select g._Marker_key, g._Allele_key, g._Genotype_key, g.sequenceNum, ' + \
-		'a._Term_key, qualifier = q.term, a._Qualifier_key, e._Refs_key ' + \
-		'into #omimmouse1 ' + \
-		'from #toprocess p, GXD_AlleleGenotype g, VOC_Annot a, VOC_Evidence e, VOC_Term q ' + \
+		'a._Term_key, q.term as qualifier, a._Qualifier_key, e._Refs_key ' + \
+		'INTO TEMPORARY TABLE omimmouse1 ' + \
+		'from toprocess p, GXD_AlleleGenotype g, VOC_Annot a, VOC_Evidence e, VOC_Term q ' + \
 		'where p._Genotype_key = g._Genotype_key ' + \
 		'and g._Genotype_key = a._Object_key ' + \
 		'and a._Qualifier_key = q._Term_key ' + \
@@ -1215,7 +1209,7 @@ scriptName = os.path.basename(sys.argv[0])
 # term key for 'not' qualifier
 #
 
-results = db.sql('select _Term_key from VOC_Term where _Vocab_key = 53 and term like "NOT%"', 'auto')
+results = db.sql('select _Term_key from VOC_Term where _Vocab_key = 53 and term like \'NOT%\'', 'auto')
 for r in results:
     notQualifier.append(r['_Term_key'])
 

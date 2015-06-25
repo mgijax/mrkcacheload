@@ -25,20 +25,11 @@ import os
 import getopt
 import string
 import mgi_utils
+import db
 
-try:
-	if os.environ['DB_TYPE'] == 'postgres':
-		import pg_db
-       		db = pg_db
-       		db.setTrace()
-       		db.setAutoTranslateBE()
-	else:
-     		import db
-       		db.set_sqlLogFunction(db.sqlLogAll)
-
-except:
-    import db
-    db.set_sqlLogFunction(db.sqlLogAll)
+db.setTrace()
+db.setAutoTranslate(False)
+db.setAutoTranslateBE(False)
 
 try:
 	COLDELIM = os.environ['COLDELIM']
@@ -192,17 +183,17 @@ def init (mkrKey):
     # Notes tell us the term's MGI marker type if term maps directly to a 
     # marker type
     db.sql('''select n._Object_key, rtrim(nc.note) as chunk, nc.sequenceNum
-	into #notes
+	INTO TEMPORARY TABLE notes
 	from MGI_Note n, MGI_NoteChunk nc
 	where n._MGIType_key = 13
             and n._NoteType_key = 1001
             and n._Note_key = nc._Note_key''', None)
 
-    db.sql('''create index notes_idx1 on #notes(_Object_key)''', None)
+    db.sql('''create index notes_idx1 on notes(_Object_key)''', None)
 
     results = db.sql('''select t._Term_key, t.term, n.chunk
 	    from VOC_Term t left outer join
-	    #notes n on (n._object_key = t._term_key)
+	    notes n on (n._object_key = t._term_key)
 	    where t._vocab_key = 79
 	    order by t._Term_key, n.sequenceNum''', 'auto')
 
@@ -604,7 +595,7 @@ def createReportLookups():
 	and m._Marker_key = a._Object_key
 	and a._MGIType_key = 2
 	and a._LogicalDB_key = 1
-	and a.prefixPart = "MGI:"
+	and a.prefixPart = 'MGI:'
 	and a.preferred = 1''', 'auto')
     for r in results:
 	mkrKey = r['_Object_key']
