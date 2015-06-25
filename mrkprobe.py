@@ -140,7 +140,7 @@ def createBCPfile():
 	# delete any putatives which can be trumped by an auto-E relationship
 
 	db.sql('delete from %s ' % (table) + \
-		'from haveputative p, createautoe e '  + \
+		'using haveputative p, createautoe e '  + \
 		'where p._Probe_key = e._Probe_key ' + \
 		'and p._Marker_key = e._Marker_key ' + \
 		'and e._Probe_key = prb_marker._Probe_key ' + \

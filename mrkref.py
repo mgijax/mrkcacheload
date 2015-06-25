@@ -215,7 +215,7 @@ def createBCPfile(markerKey):
 	# Marker Synonyms
 	#
 
-	cmd = 'select distinct _Marker_key = s._Object_key, s._Refs_key ' + \
+	cmd = 'select distinct s._Object_key as _Marker_key, s._Refs_key ' + \
 		'into temp8 ' + \
 		'from MGI_Synonym s, MGI_SynonymType st ' + \
 		'where s._MGIType_key = 2 ' + \
@@ -235,7 +235,7 @@ def createBCPfile(markerKey):
 	#  indirectly.
 	#
 
-	cmd = 'select distinct _Marker_key = a._Object_key, ar._Refs_key ' + \
+	cmd = 'select distinct a._Object_key as _Marker_key, ar._Refs_key ' + \
 		'into temp9 ' + \
 		'from MRK_Marker m, ACC_Accession a, ACC_AccessionReference ar ' + \
 		'where m._Organism_key = 1 ' + \
@@ -273,7 +273,7 @@ def createBCPfile(markerKey):
 	# GO Annotations
 	#
 
-	cmd = 'select distinct _Marker_key = a._Object_key, r._Refs_key ' + \
+	cmd = 'select distinct a._Object_key as _Marker_key, r._Refs_key ' + \
 		'into temp11 ' + \
 		'from VOC_Annot a, VOC_Evidence r ' + \
 		'where a._AnnotType_key = 1000 ' + \
@@ -290,7 +290,7 @@ def createBCPfile(markerKey):
 	# Curated References
 	#
 
-	cmd = 'select distinct _Marker_key = m._Object_key, m._Refs_key ' + \
+	cmd = 'select distinct m._Object_key as _Marker_key, m._Refs_key ' + \
 		'into temp12 ' + \
 		'from MGI_Reference_Assoc m ' + \
 		'where m._MGIType_key = 2 '
@@ -306,7 +306,7 @@ def createBCPfile(markerKey):
 	# union them all together
 	#
 
-	db.sql('select _Marker_key, _Refs_key into #refs from temp1 ' + \
+	db.sql('select _Marker_key, _Refs_key INTO TEMPORARY TABLE refs from temp1 ' + \
 		'union select _Marker_key, _Refs_key from temp4 ' + \
 		'union select _Marker_key, _Refs_key from temp5 ' + \
 		'union select _Marker_key, _Refs_key from temp6 ' + \
@@ -316,7 +316,7 @@ def createBCPfile(markerKey):
 		'union select _Marker_key, _Refs_key from temp10 ' + \
 		'union select _Marker_key, _Refs_key from temp11 ' + \
 		'union select _Marker_key, _Refs_key from temp12', None)
-        db.sql('create index idx_refs_refs_key on #refs(_Refs_key)', None)
+        db.sql('create index idx_refs_refs_key on refs(_Refs_key)', None)
 
 	mgiID = {}
 	jnumID = {}
@@ -324,7 +324,7 @@ def createBCPfile(markerKey):
 	pubmedID = {}
 
 	results = db.sql('select r._Refs_key, a._LogicalDB_key, a.prefixPart, a.numericPart, a.accID ' + \
-		'from #refs r, ACC_Accession a ' + \
+		'from refs r, ACC_Accession a ' + \
 		'where r._Refs_key = a._Object_key ' + \
 		'and a._MGIType_key = 1 ' + \
 		'and a._LogicalDB_key in (1, 29) ' + \
@@ -344,7 +344,7 @@ def createBCPfile(markerKey):
             else:
 		pubmedID[key] = value
 
-	results = db.sql('select _Marker_key, _Refs_key from #refs', 'auto')
+	results = db.sql('select _Marker_key, _Refs_key from refs', 'auto')
 	for r in results:
 	    key = r['_Refs_key']
 
