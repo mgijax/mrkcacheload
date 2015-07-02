@@ -81,7 +81,6 @@ except:
     table = 'MRK_OMIM_Cache'
     outDir = './'
 
-db.setTrace()
 db.setAutoTranslate(False)
 db.setAutoTranslateBE(False)
 

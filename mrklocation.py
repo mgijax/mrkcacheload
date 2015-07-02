@@ -49,7 +49,6 @@ try:
 except:
     table = 'MRK_Location_Cache'
 
-db.setTrace()
 db.setAutoTranslate(False)
 db.setAutoTranslateBE(False)
 

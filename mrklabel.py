@@ -77,7 +77,6 @@ try:
 except:
     table = 'MRK_Label'
 
-db.setTrace()
 db.setAutoTranslate(False)
 db.setAutoTranslateBE(False)
 

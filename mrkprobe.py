@@ -34,7 +34,6 @@ except:
     LINEDL = '\n'
     table = 'PRB_Marker'
 
-db.setTrace()
 db.setAutoTranslate(False)
 db.setAutoTranslateBE(False)
 

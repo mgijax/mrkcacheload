@@ -101,7 +101,6 @@ except:
     LINEDL = '\n'
     table = 'MRK_Reference'
 
-db.setTrace()
 db.setAutoTranslate(False)
 db.setAutoTranslateBE(False)
 
