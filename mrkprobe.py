@@ -62,7 +62,7 @@ def createBCPfile():
 	# (those with at least one Sequence of Low Quality)
 
 	db.sql('select distinct c._Probe_key ' + \
-		'into excluded ' + \
+		'into temp table excluded ' + \
 		'from SEQ_Probe_Cache c, SEQ_Sequence s ' + \
 		'where c._Sequence_key = s._Sequence_key ' + \
 		'and s._SequenceQuality_key = %s' % (lowQualityKey), None)
@@ -72,7 +72,7 @@ def createBCPfile():
 	# select all mouse probes (exclude primers, 63473)
 
 	db.sql('select p._Probe_key ' + \
-		'into mouseprobes ' + \
+		'into temp table mouseprobes ' + \
 		'from SEQ_Probe_Cache c, PRB_Probe p, PRB_Source s ' + \
 		'where c._Probe_key = p._Probe_key ' + \
 		'and p._SegmentType_key != 63473 ' + \
@@ -84,7 +84,7 @@ def createBCPfile():
 	# select all mouse Probes and Markers which are annotated to the same nucleotide Sequence
 
 	db.sql('select distinct p._Probe_key, m._Marker_key ' + \
-		'into annotations ' + \
+		'into temp table annotations ' + \
 		'from ACC_Accession a, SEQ_Marker_Cache m, SEQ_Probe_Cache p ' + \
 		'where a._LogicalDB_key = 9 ' + \
 		'and a._MGIType_key = 19 ' + \
@@ -99,14 +99,14 @@ def createBCPfile():
 
 	# select all Probes and Markers with Putative annotation
 	
-	db.sql('select _Probe_key, _Marker_key into putatives from %s where relationship = \'P\'' % (table), None)
+	db.sql('select _Probe_key, _Marker_key into temp table putatives from %s where relationship = \'P\'' % (table), None)
 
 	db.sql('create index idx_pkey2 on putatives(_Probe_key)', None)
 	db.sql('create index idx_mkey2 on putatives(_Marker_key)', None)
 
 	# select all Probes and Markers with a non-Putative (E, H), or null Annotation
 
-	db.sql('select _Probe_key, _Marker_key into nonputatives from %s where relationship != \'P\' or relationship is null' % (table), None)
+	db.sql('select _Probe_key, _Marker_key into temp table nonputatives from %s where relationship != \'P\' or relationship is null' % (table), None)
 
 	db.sql('create index idx_pkey3 on nonputatives(_Probe_key)', None)
 	db.sql('create index idx_mkey3 on nonputatives(_Marker_key)', None)
@@ -115,7 +115,7 @@ def createBCPfile():
 	# and which already have a "P" association with that Marker
 
 	db.sql('select distinct a._Probe_key, a._Marker_key ' + \
-		'into haveputative ' + \
+		'into temp table haveputative ' + \
 		'from annotations a  ' + \
 		'where exists (select 1 from putatives p ' + \
 		'where a._Probe_key = p._Probe_key ' + \
@@ -128,7 +128,7 @@ def createBCPfile():
 	# that is, we don't want to overwrite a curated relationship (even if it's a null relationship)
 
 	db.sql('select distinct a._Probe_key, a._Marker_key ' + \
-		'into createautoe ' + \
+		'into temp table createautoe ' + \
 		'from annotations a  ' + \
 		'where not exists (select 1 from nonputatives p ' + \
 		'where a._Probe_key = p._Probe_key ' + \

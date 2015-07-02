@@ -73,7 +73,7 @@ def createBCPfile(markerKey):
 	# cache table
 
 	db.sql('''select m._Marker_key, m._Marker_Type_key, m._Organism_key, m.symbol, 
-		  m.chromosome, m.cytogeneticOffset, o.offset, c.sequenceNum
+		  m.chromosome, m.cytogeneticOffset, o.cmoffset, c.sequenceNum
 		INTO TEMPORARY TABLE markers
 		from MRK_Marker m 
 			INNER JOIN MRK_Chromosome c on (
@@ -180,7 +180,7 @@ def createBCPfile(markerKey):
 			        chr + COLDL + \
 			        mgi_utils.prvalue(r['sequenceNum']) + COLDL + \
 			        mgi_utils.prvalue(cytogeneticOffset) + COLDL + \
-			        mgi_utils.prvalue(r['offset']) + COLDL + \
+			        mgi_utils.prvalue(r['cmoffset']) + COLDL + \
 			        mgi_utils.prvalue(c['genomicChromosome']) + COLDL + \
 			        mgi_utils.prvalue(c['startCoordinate']) + COLDL + \
 			        mgi_utils.prvalue(c['endCoordinate']) + COLDL + \
@@ -200,7 +200,7 @@ def createBCPfile(markerKey):
 			     chr + COLDL + \
 			     mgi_utils.prvalue(r['sequenceNum']) + COLDL + \
 			     mgi_utils.prvalue(cytogeneticOffset) + COLDL + \
-			     mgi_utils.prvalue(r['offset']) + COLDL + \
+			     mgi_utils.prvalue(r['cmoffset']) + COLDL + \
 			     COLDL + \
 			     COLDL + \
 			     COLDL + \
