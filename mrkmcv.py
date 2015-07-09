@@ -102,7 +102,7 @@ multiMCVList = []
 
 # delete and insert statements
 deleteSQL='delete from MRK_MCV_Cache where _Marker_key = %s'
-insertSQL='insert into MRK_MCV_Cache values(%s,%s,"%s","%s","%s", %s,%s,"%s","%s")'
+insertSQL='insert into MRK_MCV_Cache values(%s,%s,\'%s\',\'%s\',\'%s\', %s,%s,\'%s\',\'%s\')'
 
 #
 # map marker keys to their set of MCV annotations from VOC_Annot
