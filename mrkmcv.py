@@ -620,7 +620,7 @@ def processByMarker(mkrKey):
 
     # select all annotations in MRK_MCV_Cache for the specified marker
     results = db.sql('''select *
-	into #toprocess
+	INTO TEMPORARY TABLE toprocess
 	from MRK_MCV_Cache
 	where _Marker_key = %s''' % mkrKey, 'auto')
 
