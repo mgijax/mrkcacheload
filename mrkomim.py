@@ -809,7 +809,7 @@ def selectHuman(byOrtholog = 0):
 	    # are selected.
 	    #
 
-	    db.sql('select _Marker_key = a._Object_key, termID = ac.accID, ' + \
+	    db.sql('select a._Object_key as _marker_key, ac.accID as termid, ' + \
 		    'a._Term_key, t.term, q.term as qualifier, a._Qualifier_key, e._Refs_key ' + \
 		    'INTO TEMPORARY TABLE omimhuman1 ' + \
 		    'from orthologHuman o, VOC_Annot a, VOC_Evidence e, VOC_Term t, ACC_Accession ac, VOC_Term q ' + \
@@ -1062,7 +1062,7 @@ def processByAllele(alleleKey):
 	# delete existing cache records for this allele
 	#
 
-	db.sql('delete %s from toprocess p, %s g where p._Genotype_key = g._Genotype_key' % (table, table), None)
+	db.sql('delete from %s using toprocess p, %s g where p._Genotype_key = g._Genotype_key' % (table, table), None)
 
 	#
 	# select all annotations for Genotypes of specified Allele
@@ -1140,7 +1140,7 @@ def processByMarker(markerKey):
 	# delete existing cache records for this marker
 	#
 
-	db.sql('delete %s from toprocess p, %s g where p._Genotype_key = g._Genotype_key' % (table, table), None)
+	db.sql('delete from %s using toprocess p, %s g where p._Genotype_key = g._Genotype_key' % (table, table), None)
 
 	#
 	# select all annotations for Genotypes of specified Marker

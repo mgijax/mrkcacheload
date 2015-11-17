@@ -624,7 +624,7 @@ def processByMarker(mkrKey):
 	from MRK_MCV_Cache
 	where _Marker_key = %s''' % mkrKey, 'auto')
 
-    db.sql('''create index toprocess_idx1 on #toprocess(_Marker_key)''', None)
+    db.sql('''create index toprocess_idx1 on toprocess(_Marker_key)''', None)
 
     #
     # delete existing cache records for this marker
