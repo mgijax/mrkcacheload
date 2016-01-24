@@ -672,12 +672,12 @@ def processMouse(processType):
 	    else:
 		fullGenotypeDisplay = string.join(genotypeDisplay[genotype], '')
 
-	    if len(fullGenotypeDisplay) > 255:
-	        genotypeDisplay1 = fullGenotypeDisplay[:255]
-	        genotypeDisplay2 = fullGenotypeDisplay[255:]
-	    else:
-	        genotypeDisplay1 = fullGenotypeDisplay
-		genotypeDisplay2 = ''
+	    #if len(fullGenotypeDisplay) > 255:
+	    #    genotypeDisplay1 = fullGenotypeDisplay[:255]
+	    #    genotypeDisplay2 = fullGenotypeDisplay[255:]
+	    #else:
+	    genotypeDisplay1 = fullGenotypeDisplay
+	    genotypeDisplay2 = ''
 
 	    if processType == 'bcp':
 		genotypeDisplay1 = genotypeDisplay1.replace('\n','\\n')
