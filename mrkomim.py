@@ -142,7 +142,7 @@ genotypeFootnote1 = '%s is associated with this disease in humans.'
 genotypeFootnote2 = '%s are associated with this disease in humans.'
 
 deleteSQL = 'delete from MRK_OMIM_Cache where _Genotype_key = %s'
-insertSQL = 'insert into MRK_OMIM_Cache values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,"%s","%s","%s","%s","%s","%s","%s","%s",%s,"%s",%s,%s,"%s","%s")'
+insertSQL = 'insert into MRK_OMIM_Cache values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,"%s","%s","%s","%s","%s","%s","%s",%s,"%s",%s,%s,"%s","%s")'
 
 def showUsage():
 	'''
@@ -672,16 +672,10 @@ def processMouse(processType):
 	    else:
 		fullGenotypeDisplay = string.join(genotypeDisplay[genotype], '')
 
-	    #if len(fullGenotypeDisplay) > 255:
-	    #    genotypeDisplay1 = fullGenotypeDisplay[:255]
-	    #    genotypeDisplay2 = fullGenotypeDisplay[255:]
-	    #else:
 	    genotypeDisplay1 = fullGenotypeDisplay
-	    genotypeDisplay2 = ''
 
 	    if processType == 'bcp':
 		genotypeDisplay1 = genotypeDisplay1.replace('\n','\\n')
-		genotypeDisplay2 = genotypeDisplay2.replace('\n','\\n')
 
                 omimBCP.write(
 	            str(nextMaxKey) + COLDL +  \
@@ -707,7 +701,6 @@ def processMouse(processType):
 	            mgi_utils.prvalue(orthologSymbol) + COLDL + \
 	            r['strain'] + COLDL + \
 		    genotypeDisplay1 + COLDL + \
-		    genotypeDisplay2 + COLDL + \
                     mgi_utils.prvalue(header) + COLDL + \
                     mgi_utils.prvalue(headerFootnote) + COLDL + \
                     mgi_utils.prvalue(genotypeFootnote) + COLDL + \
@@ -738,11 +731,6 @@ def processMouse(processType):
                 reviewBCP.write(LINEDL)
 
 	    elif processType == 'sql':
-
-		if genotypeDisplay2 == '':
-		    printGenotypeDisplay2 = 'null'
-                else:
-		    printGenotypeDisplay2 = '"' + genotypeDisplay2 + '"'
 
 		if headerFootnote == '':
 		    printHeaderFootnote = 'null'
@@ -783,7 +771,6 @@ def processMouse(processType):
 	            mgi_utils.prvalue(orthologSymbol), \
 	            r['strain'], \
 	            genotypeDisplay1, \
-		    printGenotypeDisplay2, \
                     mgi_utils.prvalue(header), \
                     printHeaderFootnote, \
                     printGenotypeFootnote, \
@@ -979,7 +966,6 @@ def processHuman():
 	        COLDL + \
 	        COLDL + \
 	        COLDL + \
-		COLDL + \
 		COLDL + \
 		cdate + COLDL + cdate + LINEDL)
 
