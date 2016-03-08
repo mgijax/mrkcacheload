@@ -25,15 +25,15 @@ import sets
 import mgi_utils
 import db
 
-db.setAutoTranslate(False)
-db.setAutoTranslateBE(False)
-
 try:
 	table = os.environ['COUNT_TABLE']
 	outDir = os.environ['MRKCACHEBCPDIR']
 except:
 	table = 'MRK_MCV_Count_Cache'
 	outDir = './'
+
+db.setAutoTranslate(False)
+db.setAutoTranslateBE(False)
 
 COLDL = '|'
 LINEDL = '\n'
