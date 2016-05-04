@@ -27,9 +27,6 @@ import string
 import mgi_utils
 import db
 
-db.setAutoTranslate(False)
-db.setAutoTranslateBE(False)
-
 try:
 	COLDELIM = os.environ['COLDELIM']
 	table = os.environ['TABLE']
@@ -40,6 +37,9 @@ except:
 	table = 'MRK_MCV_Cache'
 	outDir = './'
 	curatorLog = './mrkmcv.log'
+
+db.setAutoTranslate(False)
+db.setAutoTranslateBE(False)
 
 # qualifier column values
 DIRECT='D'

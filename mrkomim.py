@@ -107,7 +107,6 @@ mouseToOMIM = {}	# mouse marker key : OMIM term id
 mouseIsNot = {}		# mouse marker key : OMIM term id that are "NOT" annotations
 OMIMToHuman = {}	# OMIM term id : list of human marker keys
 
-genotypeDisplay = {}	# mouse genotype key: genotype display
 genotypeAlleleMouseModels = {}	# mouse genotype key + termID: display category 3
 
 gene = 1
@@ -142,7 +141,7 @@ genotypeFootnote1 = '%s is associated with this disease in humans.'
 genotypeFootnote2 = '%s are associated with this disease in humans.'
 
 deleteSQL = 'delete from MRK_OMIM_Cache where _Genotype_key = %s'
-insertSQL = 'insert into MRK_OMIM_Cache values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,"%s","%s","%s","%s","%s","%s","%s","%s",%s,"%s",%s,%s,"%s","%s")'
+insertSQL = 'insert into MRK_OMIM_Cache values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,"%s","%s","%s","%s","%s","%s","%s",%s,"%s",%s,%s,"%s","%s")'
 
 def showUsage():
 	'''
@@ -436,11 +435,11 @@ def selectMouse():
 	# Returns:
 	# Assumes:  temp table omimmouse1 has already been created
 	# Effects:  initializes global dictionaries/caches
-	#	- humanOrtholog, mouseToOMIM, genotypeDisplay, genotypeOrtholog, mouseIsNot
+	#	- humanOrtholog, mouseToOMIM, genotypeOrtholog, mouseIsNot
 	# Throws:
 	#
 
-	global humanOrtholog, mouseToOMIM, genotypeDisplay, genotypeOrtholog, mouseIsNot
+	global humanOrtholog, mouseToOMIM, genotypeOrtholog, mouseIsNot
 
 	db.sql('create index idx1 on omimmouse1(_Marker_key)', None)
 	db.sql('create index idx2 on omimmouse1(_Allele_key)', None)
@@ -523,21 +522,6 @@ def selectMouse():
 		'where o._Genotype_key = g._Genotype_key ' + \
 		'and g._Strain_key = s._Strain_key', None)
 	db.sql('create index idx6 on omimmouse5(_Allele_key)', None)
-
-	#
-	# resolve genotype display
-	#
-	results = db.sql('select distinct o._Genotype_key, rtrim(nc.note) as note, nc.sequencenum from omimmouse1 o, MGI_Note n, MGI_NoteChunk nc ' + \
-		'where o._Genotype_key = n._Object_key ' + \
-		'and n._NoteType_key = 1018 ' + \
-		'and n._Note_key = nc._Note_key ' + \
-		'order by o._Genotype_key, nc.sequenceNum', 'auto')
-	for r in results:
-	    key = r['_Genotype_key']
-	    value = r['note']
-	    if not genotypeDisplay.has_key(key):
-		genotypeDisplay[key] = []
-	    genotypeDisplay[key].append(value)
 
 	#
 	# resolve human ortholog
@@ -667,21 +651,7 @@ def processMouse(processType):
 		    orthologKey =  None
 		    orthologSymbol =  None
 
-	    if not genotypeDisplay.has_key(genotype):
-		fullGenotypeDisplay = ''
-	    else:
-		fullGenotypeDisplay = string.join(genotypeDisplay[genotype], '')
-
-	    #if len(fullGenotypeDisplay) > 255:
-	    #    genotypeDisplay1 = fullGenotypeDisplay[:255]
-	    #    genotypeDisplay2 = fullGenotypeDisplay[255:]
-	    #else:
-	    genotypeDisplay1 = fullGenotypeDisplay
-	    genotypeDisplay2 = ''
-
 	    if processType == 'bcp':
-		genotypeDisplay1 = genotypeDisplay1.replace('\n','\\n')
-		genotypeDisplay2 = genotypeDisplay2.replace('\n','\\n')
 
                 omimBCP.write(
 	            str(nextMaxKey) + COLDL +  \
@@ -706,8 +676,6 @@ def processMouse(processType):
 	            r['alleleSymbol'] + COLDL + \
 	            mgi_utils.prvalue(orthologSymbol) + COLDL + \
 	            r['strain'] + COLDL + \
-		    genotypeDisplay1 + COLDL + \
-		    genotypeDisplay2 + COLDL + \
                     mgi_utils.prvalue(header) + COLDL + \
                     mgi_utils.prvalue(headerFootnote) + COLDL + \
                     mgi_utils.prvalue(genotypeFootnote) + COLDL + \
@@ -738,11 +706,6 @@ def processMouse(processType):
                 reviewBCP.write(LINEDL)
 
 	    elif processType == 'sql':
-
-		if genotypeDisplay2 == '':
-		    printGenotypeDisplay2 = 'null'
-                else:
-		    printGenotypeDisplay2 = '"' + genotypeDisplay2 + '"'
 
 		if headerFootnote == '':
 		    printHeaderFootnote = 'null'
@@ -782,8 +745,6 @@ def processMouse(processType):
 	            r['alleleSymbol'], \
 	            mgi_utils.prvalue(orthologSymbol), \
 	            r['strain'], \
-	            genotypeDisplay1, \
-		    printGenotypeDisplay2, \
                     mgi_utils.prvalue(header), \
                     printHeaderFootnote, \
                     printGenotypeFootnote, \
@@ -978,8 +939,6 @@ def processHuman():
 		COLDL + \
 	        COLDL + \
 	        COLDL + \
-	        COLDL + \
-		COLDL + \
 		COLDL + \
 		cdate + COLDL + cdate + LINEDL)
 
