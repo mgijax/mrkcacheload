@@ -316,7 +316,7 @@ def init (mkrKey):
     # map marker keys to their marker type
     cmd = ''' select _Marker_Type_key, _Marker_key
 		from MRK_Marker
-		where _Marker_Status_key in (1,3)
+		where _Marker_Status_key = 1
 		and _Organism_key = 1'''
     if mkrKey != 0:
         cmd = cmd + ' and _Marker_key = %s' % mkrKey
@@ -483,7 +483,7 @@ def createBCPfile():
     results = db.sql('''select _Marker_key, _Marker_Type_key
 	    from MRK_Marker
 	    where _Organism_key = 1
-	    and _Marker_Status_key in (1, 3)''', 'auto')
+	    and _Marker_Status_key = 1''', 'auto')
     for r in results:
 	mkrKey = r['_Marker_key']
         mTypeKey = r['_Marker_Type_key']
@@ -589,7 +589,7 @@ def createReportLookups():
 
     results = db.sql('''select a.accid, a._Object_key
 	from MRK_Marker m, ACC_Accession a
-	where m._Marker_Status_key in (1,3)
+	where m._Marker_Status_key = 1
 	and m._Organism_key = 1
 	and m._Marker_key = a._Object_key
 	and a._MGIType_key = 2
