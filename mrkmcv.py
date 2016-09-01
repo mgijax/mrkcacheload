@@ -479,7 +479,7 @@ def createBCPfile():
     mcvFp = open(mcvBCP, 'w')
     rptFp = open(curatorLog, 'w')
 
-    # get all official and interim mouse markers
+    # get all official mouse markers
     results = db.sql('''select _Marker_key, _Marker_Type_key
 	    from MRK_Marker
 	    where _Organism_key = 1
