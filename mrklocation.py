@@ -82,10 +82,11 @@ def createBCPfile(markerKey):
 			LEFT OUTER JOIN MRK_Offset o on (
 				m._Marker_key = o._Marker_key
 				and o.source = 0)
-		where m._Organism_key in (1,2)
+		where m._Organism_key in (1,2) and m._Marker_Status_key in (1,2)
 		''', None)
 
 	db.sql('create index idx1 on markers(_Marker_key)', None)
+
 	#
 	# the coordinate lookup should contain only one marker coordinate.
 	#
@@ -105,15 +106,16 @@ def createBCPfile(markerKey):
 	# coordinates for Marker w/out Sequence coordinates
 	#
 
-	results = db.sql('select m._Marker_key, f.startCoordinate, f.endCoordinate, f.strand, ' + \
-		'u.term as mapUnits, c.abbreviation as provider, cc.version, chrom.chromosome as genomicChromosome ' + \
-		'from markers m, MAP_Coord_Collection c, MAP_Coordinate cc, MAP_Coord_Feature f, VOC_Term u, MRK_Chromosome chrom ' + \
-		'where m._Marker_key = f._Object_key ' + \
-		'and f._MGIType_key = 2 ' + \
-		'and f._Map_key = cc._Map_key ' + \
-		'and cc._Collection_key = c._Collection_key ' + \
-		'and cc._Object_key = chrom._Chromosome_key ' + \
-		'and cc._Units_key = u._Term_key', 'auto')
+	results = db.sql('''select m._Marker_key, f.startCoordinate, f.endCoordinate, f.strand, 
+		u.term as mapUnits, c.abbreviation as provider, cc.version, chrom.chromosome as genomicChromosome 
+		from markers m, MAP_Coord_Collection c, MAP_Coordinate cc, MAP_Coord_Feature f, VOC_Term u, MRK_Chromosome chrom 
+		where m._Marker_key = f._Object_key 
+		and f._MGIType_key = 2 
+		and f._Map_key = cc._Map_key 
+		and cc._Collection_key = c._Collection_key 
+		and cc._Object_key = chrom._Chromosome_key 
+		and cc._Units_key = u._Term_key
+		''', 'auto')
 	for r in results:
 	    key = r['_Marker_key']
 	    value = r
@@ -127,10 +129,9 @@ def createBCPfile(markerKey):
 	#
 
 	results = db.sql('''select m.symbol, m._Marker_key, c.startCoordinate, 
-			c.endCoordinate, c.strand, c.mapUnits, mcc.abbreviation as provider, c.version, c.chromosome as genomicChromosome
+		c.endCoordinate, c.strand, c.mapUnits, mcc.abbreviation as provider, c.version, c.chromosome as genomicChromosome
                 from markers m, SEQ_Marker_Cache mc, SEQ_Coord_Cache c, 
-		    MAP_Coord_Feature mcf, MAP_Coordinate map, MAP_Coord_Collection mcc, 
-		    MRK_Marker mm
+		    MAP_Coord_Feature mcf, MAP_Coordinate map, MAP_Coord_Collection mcc, MRK_Marker mm
                 where m._Marker_key = mc._Marker_key
                 and mc._Qualifier_key = 615419
                 and mc._Sequence_key = c._Sequence_key
