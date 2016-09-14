@@ -32,9 +32,6 @@
 #	- added new fields to MRK_Label
 #	- added Alleles, Orthology
 #
-# 04/05/2001	lec
-#	- TR 1939; added ALL_Allele.nomenSymbol
-#
 # 05/17/2000	lec
 #	- created new CVS product 'mrklabelload'; separated MRK_Label
 #	load from MRK_Reference
