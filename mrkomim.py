@@ -37,6 +37,13 @@
 #
 # TR 3853/OMIM User Requirements
 #
+# Used:
+#	obsolete in femover/gather/disease_gatherer.py
+#	femover/gather/mp_annotation_gatherer.py
+#	qcreports_db/mgd/MRK_GOIEA.py
+#	reports_db/mgimarkerfeed/mgiMarkerFeed.py
+#	wi_test_suite
+#
 # History
 #
 # 04/10/2015	sc
