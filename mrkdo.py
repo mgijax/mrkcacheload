@@ -70,9 +70,6 @@ db.setAutoTranslate(False)
 db.setAutoTranslateBE(False)
 
 LINEDL = '\n'
-
-RDL = '\t'
-
 doBCP = None
 
 cdate = mgi_utils.date("%m/%d/%Y")
@@ -88,14 +85,13 @@ genotypeOrtholog = {}   # genotype key : list of human marker keys:symbols
 
 humanToDO = {}	# human marker key : DO term id
 mouseToDO = {}	# mouse marker key : DO term id
-mouseIsNot = {}	# mouse marker key : DO term id that are "NOT" annotations
 DOToHuman = {}	# DO term id : list of human marker keys
 
 genotypeAlleleMouseModels = {}	# mouse genotype key + termID: display category 3
 
-gene = 1
 notQualifier = []
 
+gene = 1
 nextMaxKey = 0		# max(_Cache_key)
 
 crepattern = re.compile(".*\(.*[Cc]re.*\).*")
@@ -313,11 +309,11 @@ def selectMouse():
 	# Returns:
 	# Assumes:  temp table domouse1 has already been created
 	# Effects:  initializes global dictionaries/caches
-	#	- humanOrtholog, mouseToDO, genotypeOrtholog, mouseIsNot
+	#	- humanOrtholog, mouseToDO, genotypeOrtholog
 	# Throws:
 	#
 
-	global humanOrtholog, mouseToDO, genotypeOrtholog, mouseIsNot
+	global humanOrtholog, mouseToDO, genotypeOrtholog
 
 	db.sql('create index idx1 on domouse1(_Marker_key)', None)
 	db.sql('create index idx2 on domouse1(_Allele_key)', None)
@@ -367,19 +363,6 @@ def selectMouse():
 	        if not mouseIs.has_key(key):
 		    mouseIs[key] = []
 		mouseIs[key].append(value)
-
-	    # specifically cache the "NOT" annotations; 
-	    # only if the "NOT" is the *only* annotation for this term
-	    if r['_Qualifier_key'] in notQualifier:
-		if mouseIs.has_key(key):
-		    if value not in mouseIs[key]:
-	                if not mouseIsNot.has_key(key):
-		            mouseIsNot[key] = []
-			mouseIsNot[key].append(value)
-		else:
-	            if not mouseIsNot.has_key(key):
-		        mouseIsNot[key] = []
-		    mouseIsNot[key].append(value)
 
 	#
 	# resolve Jnumber
@@ -542,7 +525,7 @@ def processMouse(processType):
                 if humanOrtholog.has_key(r['_Marker_key']):
 	            h = humanOrtholog[r['_Marker_key']]
 
-def selectHuman(byOrtholog = 0):
+def selectHuman():
 	#
 	# Purpose:  selects the appropriate human annotation data
 	# Returns:
@@ -553,61 +536,23 @@ def selectHuman(byOrtholog = 0):
 
 	global mouseOrtholog, humanToDO, DOToHuman
 
-	if byOrtholog == 1:
+	#
+	# select all human genes annotated to DO Gene or Disease Terms
+	#
 
-	    #
-	    # select all human genes w/ mouse orthologs annotated to DO Gene or Disease Terms
-	    # this statement is used if we are processing a specfic Marker, Allele or Genotype
-	    # data set so that only those human markers that are orthologs to the data set specified
-	    # are selected.
-	    #
-
-	    db.sql('''select a._Object_key as _marker_key, ac.accID as termid, 
-		    a._Term_key, t.term, q.term as qualifier, a._Qualifier_key, e._Refs_key 
-		    INTO TEMPORARY TABLE dohuman1 
-		    from orthologHuman o, VOC_Annot a, VOC_Evidence e, VOC_Term t, ACC_Accession ac, VOC_Term q 
-		    where a._AnnotType_key = %s 
-		    and a._Qualifier_key = q._Term_key 
-		    and a._Object_key = o.orthologKey 
-		    and a._Annot_key = e._Annot_key 
-		    and a._Term_key = t._Term_key 
-		    and a._Term_key = ac._Object_key 
-		    and ac._MGIType_key = 13 
-		    and ac.preferred = 1 
-		    union 
-	           select a._Object_key as _Marker_key, ac.accID as termID, 
-		    a._Term_key, t.term, q.term as qualifier, a._Qualifier_key, e._Refs_key 
-		    from domouse3 o, VOC_Annot a, VOC_Evidence e, VOC_Term t, ACC_Accession ac, VOC_Term q 
-		    where a._AnnotType_key = %s
-		    and a._Qualifier_key = q._Term_key 
-		    and a._Term_key = o._Term_key 
-		    and a._Annot_key = e._Annot_key 
-		    and a._Term_key = t._Term_key 
-		    and a._Term_key = ac._Object_key 
-		    and ac._MGIType_key = 13 
-		    and ac.preferred = 1
-		    ''' % (humanDOannotationKey, humanDOannotationKey), None)
-	    db.sql('create index idx8 on dohuman1(_Marker_key)', None)
-
-	else:
-	
-	    #
-	    # select all human genes annotated to DO Gene or Disease Terms
-	    #
-
-	    db.sql('''select a._Object_key as _Marker_key, ac.accID as termID, 
-		    a._Term_key, t.term, q.term as qualifier, a._Qualifier_key, e._Refs_key 
-		    INTO TEMPORARY TABLE dohuman1 
-		    from VOC_Annot a, VOC_Evidence e, VOC_Term t, ACC_Accession ac, VOC_Term q 
-		    where a._AnnotType_key = %s
-		    and a._Qualifier_key = q._Term_key 
-		    and a._Annot_key = e._Annot_key 
-		    and a._Term_key = t._Term_key 
-		    and a._Term_key = ac._Object_key 
-		    and ac._MGIType_key = 13 
-		    and ac.preferred = 1
-		    ''' % (humanDOannotationKey), None)
-	    db.sql('create index idx9 on dohuman1(_Marker_key)', None)
+	db.sql('''select a._Object_key as _Marker_key, ac.accID as termID, 
+	    a._Term_key, t.term, q.term as qualifier, a._Qualifier_key, e._Refs_key 
+	    INTO TEMPORARY TABLE dohuman1 
+	    from VOC_Annot a, VOC_Evidence e, VOC_Term t, ACC_Accession ac, VOC_Term q 
+	    where a._AnnotType_key = %s
+	    and a._Qualifier_key = q._Term_key 
+	    and a._Annot_key = e._Annot_key 
+	    and a._Term_key = t._Term_key 
+	    and a._Term_key = ac._Object_key 
+	    and ac._MGIType_key = 13 
+	    and ac.preferred = 1
+	    ''' % (humanDOannotationKey), None)
+	db.sql('create index idx9 on dohuman1(_Marker_key)', None)
 
 	#
 	# resolve marker symbol
@@ -747,8 +692,6 @@ if server is None or \
 
 db.set_sqlLogin(user, password, server, database)
 db.useOneConnection(1)
-
-scriptName = os.path.basename(sys.argv[0])
 
 #
 # term key for 'not' qualifier

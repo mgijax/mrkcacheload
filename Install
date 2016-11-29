@@ -3,14 +3,6 @@
 #
 # Install
 #
-# Installs product "mrkcacheload" in the appropriate directory
-#
-# 1. cvs export -r mrkcacheload-#-#-# -d mrkcacheload-#-#-# mrkcacheload
-# 2. ln -s mrkcacheload-#-#-# mrkcacheload
-# 3. Copy Configuration.default Configuration
-# 4. Edit Configuration
-# 5. Install
-#
 
 cd `dirname $0` && source ./Configuration
 
@@ -29,12 +21,4 @@ endif
 if ( ! -d ${MRKCACHELOGDIR} ) then
 	mkdir -p ${MRKCACHELOGDIR}
 endif
-
-#
-# create symbolic links
-#
-
-ln -s mrkomim.py mrkomimByAllele.py
-ln -s mrkomim.py mrkomimByMarker.py
-ln -s mrkomim.py mrkomimByGenotype.py
 
