@@ -427,7 +427,7 @@ def cacheGenotypeDisplay3():
 
 def processMouse():
 	#
-	# Purpose:  process Mouse records either by bcp or sql
+	# Purpose:  process Mouse records either by bcp
 	# Returns:
 	# Assumes:
 	# Effects:
@@ -469,11 +469,11 @@ def processMouse():
 
             doBCP.write(
 	            str(nextMaxKey) + COLDL +  \
+	            mgi_utils.prvalue(r['_Organism_key']) + COLDL +  \
 	            mgi_utils.prvalue(r['_Marker_key']) + COLDL +  \
 	            mgi_utils.prvalue(r['_Genotype_key']) + COLDL + \
 	            mgi_utils.prvalue(r['_Term_key']) + COLDL + \
 	            mgi_utils.prvalue(r['_Refs_key']) + COLDL + \
-                    mgi_utils.prvalue(alleleDetailMouseModels) + COLDL + \
                     mgi_utils.prvalue(diseaseMouseModels) + COLDL + \
 	            mgi_utils.prvalue(r['qualifier']) + COLDL + \
 	            r['term'] + COLDL + \

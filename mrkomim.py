@@ -17,7 +17,6 @@
 #	1.  Select all Mouse genotype-to-OMIM Disease annotations
 #	2.  Categorize them
 #	3.  Write records to output file
-#
 #	4.  Select all Human-to-OMIM Disease annotations
 #	5.  Categorize them
 #	6.  Write records to output file
@@ -25,7 +24,7 @@
 # alleleMouseModels is the Allele Detail Mouse Model table. (MRK_OMIM_Cache.omimCategory1)
 # diseaseMouseModels is the Disease Detail Mouse Model table. (MRK_OMIM_Cache.omimCategory3)
 #
-# possible values for omimCategory1, omimCategory2, omimCategory3):
+# possible values for omimCategory1, omimCategory3):
 #
 #	-1: ignore
 #	1 : Models with phenotypic similarity to human disease where etiologies involve orthologs.
