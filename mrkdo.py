@@ -84,7 +84,6 @@ mouseOrtholog = {}	# human marker key : mouse ortholog (key, symbol)
 genotypeOrtholog = {}   # genotype key : list of human marker keys:symbols
 
 humanToDO = {}	# human marker key : DO term id
-mouseToDO = {}	# mouse marker key : DO term id
 DOToHuman = {}	# DO term id : list of human marker keys
 
 genotypeAlleleMouseModels = {}	# mouse genotype key + termID: display category 3
@@ -309,11 +308,11 @@ def selectMouse():
 	# Returns:
 	# Assumes:  temp table domouse1 has already been created
 	# Effects:  initializes global dictionaries/caches
-	#	- humanOrtholog, mouseToDO, genotypeOrtholog
+	#	- humanOrtholog, genotypeOrtholog
 	# Throws:
 	#
 
-	global humanOrtholog, mouseToDO, genotypeOrtholog
+	global humanOrtholog, genotypeOrtholog
 
 	db.sql('create index idx1 on domouse1(_Marker_key)', None)
 	db.sql('create index idx2 on domouse1(_Allele_key)', None)
@@ -341,28 +340,6 @@ def selectMouse():
 		and a.preferred = 1
 		''', None)
 	db.sql('create index idx4 on domouse3(_Refs_key)', None)
-
-	#
-	# cache all terms annotated to mouse markers
-	#
-	mouseIs = {}
-	results = db.sql('''select distinct o._Marker_key, o.termID, o.qualifier, o._Qualifier_key
-	     from domouse3 o order by o._Marker_key, o.termID, o.qualifier
-	     ''', 'auto')
-
-	for r in results:
-
-	    key = r['_Marker_key']
-	    value = r['termID']
-
-	    if not mouseToDO.has_key(key):
-		mouseToDO[key] = []
-	    mouseToDO[key].append(value)
-
-	    if r['_Qualifier_key'] not in notQualifier:
-	        if not mouseIs.has_key(key):
-		    mouseIs[key] = []
-		mouseIs[key].append(value)
 
 	#
 	# resolve Jnumber
@@ -448,13 +425,12 @@ def cacheGenotypeDisplay3():
 	    else:
 		genotypeAlleleMouseModels[gcKey] = alleleDetailMouseModels
 
-def processMouse(processType):
+def processMouse():
 	#
 	# Purpose:  process Mouse records either by bcp or sql
 	# Returns:
 	# Assumes:
-	# Effects:  if processType = bcp, then writes records to bcp file
-	# Effects:  if processType = sql, then executes in-line SQL insert commands
+	# Effects:
 	# Throws:
 	#
 
@@ -491,21 +467,7 @@ def processMouse(processType):
 	    else:
 		diseaseMouseModels = genotypeAlleleMouseModels[gcKey]
 
-	    if humanOrtholog.has_key(marker):
-		h = humanOrtholog[marker]
-		orthologKey = h['orthologKey']
-		orthologSymbol = h['orthologSymbol']
-            else:
-		if processType == 'bcp':
-		    orthologKey = ''
-		    orthologSymbol = ''
-                else:
-		    orthologKey =  None
-		    orthologSymbol =  None
-
-	    if processType == 'bcp':
-
-                doBCP.write(
+            doBCP.write(
 	            str(nextMaxKey) + COLDL +  \
 	            mgi_utils.prvalue(r['_Marker_key']) + COLDL +  \
 	            mgi_utils.prvalue(r['_Genotype_key']) + COLDL + \
@@ -521,9 +483,6 @@ def processMouse(processType):
                     mgi_utils.prvalue(headerFootnote) + COLDL + \
                     mgi_utils.prvalue(genotypeFootnote) + COLDL + \
 	            cdate + COLDL + cdate + LINEDL)
-
-                if humanOrtholog.has_key(r['_Marker_key']):
-	            h = humanOrtholog[r['_Marker_key']]
 
 def selectHuman():
 	#
@@ -651,7 +610,7 @@ def processDeleteReload():
 	selectMouse()
 	selectHuman()
 	cacheGenotypeDisplay3()
-	processMouse('bcp')
+	processMouse()
 	doBCP.close()
 
 	print '%s' % mgi_utils.date()

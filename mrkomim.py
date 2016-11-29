@@ -23,7 +23,6 @@
 #	6.  Write records to output file
 #
 # alleleMouseModels is the Allele Detail Mouse Model table. (MRK_OMIM_Cache.omimCategory1)
-# diseaseAssociatedGenes is the Disease Detail Associated Genes and Transgenes sections. (MRK_OMIM_Cache.omimCategory2)
 # diseaseMouseModels is the Disease Detail Mouse Model table. (MRK_OMIM_Cache.omimCategory3)
 #
 # possible values for omimCategory1, omimCategory2, omimCategory3):
@@ -49,12 +48,6 @@
 # 04/10/2015	sc
 #	TR11886 - MandM project update to Use Hybrid Homology (MRK_Cluster* tables) rather than obsolete
 #	HMD_* tables
-#
-# 12/11/2012	lec/kstone
-#	- TR10273
-#	deriveDiseaseAssociatedGenes()
-#	AS OF 2012-12-05 kstone - We are suppressing the marker "Gt(ROSA)26Sor" from the 
-# 	associated genes section of every disease detail per Janan
 #
 # 04/04/2011	lec
 #	- TR10658;add _Cache_key
@@ -109,8 +102,6 @@ mouseOrtholog = {}	# human marker key : mouse ortholog (key, symbol)
 genotypeOrtholog = {}   # genotype key : list of human marker keys:symbols
 
 humanToOMIM = {}	# human marker key : OMIM term id
-mouseToOMIM = {}	# mouse marker key : OMIM term id
-mouseIsNot = {}		# mouse marker key : OMIM term id that are "NOT" annotations
 OMIMToHuman = {}	# OMIM term id : list of human marker keys
 
 genotypeAlleleMouseModels = {}	# mouse genotype key + termID: display category 3
@@ -332,119 +323,17 @@ def deriveAlleleDetailMouseModels(r):
 
 	return -1, header, headerFootnote, genotypeFootnote
 
-def deriveDiseaseAssociatedGenes(r):
-	#
-	# Purpose: derives the appropriate Human Disease Detail page Table 1 (Associated Genes)
-	#          category for the record 
-	# Returns: the category (1,2,3), -1 if no category could be determined
-	# Assumes:
-	# Effects:
-	# Throws:
-	#
-
-	#
-	#  1. Term of record r is annotated in both Mouse and Human
-	#  2. Term of record r is annotated in Mouse but not Human
-	#  3. Term of record r is annotated in Human but not Mouse
-	#
-	#  for "is" annotations only
-	#
-
-	organism = r['_Organism_key']
-	marker = r['_Marker_key']
-	symbol = r['markerSymbol']
-	termID = r['termID']
-	hasOrtholog = 0
-
-	# AS OF 2012-12-05 kstone - We are suppressing the marker "Gt(ROSA)26Sor" from the 
-	# associated genes section of every disease detail per Janan
-	if marker==37270:
-		return -1
-
-	#
-	# process mouse reocrd
-	#
-
-	if organism == mouseOrganismKey:
-
-	    #
-	    # Cre alleles should not appear in this table
-	    #
-	    m = crepattern.match(r['alleleSymbol'])
-	    if m is not None:
-		return -1
-
-	    #
-	    # mouse NOTs appear nowhere...
-	    #
-
-            if r['_Qualifier_key'] in notQualifier:
-		return -1
-
-	    if humanOrtholog.has_key(marker):
-	        hasOrtholog = 1
-	        ortholog = humanOrtholog[marker]
-	        orthologKey = ortholog['orthologKey']
-	        orthologSymbol = ortholog['orthologSymbol']
-
-	    if hasOrtholog:
-	        if humanToOMIM.has_key(orthologKey):
-		    omim = humanToOMIM[orthologKey]
-		    if termID in omim:
-		        return 1
-		    else:
-		        return 2
-	        else:
-	            return 2
-	    else:
-		return 2
-
-	#
-	# process human record
-	# 
-
-	else:
-
-	    if mouseOrtholog.has_key(marker):
-	        hasOrtholog = 1
-	        ortholog = mouseOrtholog[marker]
-	        orthologKey = ortholog['orthologKey']
-	        orthologSymbol = ortholog['orthologSymbol']
-
-	    if hasOrtholog:
-
-		#
-		# if the corresponding mouse ortholog annotation is a NOT, then it can only be in category 3
-		#
-
-		isNot = 0
-		if mouseIsNot.has_key(orthologKey):
-		    omim = mouseIsNot[orthologKey]
-		    if termID in omim:
-			isNot = 1
-
-	        if mouseToOMIM.has_key(orthologKey):
-		    omim = mouseToOMIM[orthologKey]
-		    if termID in omim and isNot == 0:
-		        return 1
-		    else:
-		        return 3
-	        else:
-	            return 3
-	    else:
-		return 3
-
 def selectMouse():
 	#
 	# Purpose:  selects the appropriate mouse gentoype data
 	# Returns:
 	# Assumes:  temp table omimmouse1 has already been created
 	# Effects:  initializes global dictionaries/caches
-	#	- humanOrtholog, mouseToOMIM, genotypeOrtholog, mouseIsNot
+	#	- humanOrtholog, genotypeOrtholog
 	# Throws:
 	#
 
-	global humanOrtholog, mouseToOMIM, genotypeOrtholog, mouseIsNot
+	global humanOrtholog, genotypeOrtholog
 
 	db.sql('create index idx1 on omimmouse1(_Marker_key)', None)
 	db.sql('create index idx2 on omimmouse1(_Allele_key)', None)
@@ -470,40 +359,6 @@ def selectMouse():
 		'and a._MGIType_key = 13 ' + \
 		'and a.preferred = 1', None)
 	db.sql('create index idx4 on omimmouse3(_Refs_key)', None)
-
-	#
-	# cache all terms annotated to mouse markers
-	#
-	mouseIs = {}
-	results = db.sql('select distinct o._Marker_key, o.termID, o.qualifier, o._Qualifier_key ' + \
-	     'from omimmouse3 o order by o._Marker_key, o.termID, o.qualifier', 'auto')
-
-	for r in results:
-
-	    key = r['_Marker_key']
-	    value = r['termID']
-
-	    if not mouseToOMIM.has_key(key):
-		mouseToOMIM[key] = []
-	    mouseToOMIM[key].append(value)
-
-	    if r['_Qualifier_key'] not in notQualifier:
-	        if not mouseIs.has_key(key):
-		    mouseIs[key] = []
-		mouseIs[key].append(value)
-
-	    # specifically cache the "NOT" annotations; 
-	    # only if the "NOT" is the *only* annotation for this term
-	    if r['_Qualifier_key'] in notQualifier:
-		if mouseIs.has_key(key):
-		    if value not in mouseIs[key]:
-	                if not mouseIsNot.has_key(key):
-		            mouseIsNot[key] = []
-			mouseIsNot[key].append(value)
-		else:
-	            if not mouseIsNot.has_key(key):
-		        mouseIsNot[key] = []
-		    mouseIsNot[key].append(value)
 
 	#
 	# resolve Jnumber
@@ -596,13 +451,12 @@ def cacheGenotypeDisplay3():
 	    else:
 		genotypeAlleleMouseModels[gcKey] = alleleDetailMouseModels
 
-def processMouse(processType):
+def processMouse():
 	#
 	# Purpose:  process Mouse records either by bcp or sql
 	# Returns:
 	# Assumes:
-	# Effects:  if processType = bcp, then writes records to bcp file
-	# Effects:  if processType = sql, then executes in-line SQL insert commands
+	# Effects:
 	# Throws:
 	#
 
@@ -622,7 +476,6 @@ def processMouse(processType):
 	    gcKey = `genotype` + termID
 
 	    alleleDetailMouseModels, header, headerFootnote, genotypeFootnote = deriveAlleleDetailMouseModels(r)
-	    diseaseAssociatedGenes = deriveDiseaseAssociatedGenes(r)
 
 	    nextMaxKey = nextMaxKey + 1
 
@@ -647,18 +500,11 @@ def processMouse(processType):
 		orthologKey = h['orthologKey']
 		orthologSymbol = h['orthologSymbol']
             else:
-		if processType == 'bcp':
-		    orthologOrganism = ''
-		    orthologKey = ''
-		    orthologSymbol = ''
-                else:
-		    orthologOrganism = None
-		    orthologKey =  None
-		    orthologSymbol =  None
+		orthologOrganism = ''
+		orthologKey = ''
+		orthologSymbol = ''
 
-	    if processType == 'bcp':
-
-                omimBCP.write(
+            omimBCP.write(
 	            str(nextMaxKey) + COLDL +  \
 	            mgi_utils.prvalue(mouseOrganismKey) + COLDL +  \
 	            mgi_utils.prvalue(r['_Marker_key']) + COLDL +  \
@@ -670,7 +516,7 @@ def processMouse(processType):
 	            mgi_utils.prvalue(orthologOrganism) + COLDL + \
 	            mgi_utils.prvalue(orthologKey) + COLDL + \
                     mgi_utils.prvalue(alleleDetailMouseModels) + COLDL + \
-                    mgi_utils.prvalue(diseaseAssociatedGenes) + COLDL + \
+                    mgi_utils.prvalue('-1') + COLDL + \
                     mgi_utils.prvalue(diseaseMouseModels) + COLDL + \
 	            mgi_utils.prvalue(r['sequenceNum']) + COLDL + \
 	            mgi_utils.prvalue(r['qualifier']) + COLDL + \
@@ -686,53 +532,8 @@ def processMouse(processType):
                     mgi_utils.prvalue(genotypeFootnote) + COLDL + \
 	            cdate + COLDL + cdate + LINEDL)
 
-                if humanOrtholog.has_key(r['_Marker_key']):
-	            h = humanOrtholog[r['_Marker_key']]
-
-	    elif processType == 'sql':
-
-		if headerFootnote == '':
-		    printHeaderFootnote = 'null'
-                else:
-		    printHeaderFootnote = '"' + headerFootnote + '"'
-
-		if genotypeFootnote == '':
-		    printGenotypeFootnote = 'null'
-                else:
-		    printGenotypeFootnote = '"' + genotypeFootnote + '"'
-
-		if r['qualifier'] is None:
-		    printQualifier = 'null'
-                else:
-		    printQualifier = '"' + r['qualifier'] + '"'
-
-		db.sql(insertSQL % (
-	            str(nextMaxKey), \
-	            mgi_utils.prvalue(mouseOrganismKey), \
-	            mgi_utils.prvalue(r['_Marker_key']), \
-	            mgi_utils.prvalue(r['_Marker_Type_key']), \
-	            mgi_utils.prvalue(r['_Allele_key']), \
-	            mgi_utils.prvalue(r['_Genotype_key']), \
-	            mgi_utils.prvalue(r['_Term_key']), \
-	            mgi_utils.prvalue(r['_Refs_key']), \
-	            mgi_utils.value(orthologOrganism), \
-	            mgi_utils.value(orthologKey), \
-                    mgi_utils.prvalue(alleleDetailMouseModels), \
-                    mgi_utils.prvalue(diseaseAssociatedGenes), \
-                    mgi_utils.prvalue(diseaseMouseModels), \
-	            mgi_utils.prvalue(r['sequenceNum']), \
-	            printQualifier, \
-	            r['markerSymbol'], \
-	            r['term'], \
-	            r['termID'], \
-	            r['jnumID'], \
-	            r['alleleSymbol'], \
-	            mgi_utils.prvalue(orthologSymbol), \
-	            r['strain'], \
-                    mgi_utils.prvalue(header), \
-                    printHeaderFootnote, \
-                    printGenotypeFootnote, \
-	            cdate , cdate), None)
+            if humanOrtholog.has_key(r['_Marker_key']):
+	        h = humanOrtholog[r['_Marker_key']]
 
 def selectHuman():
 	#
@@ -841,7 +642,6 @@ def processHuman():
 
 	    marker = r['_Marker_key']
 	    alleleDetailMouseModels = -1
-	    diseaseAssociatedGenes = deriveDiseaseAssociatedGenes(r)
 	    diseaseMouseModels = -1
 
 	    nextMaxKey = nextMaxKey + 1
@@ -856,11 +656,6 @@ def processHuman():
 		orthologKey = ''
 		orthologSymbol = ''
 
-	    # don't really have to write these out because the mouse counterpart is already there
-
-#	    if diseaseAssociatedGenes == 1:
-#		continue
-
 	    omimBCP.write(
 		str(nextMaxKey) + COLDL +  \
 		mgi_utils.prvalue(humanOrganismKey) + COLDL +  \
@@ -873,7 +668,7 @@ def processHuman():
 		mgi_utils.prvalue(orthologOrganism) + COLDL + \
 		mgi_utils.prvalue(orthologKey) + COLDL + \
 	        mgi_utils.prvalue(alleleDetailMouseModels) + COLDL + \
-	        mgi_utils.prvalue(diseaseAssociatedGenes) + COLDL + \
+	        mgi_utils.prvalue('-1') + COLDL + \
 	        mgi_utils.prvalue(diseaseMouseModels) + COLDL + \
 		COLDL + \
 		mgi_utils.prvalue(r['qualifier']) + COLDL + \
@@ -911,19 +706,20 @@ def processDeleteReload():
 	# select all mouse genotypes annotated to OMIM Disease Terms
 	#
 
-	db.sql('select g._Marker_key, g._Allele_key, g._Genotype_key, g.sequenceNum, ' + \
-		'a._Term_key, q.term as qualifier, a._Qualifier_key, e._Refs_key ' + \
-		'INTO TEMPORARY TABLE omimmouse1 ' + \
-		'from GXD_AlleleGenotype g, VOC_Annot a, VOC_Evidence e, VOC_Term q ' + \
-		'where g._Genotype_key = a._Object_key ' + \
-		'and a._Qualifier_key = q._Term_key ' + \
-		'and a._AnnotType_key = %s ' % (mouseOMIMannotationKey) + \
-		'and a._Annot_key = e._Annot_key\n', None)
+	db.sql('''select g._Marker_key, g._Allele_key, g._Genotype_key, g.sequenceNum, 
+		a._Term_key, q.term as qualifier, a._Qualifier_key, e._Refs_key 
+		INTO TEMPORARY TABLE omimmouse1 
+		from GXD_AlleleGenotype g, VOC_Annot a, VOC_Evidence e, VOC_Term q 
+		where g._Genotype_key = a._Object_key 
+		and a._Qualifier_key = q._Term_key 
+		and a._AnnotType_key = %s 
+		and a._Annot_key = e._Annot_key
+		''' % (mouseOMIMannotationKey), None)
 
 	selectMouse()
 	selectHuman()
 	cacheGenotypeDisplay3()
-	processMouse('bcp')
+	processMouse()
 	processHuman()
 	omimBCP.close()
 

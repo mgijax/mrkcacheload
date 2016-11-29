@@ -12,7 +12,6 @@
 cd `dirname $0` && source ./Configuration
 
 setenv TABLE MRK_DO_Cache
-setenv OBJECTKEY 0
 
 setenv LOG	${MRKCACHELOGDIR}/`basename $0 .csh`.log
 rm -rf $LOG
