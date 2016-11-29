@@ -10,14 +10,13 @@
 #	2.  Human-to-DO Disease/Gene annotations
 #
 # Usage:
-#	mrkdo.py -Sdbserver -Ddatabase -Uuser -Ppasswordfile -Kobjectkey
+#	mrkdo.py -Sdbserver -Ddatabase -Uuser -Ppasswordfile
 #
 # Processing:
 #
 #	1.  Select all Mouse genotype-to-DO Disease annotations
 #	2.  Categorize them
 #	3.  Write records to output file
-#
 #	4.  Select all Human-to-DO Disease annotations
 #	5.  Categorize them
 #	6.  Write records to output file
@@ -34,9 +33,17 @@
 #	4 : Models involving transgenes or other mutation types.
 #	5 : No similarity to the expected human disease phenotype was found.
 #
-# TR 3853/DO User Requirements
+# Used:
+#	femover/gather/disease_gatherer.py
+#	femover/gather/mp_annotation_gatherer.py
+#	qcreports_db/mgd/MRK_GOIEA.py
+#	reports_db/mgimarkerfeed/mgiMarkerFeed.py
+#	wi_test_suite
 #
 # History
+#
+# 11/28/2016    lec
+#       - TR12427/Disease Ontology (DO)
 #
 #
 '''
@@ -67,7 +74,6 @@ LINEDL = '\n'
 RDL = '\t'
 
 doBCP = None
-reviewBCP = None
 
 cdate = mgi_utils.date("%m/%d/%Y")
 
@@ -118,9 +124,6 @@ headerFootnote5 = 'One or more human genes may be associated with the human dise
 genotypeFootnote1 = '%s is associated with this disease in humans.'
 genotypeFootnote2 = '%s are associated with this disease in humans.'
 
-deleteSQL = 'delete from MRK_DO_Cache where _Genotype_key = %s'
-insertSQL = 'insert into MRK_DO_Cache values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,"%s","%s","%s","%s","%s","%s","%s",%s,"%s",%s,%s,"%s","%s")'
-
 def showUsage():
 	'''
 	#
@@ -132,8 +135,7 @@ def showUsage():
 		'-S server\n' + \
 		'-D database\n' + \
 		'-U user\n' + \
-		'-P password file\n' + \
-		'-K object key\n'
+		'-P password file\n'
 
 	sys.stderr.write(usage)
 	sys.exit(1)
@@ -323,31 +325,34 @@ def selectMouse():
 	#
 	# resolve marker symbol
 	#
-	db.sql('select o.*, m._Organism_key, m.symbol as markerSymbol, m._Marker_Type_key, a.symbol as alleleSymbol ' + \
-		'INTO TEMPORARY TABLE domouse2 ' + \
-		'from domouse1 o, MRK_Marker m, ALL_Allele a ' + \
-		'where o._Marker_key = m._Marker_key ' + \
-		'and o._Allele_key = a._Allele_key', None)
+	db.sql('''select o.*, m._Organism_key, m.symbol as markerSymbol, m._Marker_Type_key, a.symbol as alleleSymbol 
+		INTO TEMPORARY TABLE domouse2 
+		from domouse1 o, MRK_Marker m, ALL_Allele a 
+		where o._Marker_key = m._Marker_key 
+		and o._Allele_key = a._Allele_key
+		''', None)
 	db.sql('create index idx3 on domouse2(_Marker_key)', None)
 
 	#
 	# resolve DO term and ID
 	#
-	db.sql('select o.*, t.term, a.accID as termID ' + \
-		'INTO TEMPORARY TABLE domouse3 ' + \
-		'from domouse2 o, VOC_Term t, ACC_Accession a ' + \
-		'where o._Term_key = t._Term_key ' + \
-		'and o._Term_key = a._Object_key ' + \
-		'and a._MGIType_key = 13 ' + \
-		'and a.preferred = 1', None)
+	db.sql('''select o.*, t.term, a.accID as termID 
+		INTO TEMPORARY TABLE domouse3 
+		from domouse2 o, VOC_Term t, ACC_Accession a 
+		where o._Term_key = t._Term_key 
+		and o._Term_key = a._Object_key 
+		and a._MGIType_key = 13 
+		and a.preferred = 1
+		''', None)
 	db.sql('create index idx4 on domouse3(_Refs_key)', None)
 
 	#
 	# cache all terms annotated to mouse markers
 	#
 	mouseIs = {}
-	results = db.sql('select distinct o._Marker_key, o.termID, o.qualifier, o._Qualifier_key ' + \
-	     'from domouse3 o order by o._Marker_key, o.termID, o.qualifier', 'auto')
+	results = db.sql('''select distinct o._Marker_key, o.termID, o.qualifier, o._Qualifier_key
+	     from domouse3 o order by o._Marker_key, o.termID, o.qualifier
+	     ''', 'auto')
 
 	for r in results:
 
@@ -379,14 +384,15 @@ def selectMouse():
 	#
 	# resolve Jnumber
 	#
-	db.sql('select o.*, a.accID as jnumID ' + \
-		'INTO TEMPORARY TABLE domouse4 ' + \
-		'from domouse3 o, ACC_Accession a ' + \
-		'where o._Refs_key = a._Object_key ' + \
-		'and a._MGIType_key = 1 ' + \
-		'and a._LogicalDB_key = 1 ' + \
-		'and a.prefixPart = \'J:\' ' + \
-		'and a.preferred = 1', None)
+	db.sql('''select o.*, a.accID as jnumID 
+		INTO TEMPORARY TABLE domouse4 
+		from domouse3 o, ACC_Accession a 
+		where o._Refs_key = a._Object_key 
+		and a._MGIType_key = 1 
+		and a._LogicalDB_key = 1 
+		and a.prefixPart = 'J:' 
+		and a.preferred = 1
+		''', None)
 	db.sql('create index idx5 on domouse4(_Genotype_key)', None)
 	db.sql('create index idx6 on domouse4(_Allele_key)', None)
 
@@ -417,9 +423,10 @@ def selectMouse():
 	#
 	# resolve genotype-to-orthologs
 	#
-        results = db.sql('select distinct g._Genotype_key, o.orthologKey, o.orthologSymbol ' + \
-		'from domouse1 g, orthologHuman o ' + \
-		'where g._Marker_key = o._Marker_key', 'auto')
+        results = db.sql('''select distinct g._Genotype_key, o.orthologKey, o.orthologSymbol 
+		from domouse1 g, orthologHuman o 
+		where g._Marker_key = o._Marker_key
+		''', 'auto')
 	for r in results:
 	    key = r['_Genotype_key']
 	    value = r
@@ -532,58 +539,8 @@ def processMouse(processType):
                     mgi_utils.prvalue(genotypeFootnote) + COLDL + \
 	            cdate + COLDL + cdate + LINEDL)
 
-                reviewBCP.write(
-                    mgi_utils.prvalue(alleleDetailMouseModels) + RDL + \
-                    mgi_utils.prvalue(diseaseMouseModels) + RDL + \
-	            mgi_utils.prvalue(genotype) + RDL + \
-	            r['term'] + RDL + \
-	            r['termID'] + RDL + \
-	            r['jnumID'] + RDL + \
-                    mgi_utils.prvalue(header) + RDL + \
-                    mgi_utils.prvalue(headerFootnote) + RDL + \
-                    mgi_utils.prvalue(genotypeFootnote) + RDL + \
-	            mgi_utils.prvalue(r['qualifier']) + RDL)
-            
                 if humanOrtholog.has_key(r['_Marker_key']):
 	            h = humanOrtholog[r['_Marker_key']]
-                else:
-                    reviewBCP.write(RDL)
-
-                reviewBCP.write(LINEDL)
-
-	    elif processType == 'sql':
-
-		if headerFootnote == '':
-		    printHeaderFootnote = 'null'
-                else:
-		    printHeaderFootnote = '"' + headerFootnote + '"'
-
-		if genotypeFootnote == '':
-		    printGenotypeFootnote = 'null'
-                else:
-		    printGenotypeFootnote = '"' + genotypeFootnote + '"'
-
-		if r['qualifier'] is None:
-		    printQualifier = 'null'
-                else:
-		    printQualifier = '"' + r['qualifier'] + '"'
-
-		db.sql(insertSQL % (
-	            str(nextMaxKey), \
-	            mgi_utils.prvalue(r['_Marker_key']), \
-	            mgi_utils.prvalue(r['_Genotype_key']), \
-	            mgi_utils.prvalue(r['_Term_key']), \
-	            mgi_utils.prvalue(r['_Refs_key']), \
-                    mgi_utils.prvalue(alleleDetailMouseModels), \
-                    mgi_utils.prvalue(diseaseMouseModels), \
-	            printQualifier, \
-	            r['term'], \
-	            r['termID'], \
-	            r['jnumID'], \
-                    mgi_utils.prvalue(header), \
-                    printHeaderFootnote, \
-                    printGenotypeFootnote, \
-	            cdate , cdate), None)
 
 def selectHuman(byOrtholog = 0):
 	#
@@ -605,30 +562,31 @@ def selectHuman(byOrtholog = 0):
 	    # are selected.
 	    #
 
-	    db.sql('select a._Object_key as _marker_key, ac.accID as termid, ' + \
-		    'a._Term_key, t.term, q.term as qualifier, a._Qualifier_key, e._Refs_key ' + \
-		    'INTO TEMPORARY TABLE dohuman1 ' + \
-		    'from orthologHuman o, VOC_Annot a, VOC_Evidence e, VOC_Term t, ACC_Accession ac, VOC_Term q ' + \
-		    'where a._AnnotType_key = %s ' % (humanDOannotationKey) + \
-		    'and a._Qualifier_key = q._Term_key ' + \
-		    'and a._Object_key = o.orthologKey ' + \
-		    'and a._Annot_key = e._Annot_key ' + \
-		    'and a._Term_key = t._Term_key ' + \
-		    'and a._Term_key = ac._Object_key ' + \
-		    'and ac._MGIType_key = 13 ' + \
-		    'and ac.preferred = 1 ' + \
-		    'union ' + \
-	           'select a._Object_key as _Marker_key, ac.accID as termID, ' + \
-		    'a._Term_key, t.term, q.term as qualifier, a._Qualifier_key, e._Refs_key ' + \
-		    'from domouse3 o, VOC_Annot a, VOC_Evidence e, VOC_Term t, ACC_Accession ac, VOC_Term q ' + \
-		    'where a._AnnotType_key = %s ' % (humanDOannotationKey) + \
-		    'and a._Qualifier_key = q._Term_key ' + \
-		    'and a._Term_key = o._Term_key ' + \
-		    'and a._Annot_key = e._Annot_key ' + \
-		    'and a._Term_key = t._Term_key ' + \
-		    'and a._Term_key = ac._Object_key ' + \
-		    'and ac._MGIType_key = 13 ' + \
-		    'and ac.preferred = 1', None)
+	    db.sql('''select a._Object_key as _marker_key, ac.accID as termid, 
+		    a._Term_key, t.term, q.term as qualifier, a._Qualifier_key, e._Refs_key 
+		    INTO TEMPORARY TABLE dohuman1 
+		    from orthologHuman o, VOC_Annot a, VOC_Evidence e, VOC_Term t, ACC_Accession ac, VOC_Term q 
+		    where a._AnnotType_key = %s 
+		    and a._Qualifier_key = q._Term_key 
+		    and a._Object_key = o.orthologKey 
+		    and a._Annot_key = e._Annot_key 
+		    and a._Term_key = t._Term_key 
+		    and a._Term_key = ac._Object_key 
+		    and ac._MGIType_key = 13 
+		    and ac.preferred = 1 
+		    union 
+	           select a._Object_key as _Marker_key, ac.accID as termID, 
+		    a._Term_key, t.term, q.term as qualifier, a._Qualifier_key, e._Refs_key 
+		    from domouse3 o, VOC_Annot a, VOC_Evidence e, VOC_Term t, ACC_Accession ac, VOC_Term q 
+		    where a._AnnotType_key = %s
+		    and a._Qualifier_key = q._Term_key 
+		    and a._Term_key = o._Term_key 
+		    and a._Annot_key = e._Annot_key 
+		    and a._Term_key = t._Term_key 
+		    and a._Term_key = ac._Object_key 
+		    and ac._MGIType_key = 13 
+		    and ac.preferred = 1
+		    ''' % (humanDOannotationKey, humanDOannotationKey), None)
 	    db.sql('create index idx8 on dohuman1(_Marker_key)', None)
 
 	else:
@@ -637,26 +595,28 @@ def selectHuman(byOrtholog = 0):
 	    # select all human genes annotated to DO Gene or Disease Terms
 	    #
 
-	    db.sql('select a._Object_key as _Marker_key, ac.accID as termID, ' + \
-		    'a._Term_key, t.term, q.term as qualifier, a._Qualifier_key, e._Refs_key ' + \
-		    'INTO TEMPORARY TABLE dohuman1 ' + \
-		    'from VOC_Annot a, VOC_Evidence e, VOC_Term t, ACC_Accession ac, VOC_Term q ' + \
-		    'where a._AnnotType_key = %s ' % (humanDOannotationKey) + \
-		    'and a._Qualifier_key = q._Term_key ' + \
-		    'and a._Annot_key = e._Annot_key ' + \
-		    'and a._Term_key = t._Term_key ' + \
-		    'and a._Term_key = ac._Object_key ' + \
-		    'and ac._MGIType_key = 13 ' + \
-		    'and ac.preferred = 1', None)
+	    db.sql('''select a._Object_key as _Marker_key, ac.accID as termID, 
+		    a._Term_key, t.term, q.term as qualifier, a._Qualifier_key, e._Refs_key 
+		    INTO TEMPORARY TABLE dohuman1 
+		    from VOC_Annot a, VOC_Evidence e, VOC_Term t, ACC_Accession ac, VOC_Term q 
+		    where a._AnnotType_key = %s
+		    and a._Qualifier_key = q._Term_key 
+		    and a._Annot_key = e._Annot_key 
+		    and a._Term_key = t._Term_key 
+		    and a._Term_key = ac._Object_key 
+		    and ac._MGIType_key = 13 
+		    and ac.preferred = 1
+		    ''' % (humanDOannotationKey), None)
 	    db.sql('create index idx9 on dohuman1(_Marker_key)', None)
 
 	#
 	# resolve marker symbol
 	#
-	db.sql('select o.*, m._Organism_key, m.symbol as markerSymbol, m._Marker_Type_key ' + \
-		'INTO TEMPORARY TABLE dohuman2 ' + \
-		'from dohuman1 o, MRK_Marker m ' + \
-		'where o._Marker_key = m._Marker_key ', None)
+	db.sql('''select o.*, m._Organism_key, m.symbol as markerSymbol, m._Marker_Type_key 
+		INTO TEMPORARY TABLE dohuman2 
+		from dohuman1 o, MRK_Marker m 
+		where o._Marker_key = m._Marker_key 
+		''', None)
 	db.sql('create index idx10 on dohuman2(_Marker_key)', None)
 
 	#
@@ -680,16 +640,17 @@ def selectHuman(byOrtholog = 0):
 	#
 	# resolve Jnumber
 	#
-	db.sql('select o.*, a.accID as jnumID ' + \
-		'INTO TEMPORARY TABLE dohuman3 ' + \
-		'from dohuman2 o, ACC_Accession a ' + \
-		'where o._Refs_key = a._Object_key ' + \
-		'and a._MGIType_key = 1 ' + \
-		'and a._LogicalDB_key = 1 ' + \
-		'and a.prefixPart = \'J:\' ' + \
-		'and a.preferred = 1 ' + \
-		'union ' + \
-		'select o.*, null as jnumID from dohuman2 o where _Refs_key = -1', None)
+	db.sql('''select o.*, a.accID as jnumID 
+		INTO TEMPORARY TABLE dohuman3 
+		from dohuman2 o, ACC_Accession a 
+		where o._Refs_key = a._Object_key 
+		and a._MGIType_key = 1 
+		and a._LogicalDB_key = 1 
+		and a.prefixPart = 'J:' 
+		and a.preferred = 1 
+		union 
+		select o.*, null as jnumID from dohuman2 o where _Refs_key = -1
+		''', None)
 
 	#
 	# resolve mouse ortholog
@@ -705,7 +666,8 @@ def selectHuman(byOrtholog = 0):
                 and c1._Cluster_key = c2._Cluster_key
                 and c2._Cluster_key = cm2._Cluster_key
                 and cm2._Marker_key = m2._Marker_key
-                and m2._Organism_key = %s''' % (mouseOrganismKey), 'auto')
+                and m2._Organism_key = %s
+		''' % (mouseOrganismKey), 'auto')
 
 	for r in results:
 	    key = r['_Marker_key']
@@ -717,160 +679,37 @@ def processDeleteReload():
 	# Purpose:  processes data for BCP-type processing; aka delete/reload
 	# Returns:
 	# Assumes:
-	# Effects:  initializes global file pointers:  doBCP, reviewBCP
+	# Effects:  initializes global file pointers:  doBCP
 	# Throws:
 	#
 
-	global doBCP, reviewBCP
+	global doBCP
 
 	print '%s' % mgi_utils.date()
 
 	doBCP = open(outDir + '/' + table + '.bcp', 'w')
-	reviewBCP = open(outDir + '/DO_Cache_Review.tab', 'w')
 
 	#
 	# select all mouse genotypes annotated to DO Disease Terms
 	#
 
-	db.sql('select g._Marker_key, g._Allele_key, g._Genotype_key, ' + \
-		'a._Term_key, q.term as qualifier, a._Qualifier_key, e._Refs_key ' + \
-		'INTO TEMPORARY TABLE domouse1 ' + \
-		'from GXD_AlleleGenotype g, VOC_Annot a, VOC_Evidence e, VOC_Term q ' + \
-		'where g._Genotype_key = a._Object_key ' + \
-		'and a._Qualifier_key = q._Term_key ' + \
-		'and a._AnnotType_key = %s ' % (mouseDOannotationKey) + \
-		'and a._Annot_key = e._Annot_key\n', None)
+	db.sql('''select g._Marker_key, g._Allele_key, g._Genotype_key, 
+		a._Term_key, q.term as qualifier, a._Qualifier_key, e._Refs_key 
+		INTO TEMPORARY TABLE domouse1 
+		from GXD_AlleleGenotype g, VOC_Annot a, VOC_Evidence e, VOC_Term q 
+		where g._Genotype_key = a._Object_key 
+		and a._Qualifier_key = q._Term_key 
+		and a._AnnotType_key = %s
+		and a._Annot_key = e._Annot_key
+		''' % (mouseDOannotationKey), None)
 
 	selectMouse()
 	selectHuman()
 	cacheGenotypeDisplay3()
 	processMouse('bcp')
 	doBCP.close()
-	reviewBCP.close()
 
 	print '%s' % mgi_utils.date()
-
-def processByAllele(alleleKey):
-	#
-	# Purpose:  processes data for a specific Allele
-	# Returns:
-	# Assumes:
-	# Effects:
-	# Throws:
-	#
-
-	#
-	# select all Genotypes of specified Allele
-	#
-
-	db.sql('select distinct g._Genotype_key INTO TEMPORARY TABLE toprocess ' + \
-		'from GXD_AlleleGenotype g ' + \
-		'where g._Allele_key = ' + alleleKey, None)
-
-	db.sql('create index idx11 on toprocess(_Genotype_key)', None)
-
-	#
-	# delete existing cache records for this allele
-	#
-
-	db.sql('delete from %s using toprocess p, %s g where p._Genotype_key = g._Genotype_key' % (table, table), None)
-
-	#
-	# select all annotations for Genotypes of specified Allele
-	#
-
-	db.sql('select g._Marker_key, g._Allele_key, g._Genotype_key, ' + \
-		'a._Term_key, q.term as qualifier, a._Qualifier_key, e._Refs_key ' + \
-		'INTO TEMPORARY TABLE domouse1 ' + \
-		'from toprocess p, GXD_AlleleGenotype g, VOC_Annot a, VOC_Evidence e, VOC_Term q ' + \
-		'where p._Genotype_key = g._Genotype_key ' + \
-		'and g._Genotype_key = a._Object_key ' + \
-		'and a._Qualifier_key = q._Term_key ' + \
-		'and a._AnnotType_key = %s ' % (mouseDOannotationKey) + \
-		'and a._Annot_key = e._Annot_key', None)
-
-	selectMouse()
-	selectHuman(byOrtholog = 1)
-	cacheGenotypeDisplay3()
-	processMouse('sql')
-
-def processByGenotype(genotypeKey):
-	#
-	# Purpose:  processes data for a specific Genotype
-	# Returns:
-	# Assumes:
-	# Effects:
-	# Throws:
-	#
-
-	#
-	# delete existing cache records for this genotype
-	#
-
-	db.sql(deleteSQL % (genotypeKey), None)
-
-	#
-	# select all annotations for given genotypeKey
-	#
-
-	db.sql('select g._Marker_key, g._Allele_key, g._Genotype_key, ' + \
-		'a._Term_key, q.term as qualifier, a._Qualifier_key, e._Refs_key ' + \
-		'INTO TEMPORARY TABLE domouse1 ' + \
-		'from GXD_AlleleGenotype g, VOC_Annot a, VOC_Evidence e, VOC_Term q ' + \
-		'where g._Genotype_key = a._Object_key ' + \
-		'and a._Qualifier_key = q._Term_key ' + \
-		'and a._AnnotType_key = %s ' % (mouseDOannotationKey) + \
-		'and a._Annot_key = e._Annot_key ' + \
-	        'and g._Genotype_key = %s' % (genotypeKey), None)
-
-	selectMouse()
-	selectHuman(byOrtholog = 1)
-	cacheGenotypeDisplay3()
-	processMouse('sql')
-
-def processByMarker(markerKey):
-	#
-	# Purpose:  processes data for a specific Marker
-	# Returns:
-	# Assumes:
-	# Effects:
-	# Throws:
-	#
-
-	#
-	# select all Genotypes of specified Marker
-	#
-
-	db.sql('select distinct g._Genotype_key INTO TEMPORARY TABLE toprocess ' + \
-		'from GXD_AlleleGenotype g ' + \
-		'where g._Marker_key = ' + markerKey, None)
-
-	db.sql('create index idx12 on toprocess(_Genotype_key)', None)
-
-	#
-	# delete existing cache records for this marker
-	#
-
-	db.sql('delete from %s using toprocess p, %s g where p._Genotype_key = g._Genotype_key' % (table, table), None)
-
-	#
-	# select all annotations for Genotypes of specified Marker
-	#
-
-	db.sql('select g._Marker_key, g._Allele_key, g._Genotype_key, ' + \
-		'a._Term_key, q.term as qualifier, a._Qualifier_key, e._Refs_key ' + \
-		'INTO TEMPORARY TABLE domouse1 ' + \
-		'from toprocess p, GXD_AlleleGenotype g, VOC_Annot a, VOC_Evidence e, VOC_Term q ' + \
-		'where p._Genotype_key = g._Genotype_key ' + \
-		'and g._Genotype_key = a._Object_key ' + \
-		'and a._Qualifier_key = q._Term_key ' + \
-		'and a._AnnotType_key = %s ' % (mouseDOannotationKey) + \
-		'and a._Annot_key = e._Annot_key', None)
-
-	selectMouse()
-	selectHuman(byOrtholog = 1)
-	cacheGenotypeDisplay3()
-	processMouse('sql')
 
 #
 # Main Routine
@@ -887,7 +726,6 @@ server = None
 database = None
 user = None
 password = None
-objectKey = None
 
 for opt in optlist:
 	if opt[0] == '-S':
@@ -898,16 +736,13 @@ for opt in optlist:
 		user = opt[1]
 	elif opt[0] == '-P':
 		password = string.strip(open(opt[1], 'r').readline())
-	elif opt[0] == '-K':
-		objectKey = opt[1]
 	else:
 		showUsage()
 
 if server is None or \
    database is None or \
    user is None or \
-   password is None or \
-   objectKey is None:
+   password is None:
 	showUsage()
 
 db.set_sqlLogin(user, password, server, database)
@@ -919,37 +754,11 @@ scriptName = os.path.basename(sys.argv[0])
 # term key for 'not' qualifier
 #
 
-results = db.sql('select _Term_key from VOC_Term where _Vocab_key = 53 and term like \'NOT%\'', 'auto')
+results = db.sql('''select _Term_key from VOC_Term where _Vocab_key = 53 and term like 'NOT%' ''', 'auto')
 for r in results:
     notQualifier.append(r['_Term_key'])
 
-#
-# next available primary key: max(_Cache_key)
-#
-    
-results = db.sql('select max(_Cache_key) as cacheKey from %s' % (table), 'auto')
-for r in results:
-    nextMaxKey = r['cacheKey']
-
-if nextMaxKey == None:
-    nextMaxKey = 0
-
-# call functions based on the way the program is invoked
-
-if scriptName == 'mrkdo.py':
-    nextMaxKey = 0
-    processDeleteReload()
-
-# all of these invocations will only affect a certain subset of data
-
-elif scriptName == 'mrkdoByAllele.py':
-    processByAllele(objectKey)
-
-elif scriptName == 'mrkdoByGenotype.py':
-    processByGenotype(objectKey)
-
-elif scriptName == 'mrkdoByMarker.py':
-    processByMarker(objectKey)
+processDeleteReload()
 
 db.useOneConnection(0)
 

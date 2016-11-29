@@ -5,7 +5,8 @@
 #
 # History
 #
-# lec	05/17/2000
+# 11/28/2016	lec
+# 	- TR12427/Disease Ontology (DO)
 #
 
 cd `dirname $0` && source ./Configuration
