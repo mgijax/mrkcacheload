@@ -74,9 +74,6 @@ try:
 except:
     table = 'MRK_Label'
 
-db.setAutoTranslate(False)
-db.setAutoTranslateBE(False)
-
 NL = '\n'
 labelKey = 1
 cdate = mgi_utils.date("%m/%d/%Y")

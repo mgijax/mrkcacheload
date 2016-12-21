@@ -34,9 +34,6 @@ except:
     LINEDL = '\n'
     table = 'PRB_Marker'
 
-db.setAutoTranslate(False)
-db.setAutoTranslateBE(False)
-
 cdate = mgi_utils.date("%m/%d/%Y")
 createdBy = '1000'
 refsKey = 86302	# J:85324

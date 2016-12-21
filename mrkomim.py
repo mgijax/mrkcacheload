@@ -80,15 +80,9 @@ except:
     table = 'MRK_OMIM_Cache'
     outDir = './'
 
-db.setAutoTranslate(False)
-db.setAutoTranslateBE(False)
-
 LINEDL = '\n'
-
 RDL = '\t'
-
 omimBCP = None
-
 cdate = mgi_utils.date("%m/%d/%Y")
 
 mouseOMIMannotationKey = 1005

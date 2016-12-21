@@ -32,9 +32,6 @@ except:
 	table = 'MRK_MCV_Count_Cache'
 	outDir = './'
 
-db.setAutoTranslate(False)
-db.setAutoTranslateBE(False)
-
 COLDL = '|'
 LINEDL = '\n'
 createdBy = os.environ['CREATEDBY']

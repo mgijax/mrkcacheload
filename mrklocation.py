@@ -49,9 +49,6 @@ try:
 except:
     table = 'MRK_Location_Cache'
 
-db.setAutoTranslate(False)
-db.setAutoTranslateBE(False)
-
 cdate = mgi_utils.date("%m/%d/%Y")
 createdBy = '1000'
 

@@ -21,10 +21,9 @@
 #	5.  Categorize them
 #	6.  Write records to output file
 #
-# alleleMouseModels is the Allele Detail Mouse Model table. (MRK_DO_Cache.doCategory1)
 # diseaseMouseModels is the Disease Detail Mouse Model table. (MRK_DO_Cache.doCategory3)
 #
-# possible values for doCategory1, doCategory3):
+# possible values for doCategory3:
 #
 #	-1: ignore
 #	1 : Models with phenotypic similarity to human disease where etiologies involve orthologs.
@@ -65,9 +64,6 @@ except:
     COLDL = '\t'
     table = 'MRK_DO_Cache'
     outDir = './'
-
-db.setAutoTranslate(False)
-db.setAutoTranslateBE(False)
 
 LINEDL = '\n'
 doBCP = None
@@ -140,6 +136,7 @@ def deriveAlleleDetailMouseModels(r):
 	# Purpose: derives the appropriate Phenotype Detail page category for the record 
 	#          and hence the appropriate Human Disease Detail page (Mouse Models)
 	# Returns: the category (1,2,3,4,5), -1 if no category could be determined
+	#	**the 'category' is only used to determine if the Allele is Cre : when the category is 4**
 	#          the phenotype header
 	#          the phenotype header footnote
 	#          the genotype footnote

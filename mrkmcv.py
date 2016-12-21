@@ -38,9 +38,6 @@ except:
 	outDir = './'
 	curatorLog = './mrkmcv.log'
 
-db.setAutoTranslate(False)
-db.setAutoTranslateBE(False)
-
 # qualifier column values
 DIRECT='D'
 INDIRECT='I'

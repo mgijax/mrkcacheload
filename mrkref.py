@@ -101,9 +101,6 @@ except:
     LINEDL = '\n'
     table = 'MRK_Reference'
 
-db.setAutoTranslate(False)
-db.setAutoTranslateBE(False)
-
 cdate = mgi_utils.date("%m/%d/%Y")
 
 def createBCPfile(markerKey):

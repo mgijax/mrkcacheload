@@ -5,6 +5,7 @@ CHANGES:
 TR12427/Disease Ontology (DO)
 1) mrklocation.py: add specific "_Marker_Status_key in (1,2)"
 2) mrkdo.sh/mrkdo.py
+3) obsolete : db.setAutoTranlslate
 
 TAG: mrkcacheload-6-0-5-1
 DATE: 08/19/2016
