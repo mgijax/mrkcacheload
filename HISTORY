@@ -1,6 +1,6 @@
-TAG: mrkcacheload-6-0-6-?
-DATE: 09/02/2016
-STAFF: lec
+TAG: mgicacheload-6-0-8-1
+DATE: 10/14/2016, 02/14/2017
+STAFF: lec 
 CHANGES:
 TR12427/Disease Ontology (DO)
 1) mrklocation.py: add specific "_Marker_Status_key in (1,2)"
