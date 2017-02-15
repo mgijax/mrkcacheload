@@ -1,11 +1,14 @@
+TAG: mgicacheload-6-0-8-2
 TAG: mgicacheload-6-0-8-1
-DATE: 10/14/2016, 02/14/2017
+DATE: 10/14/2016, 02/14/2017, 02/15/2017
 STAFF: lec 
 CHANGES:
 TR12427/Disease Ontology (DO)
+TR11083/Nomenclature/Marker schema merge
 1) mrklocation.py: add specific "_Marker_Status_key in (1,2)"
 2) mrkdo.sh/mrkdo.py
 3) obsolete : db.setAutoTranlslate
+4) mrkprobe.py : clean up
 
 TAG: mrkcacheload-6-0-5-1
 DATE: 08/19/2016
