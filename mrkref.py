@@ -28,6 +28,9 @@
 #
 # History
 #
+# 11/13/2017	lec
+#	- exclude null jnumbers
+#
 # 04/15/2015 	sc
 #	- removed orthology refs - used old HMD_* tables (temp3)
 #	- HMD had already been removed from MRK_reloadReference SP
@@ -90,6 +93,8 @@ import os
 import mgi_utils
 import db
 
+db.setTrace(True)
+
 try:
     COLDL = os.environ['COLDELIM']
     LINEDL = '\n'
@@ -135,9 +140,7 @@ def createBCPfile(markerKey):
 	# Probe/Marker
 	#
 
-	cmd = 'select distinct m._Marker_key, m._Refs_key ' + \
-		'into temp1 ' + \
-		'from PRB_Marker m '
+	cmd = 'select distinct m._Marker_key, m._Refs_key into temp1 from PRB_Marker m'
 
 	if markerKey is not None:
 		cmd = cmd + 'where m._Marker_key = %s' % markerKey
@@ -149,10 +152,7 @@ def createBCPfile(markerKey):
 	#
 	# Marker History
 
-	cmd = 'select distinct h._Marker_key, h._Refs_key ' + \
-		'into temp4 ' + \
-		'from MRK_History h ' + \
-		'where h._Refs_key is not null '
+	cmd = 'select distinct h._Marker_key, h._Refs_key into temp4 from MRK_History h where h._Refs_key is not null'
 
 	if markerKey is not None:
 		cmd = cmd + 'and h._Marker_key = %s' % markerKey
@@ -165,10 +165,12 @@ def createBCPfile(markerKey):
 	# Mapping
 	#
 
-	cmd = 'select distinct em._Marker_key, e._Refs_key ' + \
-		'into temp5 ' + \
-		'from MLD_Expt_Marker em, MLD_Expts e ' + \
-		'where em._Expt_key = e._Expt_key '
+	cmd = '''
+		select distinct em._Marker_key, e._Refs_key 
+		into temp5 
+		from MLD_Expt_Marker em, MLD_Expts e 
+		where em._Expt_key = e._Expt_key
+		'''
 
 	if markerKey is not None:
 		cmd = cmd + 'and _Marker_key = %s' % markerKey
@@ -181,9 +183,7 @@ def createBCPfile(markerKey):
 	# GXD Index
 	#
 
-	cmd = 'select distinct _Marker_key, _Refs_key ' + \
-		'into temp6 ' + \
-		'from GXD_Index '
+	cmd = 'select distinct _Marker_key, _Refs_key into temp6 from GXD_Index'
 
 	if markerKey is not None:
 		cmd = cmd + 'where _Marker_key = %s' % markerKey
@@ -196,9 +196,7 @@ def createBCPfile(markerKey):
 	# GXD Assay (actually, this should be redundant with GXD_Index)
 	# 
 
-	cmd = 'select distinct _Marker_key, _Refs_key ' + \
-		'into temp7 ' + \
-		'from GXD_Assay '
+	cmd = 'select distinct _Marker_key, _Refs_key into temp7 from GXD_Assay'
 
 	if markerKey is not None:
 		cmd = cmd + 'where _Marker_key = %s' % markerKey
@@ -211,13 +209,15 @@ def createBCPfile(markerKey):
 	# Marker Synonyms
 	#
 
-	cmd = 'select distinct s._Object_key as _Marker_key, s._Refs_key ' + \
-		'into temp8 ' + \
-		'from MGI_Synonym s, MGI_SynonymType st ' + \
-		'where s._MGIType_key = 2 ' + \
-		'and s._Refs_key is not null ' + \
-		'and s._SynonymType_key = st._SynonymType_key ' + \
-		'and st._Organism_key = 1'
+	cmd = '''
+		select distinct s._Object_key as _Marker_key, s._Refs_key
+		into temp8
+		from MGI_Synonym s, MGI_SynonymType st 
+		where s._MGIType_key = 2 
+		and s._Refs_key is not null 
+		and s._SynonymType_key = st._SynonymType_key 
+		and st._Organism_key = 1
+		'''
 
 	if markerKey is not None:
 		cmd = cmd + 'and s._Object_key = %s' % markerKey
@@ -231,14 +231,16 @@ def createBCPfile(markerKey):
 	#  indirectly.
 	#
 
-	cmd = 'select distinct a._Object_key as _Marker_key, ar._Refs_key ' + \
-		'into temp9 ' + \
-		'from MRK_Marker m, ACC_Accession a, ACC_AccessionReference ar ' + \
-		'where m._Organism_key = 1 ' + \
-		'and m._Marker_key = a._Object_key ' + \
-		'and a._MGIType_key = 2 ' + \
-		'and a.private = 0 ' + \
-		'and a._Accession_key = ar._Accession_key '
+	cmd = '''
+		select distinct a._Object_key as _Marker_key, ar._Refs_key 
+		into temp9 
+		from MRK_Marker m, ACC_Accession a, ACC_AccessionReference ar 
+		where m._Organism_key = 1 
+		and m._Marker_key = a._Object_key 
+		and a._MGIType_key = 2 
+		and a.private = 0 
+		and a._Accession_key = ar._Accession_key 
+		'''
 
 	if markerKey is not None:
 		cmd = cmd + 'and _Object_key = %s' % markerKey
@@ -251,12 +253,14 @@ def createBCPfile(markerKey):
 	# Alleles
 	#
 
-	cmd = 'select distinct a._Marker_key, r._Refs_key ' + \
-		'into temp10 ' + \
-		'from ALL_Allele a, MGI_Reference_Assoc r ' + \
-		'where a._Marker_key is not null ' + \
-		'and a._Allele_key = r._Object_key ' + \
-		'and r._MGIType_key = 11 '
+	cmd = '''
+		select distinct a._Marker_key, r._Refs_key 
+		into temp10 
+		from ALL_Allele a, MGI_Reference_Assoc r 
+		where a._Marker_key is not null 
+		and a._Allele_key = r._Object_key 
+		and r._MGIType_key = 11
+		'''
 
 	if markerKey is not None:
 		cmd = cmd + 'and _Object_key = %s' % markerKey
@@ -269,11 +273,13 @@ def createBCPfile(markerKey):
 	# GO Annotations
 	#
 
-	cmd = 'select distinct a._Object_key as _Marker_key, r._Refs_key ' + \
-		'into temp11 ' + \
-		'from VOC_Annot a, VOC_Evidence r ' + \
-		'where a._AnnotType_key = 1000 ' + \
-		'and a._Annot_key = r._Annot_key '
+	cmd = '''
+		select distinct a._Object_key as _Marker_key, r._Refs_key 
+		into temp11 
+		from VOC_Annot a, VOC_Evidence r 
+		where a._AnnotType_key = 1000 
+		and a._Annot_key = r._Annot_key 
+		'''
 
 	if markerKey is not None:
 		cmd = cmd + 'and _Object_key = %s' % markerKey
@@ -286,10 +292,12 @@ def createBCPfile(markerKey):
 	# Curated References
 	#
 
-	cmd = 'select distinct m._Object_key as _Marker_key, m._Refs_key ' + \
-		'into temp12 ' + \
-		'from MGI_Reference_Assoc m ' + \
-		'where m._MGIType_key = 2 '
+	cmd = '''
+		select distinct m._Object_key as _Marker_key, m._Refs_key 
+		into temp12 
+		from MGI_Reference_Assoc m 
+		where m._MGIType_key = 2 
+		'''
 
 	if markerKey is not None:
 		cmd = cmd + 'and m._Object_key = %s' % markerKey
@@ -302,16 +310,18 @@ def createBCPfile(markerKey):
 	# union them all together
 	#
 
-	db.sql('select _Marker_key, _Refs_key INTO TEMPORARY TABLE refs from temp1 ' + \
-		'union select _Marker_key, _Refs_key from temp4 ' + \
-		'union select _Marker_key, _Refs_key from temp5 ' + \
-		'union select _Marker_key, _Refs_key from temp6 ' + \
-		'union select _Marker_key, _Refs_key from temp7 ' + \
-		'union select _Marker_key, _Refs_key from temp8 ' + \
-		'union select _Marker_key, _Refs_key from temp9 ' + \
-		'union select _Marker_key, _Refs_key from temp10 ' + \
-		'union select _Marker_key, _Refs_key from temp11 ' + \
-		'union select _Marker_key, _Refs_key from temp12', None)
+	db.sql('''
+		select _Marker_key, _Refs_key INTO TEMPORARY TABLE refs from temp1 
+		union select _Marker_key, _Refs_key from temp4 
+		union select _Marker_key, _Refs_key from temp5 
+		union select _Marker_key, _Refs_key from temp6 
+		union select _Marker_key, _Refs_key from temp7 
+		union select _Marker_key, _Refs_key from temp8 
+		union select _Marker_key, _Refs_key from temp9 
+		union select _Marker_key, _Refs_key from temp10
+		union select _Marker_key, _Refs_key from temp11
+		union select _Marker_key, _Refs_key from temp12
+		''', None)
         db.sql('create index idx_refs_refs_key on refs(_Refs_key)', None)
 
 	mgiID = {}
@@ -319,12 +329,14 @@ def createBCPfile(markerKey):
 	jnum = {}
 	pubmedID = {}
 
-	results = db.sql('select r._Refs_key, a._LogicalDB_key, a.prefixPart, a.numericPart, a.accID ' + \
-		'from refs r, ACC_Accession a ' + \
-		'where r._Refs_key = a._Object_key ' + \
-		'and a._MGIType_key = 1 ' + \
-		'and a._LogicalDB_key in (1, 29) ' + \
-		'and a.preferred = 1', 'auto')
+	results = db.sql('''
+		select r._Refs_key, a._LogicalDB_key, a.prefixPart, a.numericPart, a.accID
+		from refs r, ACC_Accession a
+		where r._Refs_key = a._Object_key
+		and a._MGIType_key = 1
+		and a._LogicalDB_key in (1, 29)
+		and a.preferred = 1
+		''', 'auto')
         for r in results:
 	    key = r['_Refs_key']
 	    value = r['accID']
@@ -344,12 +356,16 @@ def createBCPfile(markerKey):
 	for r in results:
 	    key = r['_Refs_key']
 
+	    # jnumID must exist
+	    if key not in jnumID:
+	        continue
+
 	    refBCP.write(mgi_utils.prvalue(r['_Marker_key']) + COLDL + \
 		       	mgi_utils.prvalue(key) + COLDL + \
 			mgi_utils.prvalue(mgiID[key]) + COLDL + \
 			mgi_utils.prvalue(jnumID[key]) + COLDL)
 
-            if pubmedID.has_key(key):
+            if key in pubmedID:
 		refBCP.write(mgi_utils.prvalue(pubmedID[key]))
 
             refBCP.write(COLDL + mgi_utils.prvalue(jnum[key]) + COLDL + \
