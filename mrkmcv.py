@@ -163,6 +163,7 @@ def showUsage():
 
         sys.stderr.write(usage)
         sys.exit(1)
+        return 0
 
 def init (mkrKey):
     global mkrKeyToMCVAnnotDict, mcvKeyToParentMkrTypeTermKeyDict 
@@ -343,6 +344,7 @@ def init (mkrKey):
 	tokens = string.split(groupingTermIds, ',')
 	for t in tokens:
 	    groupingIdList.append(string.strip(t))
+    return 0
 	    
 def writeRecord (mkrKey, mcvKey, directTerms, qualifier):
     # Purpose: write a record the the bcp file
@@ -369,6 +371,8 @@ def writeRecord (mkrKey, mcvKey, directTerms, qualifier):
                 date + COLDELIM + \
                 date + CRT)
 
+    return 0
+
 def insertCache (mkrKey, mcvKey, directTerms, qualifier):
     # Purpose: insert a record in the cache
     # Returns: nothing
@@ -393,7 +397,8 @@ def insertCache (mkrKey, mcvKey, directTerms, qualifier):
 	createdBy, \
 	date, \
 	date), None)
-	
+    return 0
+
 def processDirectAnnot(annotList, mTypeKey, mkrKey):
     global mismatchList, hasMkrTypeMismatch, groupingAnnotList, hasGroupingAnnot
     global multiMCVList, hasMultiMCVAnnot
@@ -455,6 +460,7 @@ def processDirectAnnot(annotList, mTypeKey, mkrKey):
           # and annotate to that
         annotateToList.append(mkrTypeKeyToAssocMCVTermKeyDict[mTypeKey])
     #print 'annotateToList: %s' % annotateToList
+
     return annotateToList
 
 def createBCPfile():
@@ -514,8 +520,14 @@ def createBCPfile():
 	    # Now add indirect associations from the closure
 	    ancList = descKeyToAncKeyDict[a]
 	    #print 'INDIRECT annotations  %s mkrKey %s ' % (ancList, mkrKey)
-	    
 	    for ancKey in ancList:
+		# added 3/22/2018 - means we have a direct and indirect
+		# annotation to the same term, not allowed as primary key
+		# on mrk_mcv_cache is _Marker_key, _mcvterm_key
+		if ancKey in annotateToList:
+		    print 'Load FAILED, no database reload required, contact curator (see wiki): MarkerKey %s has both direct and indirect annotations to mcvKey %s' % (mkrKey, ancKey)
+		    mcvFp.close()
+		    sys.exit(1)
 		if ancKey not in annotMadeList:
 		    annotMadeList.append(ancKey)
 		    writeRecord(mkrKey, ancKey, directTerms, INDIRECT)
@@ -574,6 +586,8 @@ def createBCPfile():
         (CRT, len(multiMCVList), CRT ))
     rptFp.close()
 
+    return 0
+
 def createReportLookups():
     # Purpose: Create lookups for generating reports, only called when creating bcp
     #    not called when updating cache by marker
@@ -604,6 +618,7 @@ def createReportLookups():
 	mkrTypeKey = r['_Marker_Type_key']
 	mkrType = r['name']
 	mkrTypeKeyToTypeDict[mkrTypeKey] = mkrType
+    return 0
 
 def processByMarker(mkrKey):
     # Purpose: Update MCV annotations for a given markeR
@@ -655,8 +670,9 @@ def processByMarker(mkrKey):
 	    term = mcvKeyToTermDict[mcvKey]
 	    directTermList.append(term)
 	else:
+            print 'term does not exist for mcvKey %s' % mcvKey
 	    sys.exit(1)
-	    print 'term does not exist for mcvKey %s' % mcvKey
+	    
     #print 'directTermList: %s' % directTermList
     # annotations already made so we don't create dups
     annotMadeList = []
@@ -671,6 +687,8 @@ def processByMarker(mkrKey):
 	    continue
 	ancList = descKeyToAncKeyDict[a]
 	for ancKey in ancList:
+	    # we do not capture the  direct/indirect dupes here as the EI can't detect the error when calling this
+	    # function. It is good enough that it is captured the next time the total reload is run 
 	    if ancKey not in annotMadeList:
 		#print 'insertCache(mkrKey: %s, ancKey:%s, INDIRECT) ancKey is type: %s' % (mkrKey, ancKey, type(ancKey))
 	 	annotMadeList.append(ancKey)
@@ -679,6 +697,7 @@ def processByMarker(mkrKey):
 
 	db.commit()
 
+    return 0
 #
 # Main Routine
 #
