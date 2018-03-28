@@ -33,7 +33,10 @@ date | tee -a ${CACHELOG}
 # Create  bcp file
 ./mrkmcv.py -S${MGD_DBSERVER} -D${MGD_DBNAME} -U${MGD_DBUSER} -P${MGD_DBPASSWORDFILE} -K${MARKERKEY} | tee -a ${CACHELOG}
 set resultcode=$?
-exit $resultcode
+if ( $resultcode ) then
+    exit $resultcode
+endif
+
 # Exit if bcp file is empty
 
 if ( -z ${MRKCACHEBCPDIR}/${TABLE}.bcp ) then
