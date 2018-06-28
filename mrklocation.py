@@ -171,8 +171,7 @@ def createBCPfile(markerKey):
 
 	    if coord.has_key(key):
 		for c in coord[key]:
-	            locBCP.write(str(nextMaxKey) + COLDL +
-				mgi_utils.prvalue(r['_Marker_key']) + COLDL + \
+	            locBCP.write(mgi_utils.prvalue(r['_Marker_key']) + COLDL + \
 			        mgi_utils.prvalue(r['_Marker_Type_key']) + COLDL + \
 			        mgi_utils.prvalue(r['_Organism_key']) + COLDL + \
 			        chr + COLDL + \
@@ -191,8 +190,7 @@ def createBCPfile(markerKey):
 			        cdate + COLDL + \
 			        cdate + LINEDL)
 	    else:
-	        locBCP.write(str(nextMaxKey) + COLDL + \
-			     mgi_utils.prvalue(r['_Marker_key']) + COLDL + \
+	        locBCP.write(mgi_utils.prvalue(r['_Marker_key']) + COLDL + \
 			     mgi_utils.prvalue(r['_Marker_Type_key']) + COLDL + \
 			     mgi_utils.prvalue(r['_Organism_key']) + COLDL + \
 			     chr + COLDL + \

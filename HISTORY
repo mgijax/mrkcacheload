@@ -1,3 +1,9 @@
+TAG: mrkcacheload-6-0-12-?
+DATE: 06/28/2018
+STAFF: lec
+CHANGES: TR12734/GenFeVah
+mrklocation.py ; remove _cache_key
+
 TAG: mrkcacheload-6-0-11-3
 TAG: mrkcacheload-6-0-11-2
 DATE: 03/28/2018
