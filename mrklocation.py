@@ -70,15 +70,12 @@ def createBCPfile(markerKey):
 	# cache table
 
 	db.sql('''select m._Marker_key, m._Marker_Type_key, m._Organism_key, m.symbol, 
-		  m.chromosome, m.cytogeneticOffset, o.cmoffset, c.sequenceNum
+		  m.chromosome, m.cytogeneticOffset, m.cmoffset, c.sequenceNum
 		INTO TEMPORARY TABLE markers
 		from MRK_Marker m 
 			INNER JOIN MRK_Chromosome c on (
 				m._Organism_key = c._Organism_key
 				and m.chromosome = c.chromosome)
-			LEFT OUTER JOIN MRK_Offset o on (
-				m._Marker_key = o._Marker_key
-				and o.source = 0)
 		where m._Organism_key in (1,2) and m._Marker_Status_key in (1,2)
 		''', None)
 
