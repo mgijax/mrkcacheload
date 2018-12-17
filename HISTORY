@@ -1,3 +1,9 @@
+TAG: mrkcacheload-6-0-13-2
+DATE: 12/12/2018
+STAFF: dbm
+CHANGES:
+mrkmcv.py: Bug - Add hasMultiMCVAnnot to condition for loading mkrKeyToIdDict
+
 TAG: mrkcacheload-6-0-13-1
 DATE: 09/04/2018
 STAFF: lec

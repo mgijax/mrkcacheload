@@ -535,7 +535,7 @@ def createBCPfile():
 
     # create the curator log if there are mismatches and/or there are 
     # annotations to grouping terms
-    if hasMkrTypeMismatch == 1 or hasGroupingAnnot == 1:
+    if hasMkrTypeMismatch == 1 or hasGroupingAnnot == 1 or hasMultiMCVAnnot == 1:
 	createReportLookups()
     rptFp.write(rptHeader1)
     rptFp.write(rptHeader2)
