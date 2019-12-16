@@ -66,8 +66,8 @@ def process(markerKey):
 		locBCP = open(outDir + '/%s.bcp' % (table), 'w')
 	else:
 		print 'Processing by marker key: %s' %(markerKey)
-		db.sql('delete from MRK_Location_Cache where _Marker_key = %s' % (markerKey));
-		db.commit();
+		db.sql('delete from MRK_Location_Cache where _Marker_key = %s' % (markerKey))
+		db.commit()
 
 	# the chromosome retrieved from the marker table is the genetic
 	# chromosome, and goes in the traditional 'chromosome' field in the
@@ -81,12 +81,12 @@ def process(markerKey):
 				m._Organism_key = c._Organism_key
 				and m.chromosome = c.chromosome)
 		where m._Organism_key in (1,2) and m._Marker_Status_key in (1,2)
-		''';
+		'''
 
 	if (markerKey != None):
 		cmd = cmd + " and m._Marker_key = " + markerKey
 
-	db.sql(cmd, None);
+	db.sql(cmd, None)
 
 	db.sql('create index idx1 on markers(_Marker_key)', None)
 
@@ -214,7 +214,7 @@ def process(markerKey):
 			        c['version'],
 			        createdBy,
 			        createdBy))
-	    		db.commit();
+	    		db.commit()
 	    else:
 		if (markerKey == None):
 	            locBCP.write(mgi_utils.prvalue(r['_Marker_key']) + COLDL + \
@@ -253,7 +253,7 @@ def process(markerKey):
 			        c['version'],
 			        createdBy,
 			        createdBy))
-	    		db.commit();
+	    		db.commit()
 
 	    if (markerKey == None):
 	        locBCP.flush()

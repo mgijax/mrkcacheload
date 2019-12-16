@@ -102,13 +102,35 @@ try:
     outDir = os.environ['MRKCACHEBCPDIR']
 
 except:
-    COLDL = os.environ['COLDELIM']
-    LINEDL = '\n'
+    #COLDL = os.environ['COLDELIM']
+    #LINEDL = '\n'
     table = 'MRK_Reference'
 
 cdate = mgi_utils.date("%m/%d/%Y")
 
-def createBCPfile(markerKey):
+def processAll():
+	global refBCP
+	print 'Creating %s.bcp...' % (table)
+	refBCP = open(outDir + '/%s.bcp' % (table), 'w')
+	process(None, None, None, None)
+	refBCP.close()
+	db.commit()
+
+def processByMarker(markerKey):
+	print 'Processed by marker: ' + markerKey
+	db.sql('delete from MRK_Reference where _Marker_key = %s' % (markerKey))
+	db.commit()
+	process(markerKey, ' where _Marker_key = ' + markerKey, ' and _Marker_key = ' + markerKey, ' and _Object_key = ' + markerKey)
+	db.commit()
+
+def processByReference(refsKey):
+	print 'Processed by reference: ' + refsKey
+	db.sql('delete from MRK_Reference where _Refs_key = %s' % (refsKey))
+	db.commit()
+	process(refsKey, ' where _Refs_key = ' + refsKey, ' and r._Refs_key = ' + refsKey, ' and _Refs_key = ' + refsKey)
+	db.commit()
+
+def process(queryKey, queryWhere, queryAnd, queryAnd2):
 	'''
 	#
 	# Create a cache table of
@@ -132,18 +154,14 @@ def createBCPfile(markerKey):
 	#
 	'''
 
-	print 'Creating %s.bcp...' % (table)
-
-	refBCP = open(outDir + '/%s.bcp' % (table), 'w')
-
 	#
 	# Probe/Marker
 	#
 
-	cmd = 'select distinct m._Marker_key, m._Refs_key into temp1 from PRB_Marker m'
+	cmd = 'select distinct _Marker_key, _Refs_key into temp table temp1 from PRB_Marker '
 
-	if markerKey is not None:
-		cmd = cmd + 'where m._Marker_key = %s' % markerKey
+	if queryWhere is not None:
+		cmd = cmd + queryWhere;
 
 	db.sql(cmd, None)
 	db.sql('create index idx1 on temp1(_Marker_key)', None)
@@ -152,10 +170,10 @@ def createBCPfile(markerKey):
 	#
 	# Marker History
 
-	cmd = 'select distinct h._Marker_key, h._Refs_key into temp4 from MRK_History h where h._Refs_key is not null'
+	cmd = 'select distinct r._Marker_key, r._Refs_key into temp table temp4 from MRK_History r where r._Refs_key is not null'
 
-	if markerKey is not None:
-		cmd = cmd + 'and h._Marker_key = %s' % markerKey
+	if queryAnd is not None:
+		cmd = cmd + queryAnd
 
 	db.sql(cmd, None)
 	db.sql('create index idx5 on temp4(_Marker_key)', None)
@@ -166,14 +184,14 @@ def createBCPfile(markerKey):
 	#
 
 	cmd = '''
-		select distinct em._Marker_key, e._Refs_key 
-		into temp5 
-		from MLD_Expt_Marker em, MLD_Expts e 
-		where em._Expt_key = e._Expt_key
+		select distinct em._Marker_key, r._Refs_key 
+		into temp table temp5 
+		from MLD_Expt_Marker em, MLD_Expts r 
+		where em._Expt_key = r._Expt_key
 		'''
 
-	if markerKey is not None:
-		cmd = cmd + 'and _Marker_key = %s' % markerKey
+	if queryAnd is not None:
+		cmd = cmd + queryAnd
 
 	db.sql(cmd, None)
 	db.sql('create index idx_temp5_1 on temp5(_Marker_key)', None)
@@ -183,10 +201,10 @@ def createBCPfile(markerKey):
 	# GXD Index
 	#
 
-	cmd = 'select distinct _Marker_key, _Refs_key into temp6 from GXD_Index'
+	cmd = 'select distinct _Marker_key, _Refs_key into temp table temp6 from GXD_Index'
 
-	if markerKey is not None:
-		cmd = cmd + 'where _Marker_key = %s' % markerKey
+	if queryWhere is not None:
+		cmd = cmd + queryWhere
 
 	db.sql(cmd, None)
 	db.sql('create index idx7 on temp6(_Marker_key)', None)
@@ -196,10 +214,10 @@ def createBCPfile(markerKey):
 	# GXD Assay (actually, this should be redundant with GXD_Index)
 	# 
 
-	cmd = 'select distinct _Marker_key, _Refs_key into temp7 from GXD_Assay'
+	cmd = 'select distinct _Marker_key, _Refs_key into temp table temp7 from GXD_Assay'
 
-	if markerKey is not None:
-		cmd = cmd + 'where _Marker_key = %s' % markerKey
+	if queryWhere is not None:
+		cmd = cmd + queryWhere
 
 	db.sql(cmd, None)
 	db.sql('create index idx9 on temp7(_Marker_key)', None)
@@ -211,7 +229,7 @@ def createBCPfile(markerKey):
 
 	cmd = '''
 		select distinct s._Object_key as _Marker_key, s._Refs_key
-		into temp8
+		into temp table temp8
 		from MGI_Synonym s, MGI_SynonymType st 
 		where s._MGIType_key = 2 
 		and s._Refs_key is not null 
@@ -219,8 +237,8 @@ def createBCPfile(markerKey):
 		and st._Organism_key = 1
 		'''
 
-	if markerKey is not None:
-		cmd = cmd + 'and s._Object_key = %s' % markerKey
+	if queryAnd2 is not None:
+		cmd = cmd + queryAnd2
 
 	db.sql(cmd, None)
 	db.sql('create index idx11 on temp8(_Marker_key)', None)
@@ -233,7 +251,7 @@ def createBCPfile(markerKey):
 
 	cmd = '''
 		select distinct a._Object_key as _Marker_key, ar._Refs_key 
-		into temp9 
+		into temp table temp9 
 		from MRK_Marker m, ACC_Accession a, ACC_AccessionReference ar 
 		where m._Organism_key = 1 
 		and m._Marker_key = a._Object_key 
@@ -242,8 +260,8 @@ def createBCPfile(markerKey):
 		and a._Accession_key = ar._Accession_key 
 		'''
 
-	if markerKey is not None:
-		cmd = cmd + 'and _Object_key = %s' % markerKey
+	if queryAnd2 is not None:
+		cmd = cmd + queryAnd2
 
 	db.sql(cmd, None)
 	db.sql('create index idx13 on temp9(_Marker_key)', None)
@@ -255,15 +273,15 @@ def createBCPfile(markerKey):
 
 	cmd = '''
 		select distinct a._Marker_key, r._Refs_key 
-		into temp10 
+		into temp table temp10 
 		from ALL_Allele a, MGI_Reference_Assoc r 
 		where a._Marker_key is not null 
 		and a._Allele_key = r._Object_key 
 		and r._MGIType_key = 11
 		'''
 
-	if markerKey is not None:
-		cmd = cmd + 'and _Object_key = %s' % markerKey
+	if queryAnd is not None:
+		cmd = cmd + queryAnd
 
 	db.sql(cmd, None)
 	db.sql('create index idx15 on temp10(_Marker_key)', None)
@@ -275,14 +293,14 @@ def createBCPfile(markerKey):
 
 	cmd = '''
 		select distinct a._Object_key as _Marker_key, r._Refs_key 
-		into temp11 
+		into temp table temp11 
 		from VOC_Annot a, VOC_Evidence r 
 		where a._AnnotType_key = 1000 
 		and a._Annot_key = r._Annot_key 
 		'''
 
-	if markerKey is not None:
-		cmd = cmd + 'and _Object_key = %s' % markerKey
+	if queryAnd2 is not None:
+		cmd = cmd + queryAnd2
 
 	db.sql(cmd, None)
 	db.sql('create index idx17 on temp11(_Marker_key)', None)
@@ -294,13 +312,13 @@ def createBCPfile(markerKey):
 
 	cmd = '''
 		select distinct m._Object_key as _Marker_key, m._Refs_key 
-		into temp12 
+		into temp table temp12 
 		from MGI_Reference_Assoc m 
 		where m._MGIType_key = 2 
 		'''
 
-	if markerKey is not None:
-		cmd = cmd + 'and m._Object_key = %s' % markerKey
+	if queryAnd2 is not None:
+		cmd = cmd + queryAnd2
 
 	db.sql(cmd, None)
 	db.sql('create index idx19 on temp12(_Marker_key)', None)
@@ -360,20 +378,30 @@ def createBCPfile(markerKey):
 	    if key not in jnumID:
 	        continue
 
-	    refBCP.write(mgi_utils.prvalue(r['_Marker_key']) + COLDL + \
+	    if (queryKey == None):
+	        refBCP.write(mgi_utils.prvalue(r['_Marker_key']) + COLDL + \
 		       	mgi_utils.prvalue(key) + COLDL + \
 			mgi_utils.prvalue(mgiID[key]) + COLDL + \
 			mgi_utils.prvalue(jnumID[key]) + COLDL)
 
-            if key in pubmedID:
-		refBCP.write(mgi_utils.prvalue(pubmedID[key]))
+            	if key in pubmedID:
+		    	refBCP.write(mgi_utils.prvalue(pubmedID[key]))
 
-            refBCP.write(COLDL + mgi_utils.prvalue(jnum[key]) + COLDL + \
+                refBCP.write(COLDL + mgi_utils.prvalue(jnum[key]) + COLDL + \
 			cdate + COLDL + \
 			cdate + LINEDL)
-	    refBCP.flush()
 
-	refBCP.close()
+	        refBCP.flush()
+
+	    else:
+            	if key in pubmedID:
+			p = "'" + pubmedID[key] + "'"
+		else:
+			p = 'null'
+
+	    	db.sql('''insert into MRK_Reference values(%s,%s,'%s','%s',%s,'%s',now(),now())'''
+			% (r['_Marker_key'], key, mgiID[key], jnumID[key], p, jnum[key]))
+		db.commit()
 
 #
 # Main Routine
@@ -381,14 +409,16 @@ def createBCPfile(markerKey):
 
 print '%s' % mgi_utils.date()
 
-if len(sys.argv) == 2:
-	markerKey = sys.argv[1]
-else:
-	markerKey = None
+scriptName = os.path.basename(sys.argv[0])
 
-db.useOneConnection(1)
-createBCPfile(markerKey)
-db.useOneConnection(0)
+if scriptName == "mrkref.py":
+	processAll();
+
+elif scriptName == "mrkrefByMarker.py":
+	processByMarker(sys.argv[1])
+
+elif scriptName == "mrkrefByReference.py":
+	processByReference(sys.argv[1])
 
 print '%s' % mgi_utils.date()
 

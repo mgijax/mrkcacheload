@@ -22,3 +22,6 @@ if ( ! -d ${MRKCACHELOGDIR} ) then
 	mkdir -p ${MRKCACHELOGDIR}
 endif
 
+ln -s mrkref.py mrkrefByMarker.py
+ln -s mrkref.py mrkrefByReference.py
+
