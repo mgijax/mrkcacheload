@@ -52,7 +52,7 @@ except:
 cdate = mgi_utils.date("%m/%d/%Y")
 createdBy = '1000'
 
-def createBCPfile(markerKey):
+def process(markerKey):
 	'''
 	#
 	# MRK_Location_Cache is a cache table of marker location data
@@ -61,15 +61,19 @@ def createBCPfile(markerKey):
 #		where m._Organism_key = 1
 #		and m._Marker_key = o._Marker_key
 
-	print 'Creating %s.bcp...' % (table)
-
-	locBCP = open(outDir + '/%s.bcp' % (table), 'w')
+	if (markerKey == None):
+		print 'Processing by bcp:  %s.bcp...' % (table)
+		locBCP = open(outDir + '/%s.bcp' % (table), 'w')
+	else:
+		print 'Processing by marker key: %s' %(markerKey)
+		db.sql('delete from MRK_Location_Cache where _Marker_key = %s' % (markerKey));
+		db.commit();
 
 	# the chromosome retrieved from the marker table is the genetic
 	# chromosome, and goes in the traditional 'chromosome' field in the
 	# cache table
 
-	db.sql('''select m._Marker_key, m._Marker_Type_key, m._Organism_key, m.symbol, 
+	cmd = '''select m._Marker_key, m._Marker_Type_key, m._Organism_key, m.symbol, 
 		  m.chromosome, m.cytogeneticOffset, m.cmoffset, c.sequenceNum
 		INTO TEMPORARY TABLE markers
 		from MRK_Marker m 
@@ -77,7 +81,12 @@ def createBCPfile(markerKey):
 				m._Organism_key = c._Organism_key
 				and m.chromosome = c.chromosome)
 		where m._Organism_key in (1,2) and m._Marker_Status_key in (1,2)
-		''', None)
+		''';
+
+	if (markerKey != None):
+		cmd = cmd + " and m._Marker_key = " + markerKey
+
+	db.sql(cmd, None);
 
 	db.sql('create index idx1 on markers(_Marker_key)', None)
 
@@ -168,7 +177,8 @@ def createBCPfile(markerKey):
 
 	    if coord.has_key(key):
 		for c in coord[key]:
-	            locBCP.write(mgi_utils.prvalue(r['_Marker_key']) + COLDL + \
+		    if (markerKey == None):
+	                locBCP.write(mgi_utils.prvalue(r['_Marker_key']) + COLDL + \
 			        mgi_utils.prvalue(r['_Marker_Type_key']) + COLDL + \
 			        mgi_utils.prvalue(r['_Organism_key']) + COLDL + \
 			        chr + COLDL + \
@@ -186,8 +196,28 @@ def createBCPfile(markerKey):
 			        createdBy + COLDL + \
 			        cdate + COLDL + \
 			        cdate + LINEDL)
+		    else:
+		    	db.sql('''insert into MRK_Location_Cache values(%s,%s,%s,'%s',%s,'%s','%s','%s','%s','%s','%s','%s','%s','%s',%s,%s,now(),now())
+				''' % (markerKey,
+			        r['_Marker_Type_key'],
+			        r['_Organism_key'],
+			        chr,
+			        r['sequenceNum'],
+			        cytogeneticOffset,
+			        r['cmoffset'],
+			        c['genomicChromosome'],
+			        c['startCoordinate'],
+			        c['endCoordinate'],
+			        c['strand'],
+			        c['mapUnits'],
+			        c['provider'],
+			        c['version'],
+			        createdBy,
+			        createdBy))
+	    		db.commit();
 	    else:
-	        locBCP.write(mgi_utils.prvalue(r['_Marker_key']) + COLDL + \
+		if (markerKey == None):
+	            locBCP.write(mgi_utils.prvalue(r['_Marker_key']) + COLDL + \
 			     mgi_utils.prvalue(r['_Marker_Type_key']) + COLDL + \
 			     mgi_utils.prvalue(r['_Organism_key']) + COLDL + \
 			     chr + COLDL + \
@@ -205,9 +235,31 @@ def createBCPfile(markerKey):
 			     createdBy + COLDL + \
 			     cdate + COLDL + \
 			     cdate + LINEDL)
-	    locBCP.flush()
+		else:
+		    	db.sql('''insert into MRK_Location_Cache values(%s,%s,%s,'%s',%s,'%s','%s','%s','%s','%s','%s','%s','%s','%s',%s,%s,now(),now())
+				''' % (markerKey,
+			        r['_Marker_Type_key'],
+			        r['_Organism_key'],
+			        chr,
+			        r['sequenceNum'],
+			        cytogeneticOffset,
+			        r['cmoffset'],
+			        c['genomicChromosome'],
+			        c['startCoordinate'],
+			        c['endCoordinate'],
+			        c['strand'],
+			        c['mapUnits'],
+			        c['provider'],
+			        c['version'],
+			        createdBy,
+			        createdBy))
+	    		db.commit();
 
-	locBCP.close()
+	    if (markerKey == None):
+	        locBCP.flush()
+
+	if (markerKey == None):
+	    locBCP.close()
 
 #
 # Main Routine
@@ -221,7 +273,7 @@ else:
 	markerKey = None
 
 db.useOneConnection(1)
-createBCPfile(markerKey)
+process(markerKey)
 db.useOneConnection(0)
 
 print '%s' % mgi_utils.date()
