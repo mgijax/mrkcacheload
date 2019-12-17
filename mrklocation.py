@@ -236,7 +236,7 @@ def process(markerKey):
 			     cdate + COLDL + \
 			     cdate + LINEDL)
 		else:
-		    	db.sql('''insert into MRK_Location_Cache values(%s,%s,%s,'%s',%s,'%s','%s','%s','%s','%s','%s','%s','%s','%s',%s,%s,now(),now())
+		    	db.sql('''insert into MRK_Location_Cache values(%s,%s,%s,'%s',%s,'%s','%s',null,null,null,null,null,null,null,%s,%s,now(),now())
 				''' % (markerKey,
 			        r['_Marker_Type_key'],
 			        r['_Organism_key'],
@@ -244,13 +244,6 @@ def process(markerKey):
 			        r['sequenceNum'],
 			        cytogeneticOffset,
 			        r['cmoffset'],
-			        c['genomicChromosome'],
-			        c['startCoordinate'],
-			        c['endCoordinate'],
-			        c['strand'],
-			        c['mapUnits'],
-			        c['provider'],
-			        c['version'],
 			        createdBy,
 			        createdBy))
 	    		db.commit()
