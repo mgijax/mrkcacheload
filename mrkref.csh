@@ -20,7 +20,7 @@ date | tee -a ${LOG}
 
 # Create the bcp file
 
-./mrkref.py | tee -a ${LOG}
+${PYTHON} ./mrkref.py | tee -a ${LOG}
 
 if ( -z ${MRKCACHEBCPDIR}/${TABLE}.bcp ) then
 echo 'BCP File is empty' | tee -a ${LOG}

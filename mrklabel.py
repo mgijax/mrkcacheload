@@ -1,4 +1,3 @@
-#!/usr/local/bin/python
 
 '''
 #
@@ -117,461 +116,461 @@ def writeRecord(results, labelStatusKey, priority, labelType, labelTypeName):
     
     for r in results:
 
-	if originalLTN is None:
-	    labelTypeName = r['labelTypeName']
+        if originalLTN is None:
+            labelTypeName = r['labelTypeName']
 
-	newLabel = r['label'].replace('|', '#')
+        newLabel = r['label'].replace('|', '#')
 
         outBCP.write(mgi_utils.prvalue(labelKey) + BCPDL + \
                 mgi_utils.prvalue(r['_Marker_key']) + BCPDL + \
-        	mgi_utils.prvalue(labelStatusKey) + BCPDL + \
-        	mgi_utils.prvalue(r['_Organism_key']) + BCPDL + \
-        	mgi_utils.prvalue(r['_OrthologOrganism_key']) + BCPDL + \
-        	mgi_utils.prvalue(priority) + BCPDL + \
-        	mgi_utils.prvalue(newLabel) + BCPDL + \
-        	mgi_utils.prvalue(labelType) + BCPDL + \
-        	mgi_utils.prvalue(labelTypeName) + BCPDL + \
-        	cdate + BCPDL + \
-        	cdate + NL)
+                mgi_utils.prvalue(labelStatusKey) + BCPDL + \
+                mgi_utils.prvalue(r['_Organism_key']) + BCPDL + \
+                mgi_utils.prvalue(r['_OrthologOrganism_key']) + BCPDL + \
+                mgi_utils.prvalue(priority) + BCPDL + \
+                mgi_utils.prvalue(newLabel) + BCPDL + \
+                mgi_utils.prvalue(labelType) + BCPDL + \
+                mgi_utils.prvalue(labelTypeName) + BCPDL + \
+                cdate + BCPDL + \
+                cdate + NL)
 
-	labelKey = labelKey + 1
+        labelKey = labelKey + 1
 
-    print 'processed (%d) records...%s' % (len(results), mgi_utils.date())
+    print('processed (%d) records...%s' % (len(results), mgi_utils.date()))
 
 def priority1():
 
-	# mouse symbols
+        # mouse symbols
 
-        print 'processing priority 1...%s' % mgi_utils.date()
+        print('processing priority 1...%s' % mgi_utils.date())
 
-	cmd = '''select distinct _Marker_key, _Organism_key, null as _OrthologOrganism_key, symbol as label
-		from MRK_Marker 
-		where _Marker_Status_key = 1 
-		and _Organism_key = 1 
-		'''
+        cmd = '''select distinct _Marker_key, _Organism_key, null as _OrthologOrganism_key, symbol as label
+                from MRK_Marker 
+                where _Marker_Status_key = 1 
+                and _Organism_key = 1 
+                '''
 
-	if markerKey is not None:
-		cmd = cmd + 'and _Marker_key = %s\n' % markerKey
+        if markerKey is not None:
+                cmd = cmd + 'and _Marker_key = %s\n' % markerKey
 
-	writeRecord(db.sql(cmd, 'auto'), 1, 1, 'MS', 'current symbol')
+        writeRecord(db.sql(cmd, 'auto'), 1, 1, 'MS', 'current symbol')
 
 def priority2():
 
-	# mouse names
+        # mouse names
 
-        print 'processing priority 2...%s' % mgi_utils.date()
+        print('processing priority 2...%s' % mgi_utils.date())
 
-	cmd = '''select distinct _Marker_key, _Organism_key, null as _OrthologOrganism_key , name as label
-		from MRK_Marker 
-		where _Marker_Status_key = 1
-		and _Organism_key = 1 
-		'''
+        cmd = '''select distinct _Marker_key, _Organism_key, null as _OrthologOrganism_key , name as label
+                from MRK_Marker 
+                where _Marker_Status_key = 1
+                and _Organism_key = 1 
+                '''
 
-	if markerKey is not None:
-		cmd = cmd + 'and _Marker_key = %s\n' % markerKey
+        if markerKey is not None:
+                cmd = cmd + 'and _Marker_key = %s\n' % markerKey
 
-	writeRecord(db.sql(cmd, 'auto'), 1, 2, 'MN', 'current name')
+        writeRecord(db.sql(cmd, 'auto'), 1, 2, 'MN', 'current name')
 
 def priority3():
 
-	# allele symbols
+        # allele symbols
 
-        print 'processing priority 3...%s' % mgi_utils.date()
+        print('processing priority 3...%s' % mgi_utils.date())
 
-	cmd = '''select distinct a._Marker_key, m._Organism_key, null as _OrthologOrganism_key , a.symbol as label 
-		from ALL_Allele a, MRK_Marker m 
-		where a._Marker_key = m._Marker_key 
-		and a.isWildType = 0 
-		and m._Organism_key = 1 
-		'''
+        cmd = '''select distinct a._Marker_key, m._Organism_key, null as _OrthologOrganism_key , a.symbol as label 
+                from ALL_Allele a, MRK_Marker m 
+                where a._Marker_key = m._Marker_key 
+                and a.isWildType = 0 
+                and m._Organism_key = 1 
+                '''
 
-	if markerKey is not None:
-		cmd = cmd + 'and a._Marker_key = %s\n' % markerKey
+        if markerKey is not None:
+                cmd = cmd + 'and a._Marker_key = %s\n' % markerKey
 
-	writeRecord(db.sql(cmd, 'auto'), 1, 3, 'AS', 'allele symbol')
+        writeRecord(db.sql(cmd, 'auto'), 1, 3, 'AS', 'allele symbol')
 
 def priority4():
 
-	# allele names
+        # allele names
 
-        print 'processing priority 4...%s' % mgi_utils.date()
+        print('processing priority 4...%s' % mgi_utils.date())
 
-	cmd = '''select distinct a._Marker_key, m._Organism_key, null as _OrthologOrganism_key , a.name as label 
-		from ALL_Allele a, MRK_Marker m 
-		where a._Marker_key = m._Marker_key 
-		and a.name != 'wild type' 
-		and m._Organism_key = 1 '''
+        cmd = '''select distinct a._Marker_key, m._Organism_key, null as _OrthologOrganism_key , a.name as label 
+                from ALL_Allele a, MRK_Marker m 
+                where a._Marker_key = m._Marker_key 
+                and a.name != 'wild type' 
+                and m._Organism_key = 1 '''
 
-	if markerKey is not None:
-		cmd = cmd + 'and a._Marker_key = %s\n' % markerKey
+        if markerKey is not None:
+                cmd = cmd + 'and a._Marker_key = %s\n' % markerKey
 
-	writeRecord(db.sql(cmd, 'auto'), 1, 4, 'AN', 'allele name')
+        writeRecord(db.sql(cmd, 'auto'), 1, 4, 'AN', 'allele name')
 
 def priority5():
-	
-	# historical (old) symbols
+        
+        # historical (old) symbols
 
-        print 'processing priority 5...%s' % mgi_utils.date()
+        print('processing priority 5...%s' % mgi_utils.date())
 
-	cmd = '''select distinct m._Marker_key, m._Organism_key, null as _OrthologOrganism_key , m2.symbol as label 
-		from MRK_History h, MRK_Marker m, MRK_Marker m2 
-		where h._Marker_key = m._Marker_key 
-		and m._Organism_key = 1 
-		and h._History_key = m2._Marker_key 
-		and h._History_key != m._Marker_key '''
+        cmd = '''select distinct m._Marker_key, m._Organism_key, null as _OrthologOrganism_key , m2.symbol as label 
+                from MRK_History h, MRK_Marker m, MRK_Marker m2 
+                where h._Marker_key = m._Marker_key 
+                and m._Organism_key = 1 
+                and h._History_key = m2._Marker_key 
+                and h._History_key != m._Marker_key '''
 
-	if markerKey is not None:
-		cmd = cmd + 'and h._Marker_key = %s\n' % markerKey
+        if markerKey is not None:
+                cmd = cmd + 'and h._Marker_key = %s\n' % markerKey
 
-	writeRecord(db.sql(cmd, 'auto'), 2, 5, 'MS', 'old symbol')
+        writeRecord(db.sql(cmd, 'auto'), 2, 5, 'MS', 'old symbol')
 
 def priority6():
 
-	# historical (old) names
+        # historical (old) names
 
-        print 'processing priority 6...%s' % mgi_utils.date()
+        print('processing priority 6...%s' % mgi_utils.date())
 
-	cmd = '''select distinct h._Marker_key, m._Organism_key, null as _OrthologOrganism_key, h.name as label 
-		from MRK_History h, MRK_Marker m, MRK_Marker m2 
-		where h.name is not null 
-		and h._Marker_key = m._Marker_key 
-		and m._Organism_key = 1 
-		and h._History_key = m2._Marker_key 
-		and h._History_key != m._Marker_key 
-		'''
+        cmd = '''select distinct h._Marker_key, m._Organism_key, null as _OrthologOrganism_key, h.name as label 
+                from MRK_History h, MRK_Marker m, MRK_Marker m2 
+                where h.name is not null 
+                and h._Marker_key = m._Marker_key 
+                and m._Organism_key = 1 
+                and h._History_key = m2._Marker_key 
+                and h._History_key != m._Marker_key 
+                '''
 
-	if markerKey is not None:
-		cmd = cmd + 'and h._Marker_key = %s\n' % markerKey
+        if markerKey is not None:
+                cmd = cmd + 'and h._Marker_key = %s\n' % markerKey
 
-	writeRecord(db.sql(cmd, 'auto'), 2, 6, 'MN', 'old name')
+        writeRecord(db.sql(cmd, 'auto'), 2, 6, 'MN', 'old name')
 
 def priority7():
 
-	# mouse synonyms (exact)
+        # mouse synonyms (exact)
 
-        print 'processing priority 7...%s' % mgi_utils.date()
+        print('processing priority 7...%s' % mgi_utils.date())
 
-	cmd = '''select distinct s._Object_key as _Marker_key, st._Organism_key, null as _OrthologOrganism_key , s.synonym as label
-		from MGI_SynonymType st, MGI_Synonym s 
-		where st._MGIType_key = 2 
-		and st._Organism_key = 1 
-		and st.synonymType = 'exact' 
-		and st._SynonymType_key = s._SynonymType_key '''
+        cmd = '''select distinct s._Object_key as _Marker_key, st._Organism_key, null as _OrthologOrganism_key , s.synonym as label
+                from MGI_SynonymType st, MGI_Synonym s 
+                where st._MGIType_key = 2 
+                and st._Organism_key = 1 
+                and st.synonymType = 'exact' 
+                and st._SynonymType_key = s._SynonymType_key '''
 
-	if markerKey is not None:
-		cmd = cmd + 'and s._Object_key = %s\n' % markerKey
+        if markerKey is not None:
+                cmd = cmd + 'and s._Object_key = %s\n' % markerKey
 
-	writeRecord(db.sql(cmd, 'auto'), 1, 7, 'MY', 'synonym')
+        writeRecord(db.sql(cmd, 'auto'), 1, 7, 'MY', 'synonym')
 
 def priority8():
 
-	# human synonyms of mouse orthologs
+        # human synonyms of mouse orthologs
 
-        print 'processing priority 8...%s' % mgi_utils.date()
+        print('processing priority 8...%s' % mgi_utils.date())
 
-	# build a temp table (#orthology1) with four columns:
-	#	_Marker_key           : mouse marker key
-	#	m2                    : human marker key
-	#	_Organism_key         : mouse organism key (1)
-	#	_OrthologOrganism_key : human organism key (2)
-	#
-	# and populate it with mouse/human homologies from the HomoloGene
-	# classes
+        # build a temp table (#orthology1) with four columns:
+        #	_Marker_key           : mouse marker key
+        #	m2                    : human marker key
+        #	_Organism_key         : mouse organism key (1)
+        #	_OrthologOrganism_key : human organism key (2)
+        #
+        # and populate it with mouse/human homologies from the HomoloGene
+        # classes
 
-	cmd = '''select distinct mouse._Marker_key,
-			human._Marker_key as m2,
-			mm._Organism_key,
-			hm._Organism_key as _OrthologOrganism_key
-		INTO TEMPORARY TABLE orthology1
-		from VOC_Term vt,
-			MRK_Cluster mc,
-			MRK_ClusterMember mouse,
-			MRK_Marker mm,
-			MRK_ClusterMember human,
-			MRK_Marker hm
-		where (vt.term = 'HomoloGene' or vt.term = 'HGNC')
-			and vt._Term_key = mc._ClusterSource_key
-			and mc._Cluster_key = mouse._Cluster_key
-			and mouse._Marker_key = mm._Marker_key
-			and mm._Organism_key = 1
-			and mc._Cluster_key = human._Cluster_key
-			and human._Marker_key = hm._Marker_key
-			and hm._Organism_key = 2
-		'''
+        cmd = '''select distinct mouse._Marker_key,
+                        human._Marker_key as m2,
+                        mm._Organism_key,
+                        hm._Organism_key as _OrthologOrganism_key
+                INTO TEMPORARY TABLE orthology1
+                from VOC_Term vt,
+                        MRK_Cluster mc,
+                        MRK_ClusterMember mouse,
+                        MRK_Marker mm,
+                        MRK_ClusterMember human,
+                        MRK_Marker hm
+                where (vt.term = 'HomoloGene' or vt.term = 'HGNC')
+                        and vt._Term_key = mc._ClusterSource_key
+                        and mc._Cluster_key = mouse._Cluster_key
+                        and mouse._Marker_key = mm._Marker_key
+                        and mm._Organism_key = 1
+                        and mc._Cluster_key = human._Cluster_key
+                        and human._Marker_key = hm._Marker_key
+                        and hm._Organism_key = 2
+                '''
 
-	if markerKey is not None:
-		cmd = cmd + 'and mm._Marker_key = %s\n' % markerKey
+        if markerKey is not None:
+                cmd = cmd + 'and mm._Marker_key = %s\n' % markerKey
 
-	db.sql(cmd, None)
-	db.sql('create index idx3 on orthology1(m2)', None)
-	db.sql('create index idx4 on orthology1(_OrthologOrganism_key)', None)
+        db.sql(cmd, None)
+        db.sql('create index idx3 on orthology1(m2)', None)
+        db.sql('create index idx4 on orthology1(_OrthologOrganism_key)', None)
 
-	# human synonym
+        # human synonym
 
-	cmd = '''select distinct o._Marker_key, o._Organism_key, o._OrthologOrganism_key, s.synonym as label
-		from orthology1 o, MGI_SynonymType st, MGI_Synonym s
-		where st._MGIType_key = 2 
-		and st._Organism_key = o._OrthologOrganism_key 
-		and st._SynonymType_key = s._SynonymType_key
-		and o.m2 = s._Object_key 
-		'''
+        cmd = '''select distinct o._Marker_key, o._Organism_key, o._OrthologOrganism_key, s.synonym as label
+                from orthology1 o, MGI_SynonymType st, MGI_Synonym s
+                where st._MGIType_key = 2 
+                and st._Organism_key = o._OrthologOrganism_key 
+                and st._SynonymType_key = s._SynonymType_key
+                and o.m2 = s._Object_key 
+                '''
 
-	if markerKey is not None:
-		cmd = cmd + 'and s._Object_key = %s\n' % markerKey
+        if markerKey is not None:
+                cmd = cmd + 'and s._Object_key = %s\n' % markerKey
 
-	writeRecord(db.sql(cmd, 'auto'), 1, 8, 'MY', 'human synonym')
+        writeRecord(db.sql(cmd, 'auto'), 1, 8, 'MY', 'human synonym')
 
 def priority9():
 
-	# rat synonyms of mouse orthologs
+        # rat synonyms of mouse orthologs
 
-        print 'processing priority 9...%s' % mgi_utils.date()
+        print('processing priority 9...%s' % mgi_utils.date())
 
-	# build a temp table (#orthology2) with four columns:
-	#	_Marker_key           : mouse marker key
-	#	m2                    : rat marker key
-	#	_Organism_key         : mouse organism key (1)
-	#	_OrthologOrganism_key : rat organism key (40)
-	#
-	# and populate it with mouse/rat homologies from the HomoloGene
-	# classes
+        # build a temp table (#orthology2) with four columns:
+        #	_Marker_key           : mouse marker key
+        #	m2                    : rat marker key
+        #	_Organism_key         : mouse organism key (1)
+        #	_OrthologOrganism_key : rat organism key (40)
+        #
+        # and populate it with mouse/rat homologies from the HomoloGene
+        # classes
 
-	cmd = '''select distinct mouse._Marker_key,
-			human._Marker_key as m2,
-			mm._Organism_key,
-			hm._Organism_key as _OrthologOrganism_key
-		INTO TEMPORARY TABLE orthology2
-		from VOC_Term vt,
-			MRK_Cluster mc,
-			MRK_ClusterMember mouse,
-			MRK_Marker mm,
-			MRK_ClusterMember human,
-			MRK_Marker hm
-		where vt.term = 'HomoloGene'
-			and vt._Term_key = mc._ClusterSource_key
-			and mc._Cluster_key = mouse._Cluster_key
-			and mouse._Marker_key = mm._Marker_key
-			and mm._Organism_key = 1
-			and mc._Cluster_key = human._Cluster_key
-			and human._Marker_key = hm._Marker_key
-			and hm._Organism_key = 40
-		'''
+        cmd = '''select distinct mouse._Marker_key,
+                        human._Marker_key as m2,
+                        mm._Organism_key,
+                        hm._Organism_key as _OrthologOrganism_key
+                INTO TEMPORARY TABLE orthology2
+                from VOC_Term vt,
+                        MRK_Cluster mc,
+                        MRK_ClusterMember mouse,
+                        MRK_Marker mm,
+                        MRK_ClusterMember human,
+                        MRK_Marker hm
+                where vt.term = 'HomoloGene'
+                        and vt._Term_key = mc._ClusterSource_key
+                        and mc._Cluster_key = mouse._Cluster_key
+                        and mouse._Marker_key = mm._Marker_key
+                        and mm._Organism_key = 1
+                        and mc._Cluster_key = human._Cluster_key
+                        and human._Marker_key = hm._Marker_key
+                        and hm._Organism_key = 40
+                '''
 
-	if markerKey is not None:
-		cmd = cmd + 'and mm._Marker_key = %s\n' % markerKey
+        if markerKey is not None:
+                cmd = cmd + 'and mm._Marker_key = %s\n' % markerKey
 
-	db.sql(cmd, None)
-	db.sql('create index idx5 on orthology2(m2)', None)
-	db.sql('create index idx6 on orthology2(_OrthologOrganism_key)', None)
+        db.sql(cmd, None)
+        db.sql('create index idx5 on orthology2(m2)', None)
+        db.sql('create index idx6 on orthology2(_OrthologOrganism_key)', None)
 
-	# rat synonym
+        # rat synonym
 
-	cmd = '''select distinct o._Marker_key, o._Organism_key, o._OrthologOrganism_key, s.synonym as label 
-		from orthology2 o, MGI_SynonymType st, MGI_Synonym s 
-		where st._MGIType_key = 2 
-		and st._Organism_key = o._OrthologOrganism_key 
-		and st._SynonymType_key = s._SynonymType_key 
-		and o.m2 = s._Object_key 
-		'''
+        cmd = '''select distinct o._Marker_key, o._Organism_key, o._OrthologOrganism_key, s.synonym as label 
+                from orthology2 o, MGI_SynonymType st, MGI_Synonym s 
+                where st._MGIType_key = 2 
+                and st._Organism_key = o._OrthologOrganism_key 
+                and st._SynonymType_key = s._SynonymType_key 
+                and o.m2 = s._Object_key 
+                '''
 
-	if markerKey is not None:
-		cmd = cmd + 'and s._Object_key = %s\n' % markerKey
+        if markerKey is not None:
+                cmd = cmd + 'and s._Object_key = %s\n' % markerKey
 
-	writeRecord(db.sql(cmd, 'auto'), 1, 9, 'MY', 'rat synonym')
+        writeRecord(db.sql(cmd, 'auto'), 1, 9, 'MY', 'rat synonym')
 
 def priority10():
 
-	# mouse synonyms (similar, broad, narrow)
+        # mouse synonyms (similar, broad, narrow)
 
-        print 'processing priority 10...%s' % mgi_utils.date()
+        print('processing priority 10...%s' % mgi_utils.date())
 
-	cmd = '''select distinct s._Object_key as _Marker_key, st._Organism_key, null as  _OrthologOrganism_key, s.synonym as label
-		from MGI_SynonymType st, MGI_Synonym s 
-		where st._MGIType_key = 2 
-		and st._Organism_key = 1 
-		and st.synonymType in ('similar', 'broad', 'narrow')
-		and st._SynonymType_key = s._SynonymType_key 
-		'''
+        cmd = '''select distinct s._Object_key as _Marker_key, st._Organism_key, null as  _OrthologOrganism_key, s.synonym as label
+                from MGI_SynonymType st, MGI_Synonym s 
+                where st._MGIType_key = 2 
+                and st._Organism_key = 1 
+                and st.synonymType in ('similar', 'broad', 'narrow')
+                and st._SynonymType_key = s._SynonymType_key 
+                '''
 
-	if markerKey is not None:
-		cmd = cmd + 'and s._Object_key = %s\n' % markerKey
+        if markerKey is not None:
+                cmd = cmd + 'and s._Object_key = %s\n' % markerKey
 
-	writeRecord(db.sql(cmd, 'auto'), 1, 10, 'MY', 'related synonym')
+        writeRecord(db.sql(cmd, 'auto'), 1, 10, 'MY', 'related synonym')
 
 def priority11():
 
-	# human ortholog (symbol)
+        # human ortholog (symbol)
 
-        print 'processing priority 11...%s' % mgi_utils.date()
+        print('processing priority 11...%s' % mgi_utils.date())
 
-	cmd = '''select o.*, m.symbol as label, s.commonName || ' symbol' as labelTypeName
-		from orthology1 o, MRK_Marker m, MGI_Organism s
-		where o.m2 = m._Marker_key 
-		and o._OrthologOrganism_key = s._Organism_key 
-		'''
+        cmd = '''select o.*, m.symbol as label, s.commonName || ' symbol' as labelTypeName
+                from orthology1 o, MRK_Marker m, MGI_Organism s
+                where o.m2 = m._Marker_key 
+                and o._OrthologOrganism_key = s._Organism_key 
+                '''
 
-	writeRecord(db.sql(cmd, 'auto'), 1, 11, 'OS', None)
+        writeRecord(db.sql(cmd, 'auto'), 1, 11, 'OS', None)
 
-	# human symbol
+        # human symbol
 
-	cmd = '''select _Marker_key, _Organism_key, null as _OrthologOrganism_key , symbol as label 
-		from MRK_Marker 
-		where _Organism_key = 2 
-		'''
+        cmd = '''select _Marker_key, _Organism_key, null as _OrthologOrganism_key , symbol as label 
+                from MRK_Marker 
+                where _Organism_key = 2 
+                '''
 
-	writeRecord(db.sql(cmd, 'auto'), 1, 11, 'MS', 'current symbol')
+        writeRecord(db.sql(cmd, 'auto'), 1, 11, 'MS', 'current symbol')
 
 def priority12():
 
-	# human ortholog (name)
+        # human ortholog (name)
 
-        print 'processing priority 12...%s' % mgi_utils.date()
+        print('processing priority 12...%s' % mgi_utils.date())
 
-	cmd = '''select o.*, m.name as label, s.commonName || ' name' as labelTypeName 
-		from orthology1 o, MRK_Marker m, MGI_Organism s 
-		where o.m2 = m._Marker_key 
-		and o._OrthologOrganism_key = s._Organism_key 
-		'''
+        cmd = '''select o.*, m.name as label, s.commonName || ' name' as labelTypeName 
+                from orthology1 o, MRK_Marker m, MGI_Organism s 
+                where o.m2 = m._Marker_key 
+                and o._OrthologOrganism_key = s._Organism_key 
+                '''
 
-	writeRecord(db.sql(cmd, 'auto'), 1, 12, 'ON', None)
+        writeRecord(db.sql(cmd, 'auto'), 1, 12, 'ON', None)
 
-	# human name
+        # human name
 
-	cmd = '''select _Marker_key, _Organism_key, null as _OrthologOrganism_key , name as label 
-		from MRK_Marker 
-		where _Organism_key = 2
-		'''
+        cmd = '''select _Marker_key, _Organism_key, null as _OrthologOrganism_key , name as label 
+                from MRK_Marker 
+                where _Organism_key = 2
+                '''
 
-	writeRecord(db.sql(cmd, 'auto'), 1, 12, 'MN', 'current name')
+        writeRecord(db.sql(cmd, 'auto'), 1, 12, 'MN', 'current name')
 
 def priority13():
 
-	# rat ortholog (symbol)
+        # rat ortholog (symbol)
 
-        print 'processing priority 13...%s' % mgi_utils.date()
+        print('processing priority 13...%s' % mgi_utils.date())
 
-	cmd = '''select o.*, m.symbol as label, s.commonName || ' symbol' as labelTypeName 
-		from orthology2 o, MRK_Marker m, MGI_Organism s 
-		where o.m2 = m._Marker_key 
-		and o._OrthologOrganism_key = s._Organism_key 
-		'''
+        cmd = '''select o.*, m.symbol as label, s.commonName || ' symbol' as labelTypeName 
+                from orthology2 o, MRK_Marker m, MGI_Organism s 
+                where o.m2 = m._Marker_key 
+                and o._OrthologOrganism_key = s._Organism_key 
+                '''
 
-	# rat symbol
+        # rat symbol
 
-	writeRecord(db.sql(cmd, 'auto'), 1, 13, 'OS', None)
+        writeRecord(db.sql(cmd, 'auto'), 1, 13, 'OS', None)
 
-	cmd = '''select _Marker_key, _Organism_key, null as _OrthologOrganism_key, symbol as label 
-		from MRK_Marker 
-		where _Organism_key = 40 
-		'''
+        cmd = '''select _Marker_key, _Organism_key, null as _OrthologOrganism_key, symbol as label 
+                from MRK_Marker 
+                where _Organism_key = 40 
+                '''
 
-	# rat name
+        # rat name
 
-	writeRecord(db.sql(cmd, 'auto'), 1, 13, 'MS', 'current symbol')
+        writeRecord(db.sql(cmd, 'auto'), 1, 13, 'MS', 'current symbol')
 
-	cmd = '''select _Marker_key, _Organism_key, null as _OrthologOrganism_key , name as label
-		from MRK_Marker 
-		where _Organism_key = 40 
-		'''
+        cmd = '''select _Marker_key, _Organism_key, null as _OrthologOrganism_key , name as label
+                from MRK_Marker 
+                where _Organism_key = 40 
+                '''
 
-	writeRecord(db.sql(cmd, 'auto'), 1, 13, 'MN', 'current name')
+        writeRecord(db.sql(cmd, 'auto'), 1, 13, 'MN', 'current name')
 
 def priority14():
 
-	# other ortholog (symbol)
+        # other ortholog (symbol)
 
-        print 'processing priority 14...%s' % mgi_utils.date()
+        print('processing priority 14...%s' % mgi_utils.date())
 
-	# build a temp table (#orthology3) with four columns:
-	#	_Marker_key           : mouse marker key
-	#	m2                    : non-human/rat/mouse marker key
-	#	_Organism_key         : mouse organism key (1)
-	#	_OrthologOrganism_key : non-human/rat/mouse organism key
-	#
-	# and populate it with mouse/other (non-rat, non-human, non-mouse)
-	# homologies from the HomoloGene classes
+        # build a temp table (#orthology3) with four columns:
+        #	_Marker_key           : mouse marker key
+        #	m2                    : non-human/rat/mouse marker key
+        #	_Organism_key         : mouse organism key (1)
+        #	_OrthologOrganism_key : non-human/rat/mouse organism key
+        #
+        # and populate it with mouse/other (non-rat, non-human, non-mouse)
+        # homologies from the HomoloGene classes
 
-	cmd = '''select distinct mouse._Marker_key,
-			human._Marker_key as m2,
-			mm._Organism_key,
-			hm._Organism_key as _OrthologOrganism_key
-		INTO TEMPORARY TABLE orthology3
-		from VOC_Term vt,
-			MRK_Cluster mc,
-			MRK_ClusterMember mouse,
-			MRK_Marker mm,
-			MRK_ClusterMember human,
-			MRK_Marker hm
-		where vt.term = 'HomoloGene'
-			and vt._Term_key = mc._ClusterSource_key
-			and mc._Cluster_key = mouse._Cluster_key
-			and mouse._Marker_key = mm._Marker_key
-			and mm._Organism_key = 1
-			and mc._Cluster_key = human._Cluster_key
-			and human._Marker_key = hm._Marker_key
-			and hm._Organism_key not in (1, 2, 40)
-		'''
+        cmd = '''select distinct mouse._Marker_key,
+                        human._Marker_key as m2,
+                        mm._Organism_key,
+                        hm._Organism_key as _OrthologOrganism_key
+                INTO TEMPORARY TABLE orthology3
+                from VOC_Term vt,
+                        MRK_Cluster mc,
+                        MRK_ClusterMember mouse,
+                        MRK_Marker mm,
+                        MRK_ClusterMember human,
+                        MRK_Marker hm
+                where vt.term = 'HomoloGene'
+                        and vt._Term_key = mc._ClusterSource_key
+                        and mc._Cluster_key = mouse._Cluster_key
+                        and mouse._Marker_key = mm._Marker_key
+                        and mm._Organism_key = 1
+                        and mc._Cluster_key = human._Cluster_key
+                        and human._Marker_key = hm._Marker_key
+                        and hm._Organism_key not in (1, 2, 40)
+                '''
 
-	if markerKey is not None:
-		cmd = cmd + 'and mm._Marker_key = %s\n' % markerKey
+        if markerKey is not None:
+                cmd = cmd + 'and mm._Marker_key = %s\n' % markerKey
 
-	db.sql(cmd, None)
-	db.sql('create index idx1 on orthology3(m2)', None)
-	db.sql('create index idx2 on orthology3(_OrthologOrganism_key)', None)
+        db.sql(cmd, None)
+        db.sql('create index idx1 on orthology3(m2)', None)
+        db.sql('create index idx2 on orthology3(_OrthologOrganism_key)', None)
 
-	cmd = '''select o.*, m.symbol as label, s.commonName || ' symbol' as labelTypeName 
-		from orthology3 o, MRK_Marker m, MGI_Organism s 
-		where o.m2 = m._Marker_key 
-		and o._OrthologOrganism_key = s._Organism_key 
-		'''
+        cmd = '''select o.*, m.symbol as label, s.commonName || ' symbol' as labelTypeName 
+                from orthology3 o, MRK_Marker m, MGI_Organism s 
+                where o.m2 = m._Marker_key 
+                and o._OrthologOrganism_key = s._Organism_key 
+                '''
 
-	homologs = db.sql(cmd, 'auto')
+        homologs = db.sql(cmd, 'auto')
 
-	# tweak organism names as needed
+        # tweak organism names as needed
 
-	for row in homologs:
-		row['labelTypeName'] = row['labelTypeName'].replace (
-			', domestic', '')
+        for row in homologs:
+                row['labelTypeName'] = row['labelTypeName'].replace (
+                        ', domestic', '')
 
-	writeRecord(homologs, 1, 14, 'OS', None)
+        writeRecord(homologs, 1, 14, 'OS', None)
 
-	# other symbol
+        # other symbol
 
-	cmd = '''select _Marker_key, _Organism_key, null as _OrthologOrganism_key, symbol as label 
-		from MRK_Marker 
-		where _Organism_key not in (1,2,40) 
-		'''
+        cmd = '''select _Marker_key, _Organism_key, null as _OrthologOrganism_key, symbol as label 
+                from MRK_Marker 
+                where _Organism_key not in (1,2,40) 
+                '''
 
-	if markerKey is not None:
-		cmd = cmd + 'and _Marker_key = %s\n' % markerKey
+        if markerKey is not None:
+                cmd = cmd + 'and _Marker_key = %s\n' % markerKey
 
-	writeRecord(db.sql(cmd, 'auto'), 1, 14, 'MS', 'current symbol')
+        writeRecord(db.sql(cmd, 'auto'), 1, 14, 'MS', 'current symbol')
 
-	# other name
+        # other name
 
-	cmd = '''select _Marker_key, _Organism_key, null as _OrthologOrganism_key , name as label 
-		from MRK_Marker 
-		where _Organism_key not in (1,2,40) 
-		'''
+        cmd = '''select _Marker_key, _Organism_key, null as _OrthologOrganism_key , name as label 
+                from MRK_Marker 
+                where _Organism_key not in (1,2,40) 
+                '''
 
-	if markerKey is not None:
-		cmd = cmd + 'and _Marker_key = %s\n' % markerKey
+        if markerKey is not None:
+                cmd = cmd + 'and _Marker_key = %s\n' % markerKey
 
-	writeRecord(db.sql(cmd, 'auto'), 1, 14, 'MN', 'current name')
+        writeRecord(db.sql(cmd, 'auto'), 1, 14, 'MN', 'current name')
 
 #
 # Main Routine
 #
 
-print '%s' % mgi_utils.date()
+print('%s' % mgi_utils.date())
 
 db.useOneConnection(1)
 #db.set_sqlLogFunction(db.sqlLogAll)
 
 if len(sys.argv) == 2:
-	markerKey = sys.argv[1]
+        markerKey = sys.argv[1]
 else:
-	markerKey = None
+        markerKey = None
 
 outBCP = open(outDir + '/%s.bcp' % (table), 'w')
 
@@ -593,5 +592,4 @@ priority14()
 outBCP.close()
 db.useOneConnection(0)
 
-print '%s' % mgi_utils.date()
-
+print('%s' % mgi_utils.date())

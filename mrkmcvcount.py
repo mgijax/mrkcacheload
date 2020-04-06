@@ -1,4 +1,3 @@
-#!/usr/local/bin/python
 
 '''
 #
@@ -26,11 +25,11 @@ import mgi_utils
 import db
 
 try:
-	table = os.environ['COUNT_TABLE']
-	outDir = os.environ['MRKCACHEBCPDIR']
+        table = os.environ['COUNT_TABLE']
+        outDir = os.environ['MRKCACHEBCPDIR']
 except:
-	table = 'MRK_MCV_Count_Cache'
-	outDir = './'
+        table = 'MRK_MCV_Count_Cache'
+        outDir = './'
 
 COLDL = '|'
 LINEDL = '\n'
@@ -45,29 +44,29 @@ def createBCPfile():
     # annotated to each marker category term and its descendants
     #
     '''
-    print 'Creating %s ...' % countBCP
+    print('Creating %s ...' % countBCP)
     countFp = open(countBCP, 'w')
     db.sql('''select distinct _MCVTerm_key, count(_MCVTerm_key) as mkrCt
-	INTO TEMPORARY TABLE mkrCt
-	from MRK_MCV_Cache
-	group by _MCVTerm_key''', None)
+        INTO TEMPORARY TABLE mkrCt
+        from MRK_MCV_Cache
+        group by _MCVTerm_key''', None)
     # must be distinct or dups will be returned where there are both
     # SO and MCV ids associated with a term
     results = db.sql('''select distinct v.term, m.*
-	from VOC_Term v, ACC_Accession a, mkrCt m
-	where m._MCVTerm_key = v._Term_key
-	and v._Term_key = a._Object_key
-	and a._MGIType_key = 13
-	and a.preferred = 1''', 'auto')
+        from VOC_Term v, ACC_Accession a, mkrCt m
+        where m._MCVTerm_key = v._Term_key
+        and v._Term_key = a._Object_key
+        and a._MGIType_key = 13
+        and a.preferred = 1''', 'auto')
     for r in results:
         termKey = r['_MCVTerm_key']
-	markerCt = r['mkrCt']
-	countFp.write(mgi_utils.prvalue(termKey) + COLDL + \
-	    mgi_utils.prvalue(markerCt) + COLDL + \
-	    createdBy + COLDL + \
-	    createdBy + COLDL + \
-	    date + COLDL + \
-	    date + LINEDL)
+        markerCt = r['mkrCt']
+        countFp.write(mgi_utils.prvalue(termKey) + COLDL + \
+            mgi_utils.prvalue(markerCt) + COLDL + \
+            createdBy + COLDL + \
+            createdBy + COLDL + \
+            date + COLDL + \
+            date + LINEDL)
     countFp.close()
 #
 # Main Routine
@@ -78,5 +77,4 @@ db.set_sqlLogFunction(db.sqlLogAll)
 createBCPfile()
 db.useOneConnection(0)
 
-print '%s' % mgi_utils.date()
-
+print('%s' % mgi_utils.date())

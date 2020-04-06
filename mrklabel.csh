@@ -20,7 +20,7 @@ date | tee -a ${LOG}
 
 # Create the bcp file
 
-./mrklabel.py | tee -a ${LOG}
+${PYTHON} ./mrklabel.py | tee -a ${LOG}
 
 # Exit if bcp file is empty
 

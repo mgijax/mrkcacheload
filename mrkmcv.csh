@@ -31,7 +31,7 @@ touch ${CACHELOG}
 date | tee -a ${CACHELOG}
 
 # Create  bcp file
-./mrkmcv.py -S${MGD_DBSERVER} -D${MGD_DBNAME} -U${MGD_DBUSER} -P${MGD_DBPASSWORDFILE} -K${MARKERKEY} | tee -a ${CACHELOG}
+${PYTHON} ./mrkmcv.py -S${MGD_DBSERVER} -D${MGD_DBNAME} -U${MGD_DBUSER} -P${MGD_DBPASSWORDFILE} -K${MARKERKEY} | tee -a ${CACHELOG}
 set resultcode=$?
 if ( $resultcode ) then
     exit $resultcode
@@ -58,7 +58,7 @@ ${BCP_CMD} ${TABLE} ${MRKCACHEBCPDIR} ${TABLE}.bcp ${COLDELIM} ${LINEDELIM} ${PG
 ${SCHEMADIR}/index/${TABLE}_create.object | tee -a ${CACHELOG}
 
 # Create the MCV Count bcp file
-./mrkmcvcount.py | tee -a ${CACHELOG}
+${PYTHON} ./mrkmcvcount.py | tee -a ${CACHELOG}
 
 # Exit if bcp file is empty
 
