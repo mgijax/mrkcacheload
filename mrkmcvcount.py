@@ -19,8 +19,6 @@
 
 import sys
 import os
-import string
-import sets
 import mgi_utils
 import db
 

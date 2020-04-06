@@ -49,7 +49,6 @@
 import sys
 import os
 import getopt
-import string
 import re
 import mgi_utils
 import db

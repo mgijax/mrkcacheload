@@ -22,7 +22,6 @@
 import sys
 import os
 import getopt
-import string
 import mgi_utils
 import db
 
@@ -208,7 +207,7 @@ def init (mkrKey):
         mcvKeyToTermDict[mcvKey] = term
     # parse the marker type from the note
     for mcvKey in list(notes.keys()):
-        note = str.join(notes[mcvKey], '')
+        note = str.join('', notes[mcvKey])
         if not note[0:11] == 'Marker_Type':
             continue
         # parse the note
@@ -509,7 +508,7 @@ def createBCPfile():
         annotMadeList = []
 
         # create a comma delimited str.of direct terms for the marker
-        directTerms = str.join(directTermList, ',')
+        directTerms = str.join(',', directTermList)
         for a in annotateToList:
             writeRecord(mkrKey, a, directTerms, DIRECT)
             annotMadeList.append(a)
@@ -673,7 +672,7 @@ def processByMarker(mkrKey):
     # annotations already made so we don't create dups
     annotMadeList = []
 
-    directTerms = str.join(directTermList, ',')
+    directTerms = str.join(',', directTermList)
     for a in annotateToList:
         #print('insertCache(mkrKey: %s, annotTo:%s, directTerms: %s DIRECT)' % (mkrKey, a, directTerms))
         insertCache(mkrKey, a, directTerms, DIRECT)
