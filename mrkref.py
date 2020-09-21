@@ -92,7 +92,9 @@ import os
 import mgi_utils
 import db
 
-db.setTrace(True)
+#keep turned off except for debugging
+#buffer too big when running from API
+#db.setTrace(True)
 
 try:
     COLDL = os.environ['COLDELIM']
@@ -406,7 +408,7 @@ def process(queryKey, queryWhere, queryAnd, queryAnd2):
 # Main Routine
 #
 
-print('%s' % mgi_utils.date())
+#print('%s' % mgi_utils.date())
 
 scriptName = os.path.basename(sys.argv[0])
 
@@ -419,4 +421,4 @@ elif scriptName == "mrkrefByMarker.py":
 elif scriptName == "mrkrefByReference.py":
         processByReference(sys.argv[1])
 
-print('%s' % mgi_utils.date())
+#print('%s' % mgi_utils.date())
