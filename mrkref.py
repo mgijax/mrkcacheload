@@ -92,10 +92,6 @@ import os
 import mgi_utils
 import db
 
-#keep turned off except for debugging
-#buffer too big when running from API
-#db.setTrace(True)
-
 try:
     COLDL = os.environ['COLDELIM']
     LINEDL = '\n'
@@ -413,6 +409,7 @@ def process(queryKey, queryWhere, queryAnd, queryAnd2):
 scriptName = os.path.basename(sys.argv[0])
 
 if scriptName == "mrkref.py":
+        db.setTrace(True)
         processAll();
 
 elif scriptName == "mrkrefByMarker.py":
