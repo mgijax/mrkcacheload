@@ -149,9 +149,13 @@ def createBCPfile():
 
         # for each molecular segment/marker, create an auto-E relationship
 
+        results = db.sql('''select nextval('prb_marker_seq') as maxKey''', 'auto')
+        assocKey = results[0]['maxKey']
+
         results = db.sql('select distinct _Probe_key, _Marker_key from createautoe', 'auto')
         for r in results:
-            bcpFile.write(mgi_utils.prvalue(r['_Probe_key']) + COLDL + \
+            bcpFile.write(str(assocKey) + COLDL + \
+                mgi_utils.prvalue(r['_Probe_key']) + COLDL + \
                 mgi_utils.prvalue(r['_Marker_key']) + COLDL + \
                 mgi_utils.prvalue(refsKey) + COLDL + \
                 relationship + COLDL + \
@@ -159,7 +163,7 @@ def createBCPfile():
                 createdBy + COLDL + \
                 cdate + COLDL + \
                 cdate + LINEDL)
-
+            assocKey = assocKey + 1
         bcpFile.close()
 
         db.commit()

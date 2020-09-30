@@ -35,5 +35,6 @@ ${BCP_CMD} ${TABLE} ${MRKCACHEBCPDIR} ${TABLE}.bcp ${COLDELIM} ${LINEDELIM} ${PG
 
 # Create indexes
 ${SCHEMADIR}/index/${TABLE}_create.object | tee -a ${LOG}
+${SCHEMADIR}/autosequence/${TABLE}_create.object | tee -a ${LOG}
 
 date | tee -a ${LOG}
