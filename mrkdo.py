@@ -40,6 +40,10 @@
 #
 # History
 #
+# sc    02/22/2021
+#       TR13349 - B39 project. Update to use alliance clustered homology
+#       (was using Hybrid)
+#
 # 11/28/2016    lec
 #       - TR12427/Disease Ontology (DO)
 #
@@ -360,7 +364,7 @@ def selectMouse():
                 where o._Marker_key = cm1._Marker_key
                 and cm1._Cluster_key = c1._Cluster_key
                 and c1._ClusterType_key = 9272150
-                and c1._ClusterSource_key = 13764519
+                and c1._ClusterSource_key = 75885740
                 and c1._Cluster_key = c2._Cluster_key
                 and c2._Cluster_key = cm2._Cluster_key
                 and cm2._Marker_key = m2._Marker_key 
@@ -559,7 +563,7 @@ def selectHuman():
                 where o._Marker_key = cm1._Marker_key
                 and cm1._Cluster_key = c1._Cluster_key
                 and c1._ClusterType_key = 9272150
-                and c1._ClusterSource_key = 13764519
+                and c1._ClusterSource_key = 75885740
                 and c1._Cluster_key = c2._Cluster_key
                 and c2._Cluster_key = cm2._Cluster_key
                 and cm2._Marker_key = m2._Marker_key

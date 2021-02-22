@@ -1,8 +1,8 @@
 TAG: mrkcacheload-6-0-?-?
 DATE: 09/30/2020
-STAFF: lec
+STAFF: lec, sc
 TR3349/Genome Build 39/mrkprobe*/autosequence
-
+mrkdo.py, mrklabel.py - update to use Alliance homology
 TAG: mrkcacheload-6-0-16-4
 TAG: mrkcacheload-6-0-16-2
 DATE: 09/22/2020

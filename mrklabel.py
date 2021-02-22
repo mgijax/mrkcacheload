@@ -14,6 +14,10 @@
 #
 # History
 #
+# sc    02/22/2021
+#       TR13349 - B39 project. Update to use alliance direct homology
+#               (was using Homologene and HGNC)
+#
 # 04/27/2015	lec
 #	- TR11999/newLabel = r['label'].replace('|', '#')
 #
@@ -274,8 +278,8 @@ def priority8():
         #	_Organism_key         : mouse organism key (1)
         #	_OrthologOrganism_key : human organism key (2)
         #
-        # and populate it with mouse/human homologies from the HomoloGene
-        # classes
+        # and populate it with mouse/human homologies from the Alliance
+        # direct homology
 
         cmd = '''select distinct mouse._Marker_key,
                         human._Marker_key as m2,
@@ -288,7 +292,7 @@ def priority8():
                         MRK_Marker mm,
                         MRK_ClusterMember human,
                         MRK_Marker hm
-                where (vt.term = 'HomoloGene' or vt.term = 'HGNC')
+                where (vt._Term_key = 75885739
                         and vt._Term_key = mc._ClusterSource_key
                         and mc._Cluster_key = mouse._Cluster_key
                         and mouse._Marker_key = mm._Marker_key
@@ -332,8 +336,8 @@ def priority9():
         #	_Organism_key         : mouse organism key (1)
         #	_OrthologOrganism_key : rat organism key (40)
         #
-        # and populate it with mouse/rat homologies from the HomoloGene
-        # classes
+        # and populate it with mouse/rat homologies from the Alliance
+        # direct homology
 
         cmd = '''select distinct mouse._Marker_key,
                         human._Marker_key as m2,
@@ -346,7 +350,7 @@ def priority9():
                         MRK_Marker mm,
                         MRK_ClusterMember human,
                         MRK_Marker hm
-                where vt.term = 'HomoloGene'
+                where vt._Term_key = 75885739
                         and vt._Term_key = mc._ClusterSource_key
                         and mc._Cluster_key = mouse._Cluster_key
                         and mouse._Marker_key = mm._Marker_key
@@ -488,7 +492,7 @@ def priority14():
         #	_OrthologOrganism_key : non-human/rat/mouse organism key
         #
         # and populate it with mouse/other (non-rat, non-human, non-mouse)
-        # homologies from the HomoloGene classes
+        # homologies from the Alliance direct homology
 
         cmd = '''select distinct mouse._Marker_key,
                         human._Marker_key as m2,
@@ -501,7 +505,7 @@ def priority14():
                         MRK_Marker mm,
                         MRK_ClusterMember human,
                         MRK_Marker hm
-                where vt.term = 'HomoloGene'
+                where vt._Term_key = 75885739
                         and vt._Term_key = mc._ClusterSource_key
                         and mc._Cluster_key = mouse._Cluster_key
                         and mouse._Marker_key = mm._Marker_key
