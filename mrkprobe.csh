@@ -36,4 +36,8 @@ ${BCP_CMD} ${TABLE} ${MRKCACHEBCPDIR} ${TABLE}.bcp ${COLDELIM} ${LINEDELIM} ${PG
 # Create indexes
 ${SCHEMADIR}/index/${TABLE}_create.object | tee -a ${LOG}
 
+cat - <<EOSQL | ${PG_DBUTILS}/bin/doisql.csh $0
+select setval('prb_marker_seq', (select max(_assoc_key) from PRB_Marker));
+EOSQL
+
 date | tee -a ${LOG}

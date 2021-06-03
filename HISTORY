@@ -1,7 +1,8 @@
+TAG: mrkcacheload-6-0-17-3
 TAG: mrkcacheload-6-0-17-2
-DATE: 06/02/2021
+DATE: 06/02/2021, 06/03/2021
 STAFF: lec
-mrkprobe.csh/remove obsolete autosequence line
+mrkprobe.csh/fix re-set of autosequence prb_marker_seq
 
 TAG: mrkcacheload-6-0-17-1
 DATE: 05/11/2021
