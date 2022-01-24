@@ -413,6 +413,7 @@ if scriptName == "mrkref.py":
         processAll();
 
 elif scriptName == "mrkrefByMarker.py":
+        db.setTrace(True)
         processByMarker(sys.argv[1])
 
 elif scriptName == "mrkrefByReference.py":

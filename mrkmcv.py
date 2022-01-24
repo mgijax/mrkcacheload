@@ -177,12 +177,12 @@ def init (mkrKey):
     # Get the MCV vocab terms and their notes from the database
     # Notes tell us the term's MGI marker type if term maps directly to a 
     # marker type
-    db.sql('''select n._Object_key, rtrim(nc.note) as chunk, nc.sequenceNum
+    db.sql('''select n._Object_key, rtrim(n.note) as chunk
         INTO TEMPORARY TABLE notes
-        from MGI_Note n, MGI_NoteChunk nc
+        from MGI_Note n
         where n._MGIType_key = 13
             and n._NoteType_key = 1001
-            and n._Note_key = nc._Note_key''', None)
+            ''', None)
 
     db.sql('''create index notes_idx1 on notes(_Object_key)''', None)
 
@@ -190,9 +190,9 @@ def init (mkrKey):
             from VOC_Term t left outer join
             notes n on (n._object_key = t._term_key)
             where t._vocab_key = 79
-            order by t._Term_key, n.sequenceNum''', 'auto')
+            order by t._Term_key''', 'auto')
 
-    notes = {} # map the terms to their note chunks
+    notes = {} # map the terms to their note
     for r in results:
         mcvKey = r['_Term_key']
         term = r['term']
@@ -228,8 +228,7 @@ def init (mkrKey):
     #
     # verify that all MCV database marker types have a MTO term
     #
-    results = db.sql('''select _Marker_Type_key
-                from MRK_Types''', 'auto')
+    results = db.sql('''select _Marker_Type_key from MRK_Types''', 'auto')
     mcvMarkerTypeKeys = list(mkrTypeKeyToAssocMCVTermKeyDict.keys())
     #print('mcvMarkerTypeKeys: %s' % mcvMarkerTypeKeys)
     for r in results:
