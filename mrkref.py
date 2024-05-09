@@ -368,6 +368,7 @@ def process(queryKey, queryWhere, queryAnd, queryAnd2):
                 pubmedID[key] = value
 
         results = db.sql('select _Marker_key, _Refs_key from refs', 'auto')
+        insertSQL = ""
         for r in results:
             key = r['_Refs_key']
 
@@ -396,27 +397,45 @@ def process(queryKey, queryWhere, queryAnd, queryAnd2):
                 else:
                         p = 'null'
 
-                db.sql('''insert into MRK_Reference values(%s,%s,'%s','%s',%s,'%s',now(),now())'''
-                        % (r['_Marker_key'], key, mgiID[key], jnumID[key], p, jnum[key]))
+                insertSQL = '''insert into MRK_Reference values(%s,%s,'%s','%s',%s,'%s',now(),now());\n''' \
+                        % (r['_Marker_key'], key, mgiID[key], jnumID[key], p, jnum[key])
+                db.sql(insertSQL, None)
                 db.commit()
+
+        db.sql('drop table if exists temp1', None)
+        db.sql('drop table if exists temp4', None)
+        db.sql('drop table if exists temp5', None)
+        db.sql('drop table if exists temp6', None)
+        db.sql('drop table if exists temp7', None)
+        db.sql('drop table if exists temp8', None)
+        db.sql('drop table if exists temp9', None)
+        db.sql('drop table if exists temp10', None)
+        db.sql('drop table if exists temp11', None)
+        db.sql('drop table if exists temp12', None)
+
+        db.commit()
 
 #
 # Main Routine
 #
 
-#print('%s' % mgi_utils.date())
+if __name__ == '__main__':
+        #print('%s' % mgi_utils.date())
 
-scriptName = os.path.basename(sys.argv[0])
+        scriptName = os.path.basename(sys.argv[0])
 
-if scriptName == "mrkref.py":
-        db.setTrace(True)
-        processAll();
+        if scriptName == "mrkref.py":
+                #db.setTrace(True)
+                processAll();
 
-elif scriptName == "mrkrefByMarker.py":
-        db.setTrace(True)
-        processByMarker(sys.argv[1])
+        elif scriptName == "mrkrefByMarker.py":
+                #db.setTrace(True)
+                processByMarker(sys.argv[1])
 
-elif scriptName == "mrkrefByReference.py":
-        processByReference(sys.argv[1])
+        elif scriptName == "mrkrefByReference.py":
+                #db.setTrace(True)
+                processByReference(sys.argv[1])
 
-#print('%s' % mgi_utils.date())
+        sys.exit()
+        #print('%s' % mgi_utils.date())
+
