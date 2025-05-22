@@ -89,7 +89,7 @@ notQualifier = []
 gene = 1
 nextMaxKey = 0		# max(_Cache_key)
 
-crepattern = re.compile(".*\(.*[Cc]re.*\).*")
+crepattern = re.compile(r".*\(.*[Cc]re.*\).*")
 
 #
 # Headers on Phenotype Detail Page
